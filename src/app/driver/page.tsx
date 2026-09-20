@@ -11,7 +11,7 @@ export default function DriverRedirectPage() {
   }, [router]);
 
   return (
-    <div className="min-h-screen bg-[#090d16] flex items-center justify-center text-slate-400 text-xs">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center text-slate-600 text-xs font-medium">
       جاري التوجيه إلى لوحة تحكم المدير...
     </div>
   );

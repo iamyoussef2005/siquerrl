@@ -71,42 +71,42 @@ export function AdminOrdersTable({
       case 'pending':
         return {
           label: 'بانتظار مندوب',
-          className: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-          dotColor: 'bg-amber-400',
+          className: 'bg-amber-50 text-amber-700 border-amber-200',
+          dotColor: 'bg-amber-500',
           icon: Clock,
         };
       case 'assigned':
         return {
           label: 'مُسند',
-          className: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
-          dotColor: 'bg-indigo-400',
+          className: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+          dotColor: 'bg-indigo-500',
           icon: Truck,
         };
       case 'delivering':
         return {
           label: 'قيد التوصيل',
-          className: 'bg-sky-500/10 text-sky-400 border-sky-500/20',
-          dotColor: 'bg-sky-400',
+          className: 'bg-sky-50 text-sky-700 border-sky-200',
+          dotColor: 'bg-sky-500',
           icon: Truck,
         };
       case 'delivered':
         return {
           label: 'تم التسليم',
-          className: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-          dotColor: 'bg-emerald-400',
+          className: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+          dotColor: 'bg-emerald-500',
           icon: CheckCircle2,
         };
       case 'cancelled':
         return {
           label: 'ملغي',
-          className: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
-          dotColor: 'bg-rose-400',
+          className: 'bg-rose-50 text-rose-700 border-rose-200',
+          dotColor: 'bg-rose-500',
           icon: XCircle,
         };
       default:
         return {
           label: status,
-          className: 'bg-slate-500/10 text-slate-400 border-slate-500/30',
+          className: 'bg-slate-100 text-slate-600 border-slate-200',
           dotColor: 'bg-slate-400',
           icon: AlertCircle,
         };
@@ -221,23 +221,23 @@ export function AdminOrdersTable({
   });
 
   return (
-    <div className="bg-[#0e131f] border border-[#1b2234] rounded-xl shadow-sm overflow-hidden transition-all">
+    <div className="bg-white border border-slate-200 rounded-xl shadow-xs overflow-hidden transition-all">
       {/* شريط أدوات الجدول والفلاتر المتقدمة */}
-      <div className="p-3.5 lg:p-4 border-b border-[#1b2234] bg-[#0b0f19]/70 flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-3">
+      <div className="p-3.5 lg:p-4 border-b border-slate-200 bg-slate-50/70 flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <div className="p-2 rounded-lg bg-blue-500/10 text-blue-400">
+          <div className="p-2 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 shadow-2xs">
             <Package className="w-4 h-4" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-sm sm:text-base font-semibold text-white tracking-tight">
+              <h3 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight">
                 جدول متابعة وتوزيع الطلبات
               </h3>
-              <span className="px-2 py-0.5 text-[11px] font-medium bg-[#161d2d] text-slate-300 rounded-md border border-[#222c42] font-mono">
+              <span className="px-2 py-0.5 text-[11px] font-semibold bg-white text-slate-700 rounded-md border border-slate-200 font-mono shadow-2xs">
                 {filteredOrders.length} طلب
               </span>
             </div>
-            <p className="text-[11px] text-slate-400">إسناد الطلبات للمناديب وتدقيق الحسابات</p>
+            <p className="text-[11px] text-slate-500">إسناد الطلبات للمناديب وتدقيق الحسابات</p>
           </div>
         </div>
 
@@ -250,13 +250,13 @@ export function AdminOrdersTable({
               placeholder="بحث برقم الطلب، الزبون، أو الهاتف..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#121724] border border-[#212a3d] hover:border-slate-600 focus:border-blue-500 rounded-lg px-3 py-1.5 pr-8 pl-7 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500/30 transition-all"
+              className="w-full bg-white border border-slate-300 hover:border-slate-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 rounded-xl px-3 py-1.5 pr-8 pl-7 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-hidden transition-all shadow-2xs"
             />
             <Search className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-2 pointer-events-none" />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute left-2 top-2 text-slate-400 hover:text-white p-0.5 rounded hover:bg-slate-800 transition-colors cursor-pointer"
+                className="absolute left-2 top-2 text-slate-400 hover:text-slate-600 p-0.5 rounded hover:bg-slate-100 transition-colors cursor-pointer"
               >
                 <X className="w-3 h-3" />
               </button>
@@ -268,7 +268,7 @@ export function AdminOrdersTable({
             <select
               value={selectedDriverId}
               onChange={(e) => onSelectDriverId(e.target.value)}
-              className="w-full bg-[#121724] border border-[#212a3d] hover:border-slate-600 focus:border-blue-500 rounded-lg px-3 py-1.5 text-xs text-slate-200 font-medium focus:outline-none focus:ring-1 focus:ring-blue-500/30 cursor-pointer appearance-none pl-7"
+              className="w-full bg-white border border-slate-300 hover:border-slate-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 rounded-xl px-3 py-1.5 text-xs text-slate-700 font-medium focus:outline-hidden cursor-pointer appearance-none pl-7 shadow-2xs"
             >
               <option value="all">جميع المناديب</option>
               {drivers.map((drv) => (
@@ -285,7 +285,7 @@ export function AdminOrdersTable({
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full bg-[#121724] border border-[#212a3d] hover:border-slate-600 focus:border-blue-500 rounded-lg px-3 py-1.5 text-xs text-slate-200 font-medium focus:outline-none focus:ring-1 focus:ring-blue-500/30 cursor-pointer appearance-none pl-7"
+              className="w-full bg-white border border-slate-300 hover:border-slate-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 rounded-xl px-3 py-1.5 text-xs text-slate-700 font-medium focus:outline-hidden cursor-pointer appearance-none pl-7 shadow-2xs"
             >
               <option value="all">جميع الحالات</option>
               <option value="pending">بانتظار مندوب</option>
@@ -301,7 +301,7 @@ export function AdminOrdersTable({
       {/* الجدول العصري المتجاوب */}
       <div className="overflow-x-auto">
         <table className="w-full text-right text-xs">
-          <thead className="bg-[#090d15] text-slate-400 border-b border-[#1b2234] text-[11px] font-medium tracking-normal">
+          <thead className="bg-slate-50 text-slate-600 border-b border-slate-200 text-[11px] font-semibold tracking-normal">
             <tr>
               <th className="py-3 px-4">رقم الطلب</th>
               <th className="py-3 px-3">الوقت</th>
@@ -314,16 +314,16 @@ export function AdminOrdersTable({
               <th className="py-3 px-4 text-center">إجراءات</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#161d2b] text-slate-300">
+          <tbody className="divide-y divide-slate-100 text-slate-700">
             {filteredOrders.length === 0 ? (
               <tr>
-                <td colSpan={9} className="py-14 text-center text-slate-400">
+                <td colSpan={9} className="py-14 text-center text-slate-500">
                   <div className="flex flex-col items-center justify-center gap-2.5">
-                    <div className="p-2.5 rounded-xl bg-[#121724] text-slate-500 border border-[#1e2638]">
+                    <div className="p-3 rounded-2xl bg-slate-50 text-slate-400 border border-slate-200">
                       <AlertCircle className="w-6 h-6" />
                     </div>
-                    <p className="text-xs sm:text-sm font-medium text-slate-300">لا توجد طلبات تطابق معايير البحث الحالية</p>
-                    <p className="text-[11px] text-slate-500">جرب تفريغ الفلاتر أو كتابة عبارة بحث أخرى</p>
+                    <p className="text-xs sm:text-sm font-semibold text-slate-800">لا توجد طلبات تطابق معايير البحث الحالية</p>
+                    <p className="text-[11px] text-slate-400">جرب تفريغ الفلاتر أو كتابة عبارة بحث أخرى</p>
                   </div>
                 </td>
               </tr>
@@ -333,28 +333,28 @@ export function AdminOrdersTable({
                 const isUpdating = updatingOrderId === order.id;
 
                 return (
-                  <tr key={order.id} className="hover:bg-[#121826]/70 transition-colors group">
+                  <tr key={order.id} className="hover:bg-slate-50/80 transition-colors group">
                     {/* رقم الطلب */}
                     <td className="py-3 px-4 font-mono whitespace-nowrap">
-                      <span className="px-2 py-0.5 rounded bg-[#131926] border border-[#20283b] text-slate-300 font-medium text-xs">
+                      <span className="px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-700 font-semibold text-xs">
                         #{order.id}
                       </span>
                     </td>
 
                     {/* الوقت */}
-                    <td className="py-3 px-3 whitespace-nowrap text-slate-400 font-mono text-[11px]">
+                    <td className="py-3 px-3 whitespace-nowrap text-slate-500 font-mono text-[11px]">
                       {formatTime(order.created_at)}
                     </td>
 
                     {/* الزبون والهاتف */}
                     <td className="py-3 px-4">
-                      <div className="font-semibold text-white text-xs sm:text-sm">{order.customer_name}</div>
+                      <div className="font-semibold text-slate-900 text-xs sm:text-sm">{order.customer_name}</div>
                       <a
                         href={`tel:${order.customer_phone}`}
-                        className="inline-flex items-center gap-1 text-[11px] text-slate-400 hover:text-blue-400 font-mono mt-0.5 transition-colors"
+                        className="inline-flex items-center gap-1 text-[11px] text-slate-500 hover:text-blue-600 font-mono mt-0.5 transition-colors"
                         dir="ltr"
                       >
-                        <Phone className="w-3 h-3 text-slate-500 shrink-0" />
+                        <Phone className="w-3 h-3 text-slate-400 shrink-0" />
                         <span>{order.customer_phone}</span>
                       </a>
                     </td>
@@ -363,12 +363,12 @@ export function AdminOrdersTable({
                     <td className="py-3 px-4 max-w-xs">
                       <div className="flex items-start gap-1.5">
                         <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
-                        <span className="line-clamp-1 text-slate-200 font-medium text-xs" title={order.delivery_address}>
+                        <span className="line-clamp-1 text-slate-800 font-medium text-xs" title={order.delivery_address}>
                           {order.delivery_address}
                         </span>
                       </div>
                       {order.order_details && (
-                        <p className="line-clamp-1 text-[11px] text-slate-400 mt-0.5 font-normal" title={order.order_details}>
+                        <p className="line-clamp-1 text-[11px] text-slate-500 mt-0.5 font-normal" title={order.order_details}>
                           {order.order_details}
                         </p>
                       )}
@@ -377,7 +377,7 @@ export function AdminOrdersTable({
                           href={order.maps_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="mt-1 px-1.5 py-0.5 rounded bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 text-[10px] text-blue-400 inline-flex items-center gap-1 transition-colors"
+                          className="mt-1 px-1.5 py-0.5 rounded bg-blue-50 hover:bg-blue-100 border border-blue-200 text-[10px] text-blue-700 inline-flex items-center gap-1 transition-colors font-medium"
                         >
                           <span>عرض الخريطة</span>
                           <ExternalLink className="w-2.5 h-2.5" />
@@ -386,22 +386,22 @@ export function AdminOrdersTable({
                     </td>
 
                     {/* المبلغ المطلوب تحصيله */}
-                    <td className="py-3 px-4 text-center whitespace-nowrap font-mono font-bold text-emerald-400 text-xs sm:text-sm">
+                    <td className="py-3 px-4 text-center whitespace-nowrap font-mono font-bold text-emerald-700 text-xs sm:text-sm">
                       {formatCurrency(Number(order.collection_amount))}
-                      <span className="text-[10px] text-emerald-500/70 mr-1">ل.س</span>
+                      <span className="text-[10px] text-emerald-600 mr-1">ل.س</span>
                     </td>
 
                     {/* توزيع الأجرة (سائق ومكتب) */}
                     <td className="py-3 px-4 text-center whitespace-nowrap font-mono">
-                      <div className="text-white font-bold text-xs">
-                        {formatCurrency(Number(order.delivery_fee))} <span className="text-[10px] text-slate-400">ل.س</span>
+                      <div className="text-slate-900 font-bold text-xs">
+                        {formatCurrency(Number(order.delivery_fee))} <span className="text-[10px] text-slate-500">ل.س</span>
                       </div>
-                      <div className="flex items-center justify-center gap-2 text-[10px] mt-0.5 bg-[#0a0e18] py-0.5 px-2 rounded border border-[#1b2234]">
-                        <span className="text-sky-300 font-medium">
+                      <div className="flex items-center justify-center gap-2 text-[10px] mt-0.5 bg-slate-100 py-0.5 px-2 rounded-md border border-slate-200">
+                        <span className="text-sky-700 font-medium">
                           سائق: {formatCurrency(Number(order.driver_fee))}
                         </span>
-                        <span className="text-slate-600">|</span>
-                        <span className="text-slate-300 font-medium">
+                        <span className="text-slate-300">|</span>
+                        <span className="text-slate-700 font-medium">
                           مكتب: {formatCurrency(Number(order.office_fee))}
                         </span>
                       </div>
@@ -414,7 +414,7 @@ export function AdminOrdersTable({
                           disabled={isUpdating || order.status === 'cancelled' || order.status === 'delivered'}
                           value={order.driver_id || ''}
                           onChange={(e) => handleAssignDriver(order, e.target.value)}
-                          className="w-full bg-[#101420] border border-[#20283b] hover:border-slate-500 rounded-lg px-2 py-1 text-xs text-slate-200 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                          className="w-full bg-white border border-slate-300 hover:border-slate-400 rounded-lg px-2 py-1 text-xs text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-blue-100 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-2xs"
                         >
                           <option value="">لم يُسند</option>
                           {drivers.map((drv) => (
@@ -424,7 +424,7 @@ export function AdminOrdersTable({
                           ))}
                         </select>
                         {isUpdating && (
-                          <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-400 absolute left-2 top-2 pointer-events-none" />
+                          <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-600 absolute left-2 top-2 pointer-events-none" />
                         )}
                       </div>
                     </td>
@@ -432,7 +432,7 @@ export function AdminOrdersTable({
                     {/* الحالة */}
                     <td className="py-3 px-4 text-center whitespace-nowrap">
                       <span
-                        className={`px-2.5 py-0.5 rounded-md text-[11px] font-medium border inline-flex items-center gap-1.5 ${badge.className}`}
+                        className={`px-2.5 py-0.5 rounded-full text-[11px] font-medium border inline-flex items-center gap-1.5 ${badge.className}`}
                       >
                         <span className={`w-1.5 h-1.5 rounded-full ${badge.dotColor}`}></span>
                         <span>{badge.label}</span>
@@ -446,10 +446,10 @@ export function AdminOrdersTable({
                         <button
                           type="button"
                           onClick={() => onOpenEditModal(order)}
-                          className="p-1.5 rounded-lg bg-[#141926] hover:bg-[#1e2537] text-slate-300 hover:text-white border border-[#232b3e] transition-all cursor-pointer active:scale-95"
+                          className="p-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-900 border border-slate-200 transition-all cursor-pointer active:scale-95 shadow-2xs"
                           title="تعديل الطلب"
                         >
-                          <Edit3 className="w-3.5 h-3.5 text-slate-300" />
+                          <Edit3 className="w-3.5 h-3.5" />
                         </button>
 
                         {/* زر إلغاء الطلب */}
@@ -458,7 +458,7 @@ export function AdminOrdersTable({
                             type="button"
                             disabled={isUpdating}
                             onClick={() => handleCancelOrder(order)}
-                            className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 transition-all disabled:opacity-50 cursor-pointer active:scale-95"
+                            className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition-all disabled:opacity-50 cursor-pointer active:scale-95 shadow-2xs"
                             title="إلغاء الطلب"
                           >
                             <XCircle className="w-3.5 h-3.5" />

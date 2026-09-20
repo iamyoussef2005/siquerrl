@@ -53,17 +53,17 @@ export function AdminAccountingCards({ orders, selectedDriver, dateFilter = 'all
     <div className="mb-6 space-y-3">
       {/* تنبيه فلترة المندوب */}
       {selectedDriver && (
-        <div className="bg-[#121826] border border-blue-500/30 rounded-xl px-4 py-2.5 text-xs flex items-center justify-between text-slate-200 shadow-sm">
+        <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-2.5 text-xs flex items-center justify-between text-slate-700 shadow-2xs">
           <div className="flex items-center gap-2">
-            <UserCheck className="w-4 h-4 text-blue-400" />
+            <UserCheck className="w-4 h-4 text-blue-600" />
             <span>
               عرض حسابات المندوب:{' '}
-              <strong className="text-white font-semibold">
+              <strong className="text-slate-900 font-bold">
                 {selectedDriver.name}
               </strong>
             </span>
           </div>
-          <span className="bg-blue-500/15 text-blue-400 border border-blue-500/25 px-2.5 py-0.5 rounded-md font-mono text-[11px] font-medium">
+          <span className="bg-white text-blue-700 border border-blue-200 px-2.5 py-0.5 rounded-md font-mono text-[11px] font-semibold shadow-2xs">
             {relevantOrders.length} {relevantOrders.length === 1 ? 'طلب' : 'طلبات'}
           </span>
         </div>
@@ -72,60 +72,60 @@ export function AdminAccountingCards({ orders, selectedDriver, dateFilter = 'all
       {/* بطاقات المؤشرات المالية الرئيسية */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
         {/* 1. إجمالي المبالغ المطلوب تحصيلها */}
-        <div className="rounded-xl bg-[#0e131f] border border-[#1c2436] p-4 sm:p-5 shadow-sm hover:border-[#28344d] transition-all">
-          <div className="flex items-center justify-between text-slate-400 mb-3">
-            <span className="text-xs font-medium">إجمالي مبالغ التحصيل</span>
-            <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400">
+        <div className="rounded-xl bg-white border border-slate-200 p-4 sm:p-5 shadow-xs hover:shadow transition-all">
+          <div className="flex items-center justify-between text-slate-500 mb-3">
+            <span className="text-xs font-semibold">إجمالي مبالغ التحصيل</span>
+            <div className="p-2 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-600 shadow-2xs">
               <Coins className="w-4 h-4" />
             </div>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-bold text-white font-mono tracking-tight">
+            <span className="text-2xl sm:text-3xl font-bold text-slate-900 font-mono tracking-tight">
               {formatCurrency(totalCollection)}
             </span>
-            <span className="text-xs font-medium text-slate-400">ل.س</span>
+            <span className="text-xs font-semibold text-slate-500">ل.س</span>
           </div>
-          <p className="text-[11px] text-slate-500 mt-2 font-normal">
+          <p className="text-[11px] text-slate-400 mt-2 font-normal">
             مجموع مبالغ التحصيل المحسوبة ({filterLabel})
           </p>
         </div>
 
         {/* 2. أرباح المكتب */}
-        <div className="rounded-xl bg-[#0e131f] border border-[#1c2436] p-4 sm:p-5 shadow-sm hover:border-[#28344d] transition-all">
-          <div className="flex items-center justify-between text-slate-400 mb-3">
-            <span className="text-xs font-medium">أرباح المكتب (عمولات التوصيل)</span>
-            <div className="p-2 rounded-lg bg-blue-500/10 text-blue-400">
+        <div className="rounded-xl bg-white border border-slate-200 p-4 sm:p-5 shadow-xs hover:shadow transition-all">
+          <div className="flex items-center justify-between text-slate-500 mb-3">
+            <span className="text-xs font-semibold">أرباح المكتب (عمولات التوصيل)</span>
+            <div className="p-2 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 shadow-2xs">
               <TrendingUp className="w-4 h-4" />
             </div>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-bold text-white font-mono tracking-tight">
+            <span className="text-2xl sm:text-3xl font-bold text-slate-900 font-mono tracking-tight">
               {formatCurrency(totalOfficeProfit)}
             </span>
-            <span className="text-xs font-medium text-slate-400">ل.س</span>
+            <span className="text-xs font-semibold text-slate-500">ل.س</span>
           </div>
-          <p className="text-[11px] text-slate-500 mt-2 font-normal">
+          <p className="text-[11px] text-slate-400 mt-2 font-normal">
             صافي حصة المكتب من أجور التوصيل ({filterLabel})
           </p>
         </div>
 
         {/* 3. مستحقات المناديب */}
-        <div className="rounded-xl bg-[#0e131f] border border-[#1c2436] p-4 sm:p-5 shadow-sm hover:border-[#28344d] transition-all">
-          <div className="flex items-center justify-between text-slate-400 mb-3">
-            <span className="text-xs font-medium">
+        <div className="rounded-xl bg-white border border-slate-200 p-4 sm:p-5 shadow-xs hover:shadow transition-all">
+          <div className="flex items-center justify-between text-slate-500 mb-3">
+            <span className="text-xs font-semibold">
               {selectedDriver ? `مستحقات ${selectedDriver.name}` : 'إجمالي مستحقات المناديب'}
             </span>
-            <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400">
+            <div className="p-2 rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-600 shadow-2xs">
               <Wallet className="w-4 h-4" />
             </div>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-bold text-white font-mono tracking-tight">
+            <span className="text-2xl sm:text-3xl font-bold text-slate-900 font-mono tracking-tight">
               {formatCurrency(totalDriverDues)}
             </span>
-            <span className="text-xs font-medium text-slate-400">ل.س</span>
+            <span className="text-xs font-semibold text-slate-500">ل.س</span>
           </div>
-          <p className="text-[11px] text-slate-500 mt-2 font-normal">
+          <p className="text-[11px] text-slate-400 mt-2 font-normal">
             حصة السائقين المقررة عن التوصيل ({filterLabel})
           </p>
         </div>
@@ -134,53 +134,53 @@ export function AdminAccountingCards({ orders, selectedDriver, dateFilter = 'all
       {/* عدادات الحالات التنفيذية الأنيقة */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
         {/* قيد الانتظار */}
-        <div className="bg-[#0e131f] border border-[#1b2234] rounded-xl p-3 flex items-center justify-between hover:border-[#28344d] transition-colors">
+        <div className="bg-white border border-slate-200 rounded-xl p-3 flex items-center justify-between hover:border-slate-300 transition-colors shadow-2xs">
           <div className="flex items-center gap-2.5">
-            <div className="p-1.5 rounded-lg bg-amber-500/10 text-amber-400">
+            <div className="p-1.5 rounded-lg bg-amber-50 text-amber-600 border border-amber-100">
               <Clock className="w-3.5 h-3.5" />
             </div>
             <div>
-              <div className="text-[11px] text-slate-400">بانتظار مندوب</div>
-              <div className="text-base font-bold text-amber-400 font-mono mt-0.5">{pendingOrders}</div>
+              <div className="text-[11px] text-slate-500 font-medium">بانتظار مندوب</div>
+              <div className="text-base font-bold text-amber-600 font-mono mt-0.5">{pendingOrders}</div>
             </div>
           </div>
         </div>
 
         {/* قيد التوصيل */}
-        <div className="bg-[#0e131f] border border-[#1b2234] rounded-xl p-3 flex items-center justify-between hover:border-[#28344d] transition-colors">
+        <div className="bg-white border border-slate-200 rounded-xl p-3 flex items-center justify-between hover:border-slate-300 transition-colors shadow-2xs">
           <div className="flex items-center gap-2.5">
-            <div className="p-1.5 rounded-lg bg-blue-500/10 text-blue-400">
+            <div className="p-1.5 rounded-lg bg-sky-50 text-sky-600 border border-sky-100">
               <Truck className="w-3.5 h-3.5" />
             </div>
             <div>
-              <div className="text-[11px] text-slate-400">قيد التوصيل</div>
-              <div className="text-base font-bold text-blue-400 font-mono mt-0.5">{inDeliveryOrders}</div>
+              <div className="text-[11px] text-slate-500 font-medium">قيد التوصيل</div>
+              <div className="text-base font-bold text-sky-600 font-mono mt-0.5">{inDeliveryOrders}</div>
             </div>
           </div>
         </div>
 
         {/* مكتملة */}
-        <div className="bg-[#0e131f] border border-[#1b2234] rounded-xl p-3 flex items-center justify-between hover:border-[#28344d] transition-colors">
+        <div className="bg-white border border-slate-200 rounded-xl p-3 flex items-center justify-between hover:border-slate-300 transition-colors shadow-2xs">
           <div className="flex items-center gap-2.5">
-            <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400">
+            <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100">
               <CheckCircle2 className="w-3.5 h-3.5" />
             </div>
             <div>
-              <div className="text-[11px] text-slate-400">مكتملة ومسلّمة</div>
-              <div className="text-base font-bold text-emerald-400 font-mono mt-0.5">{completedOrders}</div>
+              <div className="text-[11px] text-slate-500 font-medium">مكتملة ومسلّمة</div>
+              <div className="text-base font-bold text-emerald-600 font-mono mt-0.5">{completedOrders}</div>
             </div>
           </div>
         </div>
 
         {/* ملغاة */}
-        <div className="bg-[#0e131f] border border-[#1b2234] rounded-xl p-3 flex items-center justify-between hover:border-[#28344d] transition-colors">
+        <div className="bg-white border border-slate-200 rounded-xl p-3 flex items-center justify-between hover:border-slate-300 transition-colors shadow-2xs">
           <div className="flex items-center gap-2.5">
-            <div className="p-1.5 rounded-lg bg-rose-500/10 text-rose-400">
+            <div className="p-1.5 rounded-lg bg-rose-50 text-rose-600 border border-rose-100">
               <XCircle className="w-3.5 h-3.5" />
             </div>
             <div>
-              <div className="text-[11px] text-slate-400">ملغاة</div>
-              <div className="text-base font-bold text-rose-400 font-mono mt-0.5">{cancelledOrders}</div>
+              <div className="text-[11px] text-slate-500 font-medium">ملغاة</div>
+              <div className="text-base font-bold text-rose-600 font-mono mt-0.5">{cancelledOrders}</div>
             </div>
           </div>
         </div>

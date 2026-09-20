@@ -1,47 +1,47 @@
 @import "tailwindcss";
 
 :root {
-  --background: #090c13;
-  --foreground: #f1f5f9;
-  --card-bg: #0f1420;
-  --card-border: rgba(255, 255, 255, 0.08);
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --card-bg: #ffffff;
+  --card-border: #e2e8f0;
 }
 
 body {
   background-color: var(--background);
   color: var(--foreground);
   font-family: var(--font-alexandria), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background-image: radial-gradient(ellipse at 50% 0%, rgba(30, 41, 59, 0.22) 0%, transparent 65%);
+  background-image: radial-gradient(ellipse at 50% 0%, rgba(226, 232, 240, 0.45) 0%, transparent 70%);
   background-attachment: fixed;
   background-repeat: no-repeat;
   min-height: 100vh;
   letter-spacing: -0.01em;
 }
 
-/* Custom sleek modern scrollbars */
+/* Custom sleek modern scrollbars (Light Mode) */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #090c13;
+  background: #f1f5f9;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #222a3a;
+  background: #cbd5e1;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: #94a3b8;
 }
 
-/* Human-Crafted Surface & Card Utilities */
+/* Enterprise Surface & Card Utilities (Light Mode) */
 .erp-card {
-  background: #0e131f;
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px -1px rgba(0, 0, 0, 0.3);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.02);
 }
 
 .erp-card-hover {
@@ -49,21 +49,22 @@ body {
 }
 
 .erp-card-hover:hover {
-  border-color: rgba(255, 255, 255, 0.15);
-  background: #121827;
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.03);
 }
 
 /* Backwards-compatible glass aliases */
 .glass-panel {
-  background: rgba(14, 19, 31, 0.88);
+  background: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid #e2e8f0;
 }
 
 .glass-card {
-  background: #0e131f;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.03);
 }
 
 .glass-card-hover {
@@ -71,14 +72,14 @@ body {
 }
 
 .glass-card-hover:hover {
-  border-color: rgba(255, 255, 255, 0.16);
-  background: #121827;
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.06);
 }
 
 /* Row highlight animation on update */
 @keyframes highlightPulse {
   0% {
-    background-color: rgba(59, 130, 246, 0.18);
+    background-color: rgba(59, 130, 246, 0.12);
   }
   100% {
     background-color: transparent;
@@ -92,7 +93,7 @@ body {
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: scale(0.985) translateY(2px);
+    transform: scale(0.99) translateY(2px);
   }
   to {
     opacity: 1;

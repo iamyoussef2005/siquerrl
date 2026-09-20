@@ -15,9 +15,12 @@ import {
   CheckCircle2,
   Package,
   Headphones,
+  PlusCircle,
+  Layers,
 } from 'lucide-react';
 
 export default function CallCenterPage() {
+  const [activeView, setActiveView] = useState<'create' | 'table'>('create');
   const [orders, setOrders] = useState<Order[]>([]);
   const [drivers, setDrivers] = useState<Profile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -155,7 +158,7 @@ export default function CallCenterPage() {
 
   return (
     <ProtectedRoute allowedRoles={['call_center', 'admin']}>
-      <div className="min-h-screen bg-[#090c13] text-slate-100 flex flex-col selection:bg-blue-600/30 selection:text-white pb-16">
+      <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col selection:bg-blue-100 selection:text-blue-900 pb-16">
         {/* رأس شاشة الكول سنتر */}
         <CallCenterHeader
           realtimeConnected={realtimeConnected}
@@ -166,13 +169,15 @@ export default function CallCenterPage() {
           isLoading={isLoading}
           onOpenDriversModal={() => setIsDriversModalOpen(true)}
           ordersCountToday={totalCount}
+          activeView={activeView}
+          onChangeView={setActiveView}
         />
 
         {/* إشعار عائم للتحديثات اللحظية */}
         {notification && (
           <div className="fixed bottom-5 left-5 z-50 animate-fadeIn">
-            <div className="bg-[#0e131f] text-slate-100 px-4 py-2.5 rounded-lg shadow-xl flex items-center gap-2.5 text-xs font-medium border border-[#1e2739]">
-              <Bell className="w-4 h-4 text-blue-400" />
+            <div className="bg-white text-slate-900 px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2.5 text-xs font-semibold border border-slate-200">
+              <Bell className="w-4 h-4 text-blue-600" />
               <span>{notification}</span>
             </div>
           </div>
@@ -180,97 +185,154 @@ export default function CallCenterPage() {
 
         {/* المحتوى الرئيسي لكول سنتر */}
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 lg:px-8 space-y-6">
-          {/* 1. شريط إحصائيات سريعة للطلبات */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {/* إجمالي طلبات اليوم */}
-            <div className="bg-[#0e131f] border border-[#1b2234] rounded-xl p-4 flex items-center justify-between">
+          {/* 1. الواجهة الرئيسية: شاشة إضافة وتسجيل الطلب */}
+          <div className={activeView === 'create' ? 'space-y-4 animate-fadeIn' : 'hidden'}>
+            {/* شريط الإجراءات والزر للدخول لجدول الطلبات والتفاصيل */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white border border-slate-200 rounded-xl p-3.5 px-4 sm:px-5 shadow-xs">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400">
-                  <Package className="w-4 h-4" />
+                <div className="p-2.5 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 shadow-2xs">
+                  <Headphones className="w-5 h-5" />
                 </div>
                 <div>
-                  <div className="text-xs text-slate-400 font-medium">إجمالي الطلبات اليوم</div>
-                  <div className="text-xl font-bold text-white font-mono">{totalCount}</div>
+                  <div className="flex items-center gap-2">
+                    <h1 className="text-sm sm:text-base font-bold text-slate-900">
+                      تسجيل واستقبال طلب جديد
+                    </h1>
+                    <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold shadow-2xs">
+                      الرئيسية
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    ادخل هاتف الزبون للبحث التلقائي عن عنوانه ورابط خريطته وتثبيت الطلب فوراً
+                  </p>
                 </div>
               </div>
+
+              {/* زر الانتقال لجدول الطلبات وتفاصيل اليوم */}
+              <button
+                type="button"
+                onClick={() => setActiveView('table')}
+                className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 hover:border-slate-300 text-xs font-semibold text-slate-700 hover:text-slate-900 transition-all shadow-2xs cursor-pointer group active:scale-95"
+              >
+                <Layers className="w-4 h-4 text-blue-600 group-hover:scale-110 transition-transform" />
+                <span>جدول طلبات اليوم والتفاصيل</span>
+                <span className="bg-blue-50 border border-blue-200 text-blue-700 text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full mr-1">
+                  {totalCount} طلبات
+                </span>
+              </button>
             </div>
 
-            {/* بانتظار إسناد مندوب */}
-            <div className="bg-[#0e131f] border border-[#1b2234] rounded-xl p-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400">
-                  <Clock className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="text-xs text-slate-400 font-medium">بانتظار إسناد مندوب</div>
-                  <div className="text-xl font-bold text-amber-400 font-mono">{pendingCount}</div>
-                </div>
-              </div>
-              <span className="text-[10px] font-medium text-amber-400 font-mono bg-amber-500/10 px-2 py-0.5 rounded">
-                Pending
-              </span>
-            </div>
-
-            {/* قيد التوصيل والتحرك */}
-            <div className="bg-[#0e131f] border border-[#1b2234] rounded-xl p-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-sky-500/10 border border-sky-500/20 text-sky-400">
-                  <Truck className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="text-xs text-slate-400 font-medium">قيد التوصيل للزبون</div>
-                  <div className="text-xl font-bold text-sky-400 font-mono">{inDeliveryCount}</div>
-                </div>
-              </div>
-              <span className="text-[10px] font-medium text-sky-400 font-mono bg-sky-500/10 px-2 py-0.5 rounded">
-                Delivering
-              </span>
-            </div>
-
-            {/* الطلبات المكتملة */}
-            <div className="bg-[#0e131f] border border-[#1b2234] rounded-xl p-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
-                  <CheckCircle2 className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="text-xs text-slate-400 font-medium">تم تسليمها بنجاح</div>
-                  <div className="text-xl font-bold text-emerald-400 font-mono">{deliveredCount}</div>
-                </div>
-              </div>
-              <span className="text-[10px] font-medium text-emerald-400 font-mono bg-emerald-500/10 px-2 py-0.5 rounded">
-                Delivered
-              </span>
-            </div>
-          </div>
-
-          {/* 2. نموذج تسجيل الطلب السريع */}
-          <div className="bg-[#0e131f] border border-[#1b2234] rounded-xl p-5 sm:p-6">
-            <div className="flex items-center gap-3 mb-5 pb-4 border-b border-[#1b2234]">
-              <div className="p-2.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400">
-                <Headphones className="w-5 h-5" />
-              </div>
-              <div>
-                <h2 className="text-base font-bold text-white">
-                  تسجيل طلب جديد من الزبون
-                </h2>
-                <p className="text-xs text-slate-400">
-                  ادخل هاتف الزبون للبحث التلقائي عن عنوانه ورابط خريطته، وسيتم إدراجه فوراً بحالة قيد الانتظار
-                </p>
-              </div>
-            </div>
-
+            {/* نموذج تسجيل الطلب السريع */}
             <NewOrderForm onOrderCreated={handleOrderCreated} />
           </div>
 
-          {/* 3. جدول متابعة وحالات الطلبات اللحظي (قراءة فقط) */}
-          <TodayOrdersTable
-            orders={orders}
-            drivers={drivers}
-            onRefresh={fetchOrders}
-            isLoading={isLoading}
-            highlightedOrderId={highlightedOrderId}
-          />
+          {/* 2. واجهة جدول متابعة طلبات اليوم والتفاصيل */}
+          <div className={activeView === 'table' ? 'space-y-6 animate-fadeIn' : 'hidden'}>
+            {/* شريط رأس جدول الطلبات وزر العودة لتسجيل طلب */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white border border-slate-200 rounded-xl p-3.5 px-4 sm:px-5 shadow-xs">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 shadow-2xs">
+                  <Package className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-sm sm:text-base font-bold text-slate-900">
+                      جدول ومتابعة طلبات اليوم
+                    </h2>
+                    <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 font-mono font-semibold shadow-2xs">
+                      {totalCount} إجمالي اليوم
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    متابعة حالات التوصيل والمندوب المسند وتفاصيل طلبات زبائن اليوم
+                  </p>
+                </div>
+              </div>
+
+              {/* زر العودة المباشر لشاشة تسجيل الطلب */}
+              <button
+                type="button"
+                onClick={() => setActiveView('create')}
+                className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-xs font-bold text-white transition-all shadow-xs hover:shadow cursor-pointer active:scale-95"
+              >
+                <PlusCircle className="w-4 h-4" />
+                <span>العودة لشاشة تسجيل طلب جديد</span>
+              </button>
+            </div>
+
+            {/* شريط إحصائيات سريعة للطلبات */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {/* إجمالي طلبات اليوم */}
+              <div className="bg-white border border-slate-200 rounded-xl p-4 flex items-center justify-between shadow-xs">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 shadow-2xs">
+                    <Package className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="text-xs text-slate-500 font-medium">إجمالي الطلبات اليوم</div>
+                    <div className="text-xl font-bold text-slate-900 font-mono">{totalCount}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* بانتظار إسناد مندوب */}
+              <div className="bg-white border border-slate-200 rounded-xl p-4 flex items-center justify-between shadow-xs">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-amber-50 border border-amber-100 text-amber-600 shadow-2xs">
+                    <Clock className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="text-xs text-slate-500 font-medium">بانتظار إسناد مندوب</div>
+                    <div className="text-xl font-bold text-amber-600 font-mono">{pendingCount}</div>
+                  </div>
+                </div>
+                <span className="text-[10px] font-semibold text-amber-700 font-mono bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                  Pending
+                </span>
+              </div>
+
+              {/* قيد التوصيل والتحرك */}
+              <div className="bg-white border border-slate-200 rounded-xl p-4 flex items-center justify-between shadow-xs">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-sky-50 border border-sky-100 text-sky-600 shadow-2xs">
+                    <Truck className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="text-xs text-slate-500 font-medium">قيد التوصيل للزبون</div>
+                    <div className="text-xl font-bold text-sky-600 font-mono">{inDeliveryCount}</div>
+                  </div>
+                </div>
+                <span className="text-[10px] font-semibold text-sky-700 font-mono bg-sky-50 px-2 py-0.5 rounded-full border border-sky-200">
+                  Delivering
+                </span>
+              </div>
+
+              {/* الطلبات المكتملة */}
+              <div className="bg-white border border-slate-200 rounded-xl p-4 flex items-center justify-between shadow-xs">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-600 shadow-2xs">
+                    <CheckCircle2 className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="text-xs text-slate-500 font-medium">تم تسليمها بنجاح</div>
+                    <div className="text-xl font-bold text-emerald-600 font-mono">{deliveredCount}</div>
+                  </div>
+                </div>
+                <span className="text-[10px] font-semibold text-emerald-700 font-mono bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                  Delivered
+                </span>
+              </div>
+            </div>
+
+            {/* جدول متابعة وحالات الطلبات اللحظي (قراءة فقط) */}
+            <TodayOrdersTable
+              orders={orders}
+              drivers={drivers}
+              onRefresh={fetchOrders}
+              isLoading={isLoading}
+              highlightedOrderId={highlightedOrderId}
+            />
+          </div>
         </main>
 
         {/* نافذة استعراض المناديب المتاحين والتواصل معهم */}

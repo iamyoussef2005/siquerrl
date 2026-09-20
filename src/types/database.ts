@@ -1,3 +1,14 @@
+export interface CustomerAddress {
+  id: string;
+  customer_id: string;
+  address: string;
+  maps_url?: string | null;
+  title?: string | null;
+  is_default?: boolean;
+  created_at?: string;
+  last_used_at?: string;
+}
+
 export interface Customer {
   id?: string;
   phone: string;
@@ -6,6 +17,7 @@ export interface Customer {
   maps_url?: string | null;
   backup_phone?: string | null;
   created_at?: string;
+  addresses?: CustomerAddress[];
 }
 
 export type UserRole = 'admin' | 'call_center' | 'driver';

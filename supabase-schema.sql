@@ -120,5 +120,40 @@ CREATE POLICY "Driver update assigned order status" ON public.orders
   WITH CHECK (
     public.get_current_role() = 'driver' AND driver_id = auth.uid()
   );
+-- 4. جدول عناوين الزبائن المتعددة (Customer Addresses)
+CREATE TABLE IF NOT EXISTS public.customer_addresses (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    customer_id UUID NOT NULL REFERENCES public.customers(id) ON DELETE CASCADE,
+    address TEXT NOT NULL,
+    maps_url TEXT,
+    title TEXT,
+    is_default BOOLEAN DEFAULT false,
+    created_at TIMESTAMPTZ DEFAULT now(),
+    last_used_at TIMESTAMPTZ DEFAULT now()
+);
 
+CREATE INDEX IF NOT EXISTS idx_customer_addresses_customer_id ON public.customer_addresses(customer_id);
+CREATE INDEX IF NOT EXISTS idx_customer_addresses_last_used ON public.customer_addresses(customer_id, last_used_at DESC);
 
+-- سياسات أمان عناوين الزبائن
+ALTER TABLE public.customer_addresses ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Allow authenticated to read customer addresses" ON public.customer_addresses;
+CREATE POLICY "Allow authenticated to read customer addresses" ON public.customer_addresses
+  FOR SELECT TO authenticated USING (true);
+
+DROP POLICY IF EXISTS "Allow staff to insert customer addresses" ON public.customer_addresses;
+CREATE POLICY "Allow staff to insert customer addresses" ON public.customer_addresses
+  FOR INSERT TO authenticated
+  WITH CHECK (public.get_current_role() IN ('admin', 'call_center'));
+
+DROP POLICY IF EXISTS "Allow staff to update customer addresses" ON public.customer_addresses;
+CREATE POLICY "Allow staff to update customer addresses" ON public.customer_addresses
+  FOR UPDATE TO authenticated
+  USING (public.get_my_role() IN ('admin', 'call_center'))
+  WITH CHECK (public.get_my_role() IN ('admin', 'call_center'));
+
+DROP POLICY IF EXISTS "Allow admin to delete customer addresses" ON public.customer_addresses;
+CREATE POLICY "Allow admin to delete customer addresses" ON public.customer_addresses
+  FOR DELETE TO authenticated
+  USING (public.get_my_role() = 'admin');

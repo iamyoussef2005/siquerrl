@@ -24,86 +24,86 @@ export function StatsCards({ orders }: StatsCardsProps) {
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
       {/* إجمالي طلبات اليوم */}
-      <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-3.5 flex flex-col justify-between shadow-sm hover:border-slate-700 transition-colors">
-        <div className="flex items-center justify-between text-slate-400 mb-1">
-          <span className="text-xs font-medium">إجمالي اليوم</span>
-          <div className="p-1.5 rounded-lg bg-blue-500/10 text-blue-400">
+      <div className="bg-white border border-slate-200 rounded-xl p-3.5 flex flex-col justify-between shadow-xs hover:border-slate-300 transition-all">
+        <div className="flex items-center justify-between text-slate-500 mb-1">
+          <span className="text-xs font-semibold">إجمالي اليوم</span>
+          <div className="p-1.5 rounded-lg bg-blue-50 text-blue-600 border border-blue-100">
             <Package className="w-4 h-4" />
           </div>
         </div>
         <div className="flex items-baseline gap-1.5">
-          <span className="text-2xl font-bold text-white tracking-tight">{totalOrders}</span>
+          <span className="text-2xl font-bold text-slate-900 tracking-tight font-mono">{totalOrders}</span>
           <span className="text-xs text-slate-500">طلب</span>
         </div>
       </div>
 
       {/* قيد الانتظار */}
-      <div className="bg-slate-900/80 border border-amber-900/40 rounded-xl p-3.5 flex flex-col justify-between shadow-sm hover:border-amber-700/50 transition-colors">
-        <div className="flex items-center justify-between text-amber-400 mb-1">
-          <span className="text-xs font-medium">قيد الانتظار</span>
-          <div className="p-1.5 rounded-lg bg-amber-500/10 text-amber-400">
+      <div className="bg-white border border-slate-200 rounded-xl p-3.5 flex flex-col justify-between shadow-xs hover:border-slate-300 transition-all">
+        <div className="flex items-center justify-between text-slate-500 mb-1">
+          <span className="text-xs font-semibold">قيد الانتظار</span>
+          <div className="p-1.5 rounded-lg bg-amber-50 text-amber-600 border border-amber-100">
             <Clock className="w-4 h-4" />
           </div>
         </div>
         <div className="flex items-baseline gap-1.5">
-          <span className="text-2xl font-bold text-amber-400 tracking-tight">{pendingOrders}</span>
-          <span className="text-xs text-amber-500/80">طلب جديد</span>
+          <span className="text-2xl font-bold text-amber-600 tracking-tight font-mono">{pendingOrders}</span>
+          <span className="text-xs text-amber-600/80">طلب جديد</span>
         </div>
       </div>
 
       {/* جاري التوصيل */}
-      <div className="bg-slate-900/80 border border-sky-900/40 rounded-xl p-3.5 flex flex-col justify-between shadow-sm hover:border-sky-700/50 transition-colors">
-        <div className="flex items-center justify-between text-sky-400 mb-1">
-          <span className="text-xs font-medium">جاري التوصيل</span>
-          <div className="p-1.5 rounded-lg bg-sky-500/10 text-sky-400">
+      <div className="bg-white border border-slate-200 rounded-xl p-3.5 flex flex-col justify-between shadow-xs hover:border-slate-300 transition-all">
+        <div className="flex items-center justify-between text-slate-500 mb-1">
+          <span className="text-xs font-semibold">جاري التوصيل</span>
+          <div className="p-1.5 rounded-lg bg-sky-50 text-sky-600 border border-sky-100">
             <TrendingUp className="w-4 h-4" />
           </div>
         </div>
         <div className="flex items-baseline gap-1.5">
-          <span className="text-2xl font-bold text-sky-400 tracking-tight">{inDeliveryOrders}</span>
-          <span className="text-xs text-sky-500/80">مع المندوب</span>
+          <span className="text-2xl font-bold text-sky-600 tracking-tight font-mono">{inDeliveryOrders}</span>
+          <span className="text-xs text-sky-600/80">مع المندوب</span>
         </div>
       </div>
 
       {/* تم التسليم */}
-      <div className="bg-slate-900/80 border border-emerald-900/40 rounded-xl p-3.5 flex flex-col justify-between shadow-sm hover:border-emerald-700/50 transition-colors">
-        <div className="flex items-center justify-between text-emerald-400 mb-1">
-          <span className="text-xs font-medium">تم التسليم</span>
-          <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400">
+      <div className="bg-white border border-slate-200 rounded-xl p-3.5 flex flex-col justify-between shadow-xs hover:border-slate-300 transition-all">
+        <div className="flex items-center justify-between text-slate-500 mb-1">
+          <span className="text-xs font-semibold">تم التسليم</span>
+          <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100">
             <CheckCircle2 className="w-4 h-4" />
           </div>
         </div>
         <div className="flex items-baseline gap-1.5">
-          <span className="text-2xl font-bold text-emerald-400 tracking-tight">{deliveredOrders}</span>
-          <span className="text-xs text-emerald-500/80">مكتمل</span>
+          <span className="text-2xl font-bold text-emerald-600 tracking-tight font-mono">{deliveredOrders}</span>
+          <span className="text-xs text-emerald-600/80">مكتمل</span>
         </div>
       </div>
 
       {/* إجمالي مبالغ التحصيل */}
-      <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-3.5 flex flex-col justify-between shadow-sm hover:border-slate-700 transition-colors">
-        <div className="flex items-center justify-between text-slate-400 mb-1">
-          <span className="text-xs font-medium">التحصيل المطلوب</span>
-          <div className="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-400">
+      <div className="bg-white border border-slate-200 rounded-xl p-3.5 flex flex-col justify-between shadow-xs hover:border-slate-300 transition-all">
+        <div className="flex items-center justify-between text-slate-500 mb-1">
+          <span className="text-xs font-semibold">التحصيل المطلوب</span>
+          <div className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600 border border-indigo-100">
             <DollarSign className="w-4 h-4" />
           </div>
         </div>
         <div className="flex items-baseline gap-1">
-          <span className="text-lg font-bold text-slate-100 tracking-tight truncate">{formatCurrency(totalCollection)}</span>
-          <span className="text-xs text-slate-400 font-normal">ل.س</span>
+          <span className="text-lg font-bold text-slate-900 tracking-tight truncate font-mono">{formatCurrency(totalCollection)}</span>
+          <span className="text-xs text-slate-500 font-normal">ل.س</span>
         </div>
       </div>
 
       {/* دخل المكتب */}
-      <div className="bg-slate-900/80 border border-purple-900/30 rounded-xl p-3.5 flex flex-col justify-between shadow-sm hover:border-purple-700/40 transition-colors">
-        <div className="flex items-center justify-between text-purple-400 mb-1">
-          <span className="text-xs font-medium">دخل المكتب اليوم</span>
-          <div className="p-1.5 rounded-lg bg-purple-500/10 text-purple-400">
+      <div className="bg-white border border-slate-200 rounded-xl p-3.5 flex flex-col justify-between shadow-xs hover:border-slate-300 transition-all">
+        <div className="flex items-center justify-between text-slate-500 mb-1">
+          <span className="text-xs font-semibold">دخل المكتب اليوم</span>
+          <div className="p-1.5 rounded-lg bg-purple-50 text-purple-600 border border-purple-100">
             <DollarSign className="w-4 h-4" />
           </div>
         </div>
         <div className="flex items-baseline gap-1">
-          <span className="text-lg font-bold text-purple-300 tracking-tight truncate">{formatCurrency(totalOfficeFee)}</span>
-          <span className="text-xs text-purple-400 font-normal">ل.س</span>
+          <span className="text-lg font-bold text-purple-700 tracking-tight truncate font-mono">{formatCurrency(totalOfficeFee)}</span>
+          <span className="text-xs text-purple-600 font-normal">ل.س</span>
         </div>
       </div>
     </div>

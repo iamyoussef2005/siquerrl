@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Customer, Order } from '@/types/database';
+import { Customer, CustomerAddress, Order } from '@/types/database';
 import {
   Phone,
   User,
@@ -20,6 +20,9 @@ import {
   Coins,
   Receipt,
   PieChart,
+  History,
+  Plus,
+  Check,
 } from 'lucide-react';
 
 interface NewOrderFormProps {
@@ -39,8 +42,10 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
   const [collectionAmount, setCollectionAmount] = useState<string>('');
   const [deliveryFee, setDeliveryFee] = useState<string>('');
 
-  // Customer Lookup State
+  // Customer Lookup & Multiple Addresses State
   const [customerId, setCustomerId] = useState<string | null>(null);
+  const [savedAddresses, setSavedAddresses] = useState<CustomerAddress[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | 'new'>('new');
   const [isSearchingCustomer, setIsSearchingCustomer] = useState(false);
   const [customerFound, setCustomerFound] = useState<boolean | null>(null);
   const [lookupMessage, setLookupMessage] = useState<string>('');
@@ -70,6 +75,8 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
       setCustomerFound(null);
       setLookupMessage('');
       setCustomerId(null);
+      setSavedAddresses([]);
+      setSelectedAddressId('new');
       return;
     }
 
@@ -90,38 +97,62 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
       if (data) {
         setCustomerId(data.id);
         setCustomerName(data.name || '');
-        setDeliveryAddress(data.address || '');
         setBackupPhone(data.backup_phone || '');
         setCustomerFound(true);
         setLookupMessage(`زبون مسجل: ${data.name}`);
 
-        // تعبئة رابط الخريطة تلقائياً من سجل الزبون أو من آخر طلب له
-        if (data.maps_url) {
-          setMapsUrl(data.maps_url);
-        } else {
-          // البحث في آخر طلب مسجل لنفس هاتف الزبون يحتوي على رابط خريطة
-          const { data: latestOrder } = await supabase
-            .from('orders')
-            .select('maps_url')
-            .eq('customer_phone', cleanPhone)
-            .not('maps_url', 'is', null)
-            .neq('maps_url', '')
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .maybeSingle();
+        // جلب قائمة العناوين المحفوظة لهذا الزبون من customer_addresses
+        const { data: addressesData, error: addrError } = await supabase
+          .from('customer_addresses')
+          .select('*')
+          .eq('customer_id', data.id)
+          .order('last_used_at', { ascending: false });
 
-          if (latestOrder?.maps_url) {
-            setMapsUrl(latestOrder.maps_url);
-          }
+        if (addrError) {
+          console.warn('Error fetching customer addresses:', addrError.message);
+        }
+
+        let addressList: CustomerAddress[] = addressesData || [];
+
+        // إذا لم توجد عناوين في الجدول الجديد ولكن يوجد عنوان في جدول customers
+        if (addressList.length === 0 && data.address && data.address.trim()) {
+          addressList = [
+            {
+              id: 'fallback-profile-addr',
+              customer_id: data.id,
+              address: data.address.trim(),
+              maps_url: data.maps_url || null,
+              is_default: true,
+              last_used_at: new Date().toISOString(),
+            },
+          ];
+        }
+
+        setSavedAddresses(addressList);
+
+        if (addressList.length > 0) {
+          // اختيار العنوان الافتراضي أو الأحدث استخداماً
+          const defaultOrLatest = addressList.find((a) => a.is_default) || addressList[0];
+          setSelectedAddressId(defaultOrLatest.id);
+          setDeliveryAddress(defaultOrLatest.address);
+          setMapsUrl(defaultOrLatest.maps_url || '');
+        } else {
+          setSelectedAddressId('new');
+          setDeliveryAddress('');
+          setMapsUrl('');
         }
       } else {
         setCustomerId(null);
         setCustomerFound(false);
+        setSavedAddresses([]);
+        setSelectedAddressId('new');
         setLookupMessage('زبون جديد، سيتم حفظ بياناته تلقائياً');
       }
     } catch (err: any) {
       console.error('Customer search error:', err);
       setCustomerFound(false);
+      setSavedAddresses([]);
+      setSelectedAddressId('new');
       setLookupMessage('تعذر البحث اللحظي، يمكنك كتابة البيانات يدوياً');
     } finally {
       setIsSearchingCustomer(false);
@@ -144,7 +175,23 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
       setCustomerFound(null);
       setLookupMessage('');
       setCustomerId(null);
+      setSavedAddresses([]);
+      setSelectedAddressId('new');
     }
+  };
+
+  // اختيار عنوان من العناوين السابقة
+  const handleSelectAddress = (addr: CustomerAddress) => {
+    setSelectedAddressId(addr.id);
+    setDeliveryAddress(addr.address);
+    setMapsUrl(addr.maps_url || '');
+  };
+
+  // اختيار إضافة عنوان جديد
+  const handleAddNewAddressOption = () => {
+    setSelectedAddressId('new');
+    setDeliveryAddress('');
+    setMapsUrl('');
   };
 
   // Reset Form
@@ -158,19 +205,23 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
     setCollectionAmount('');
     setDeliveryFee('');
     setCustomerId(null);
+    setSavedAddresses([]);
+    setSelectedAddressId('new');
     setCustomerFound(null);
     setLookupMessage('');
     setStatusMessage(null);
     phoneInputRef.current?.focus();
   };
 
-  // Save/Update Customer profile
+  // Save/Update Customer profile & addresses
   const saveOrUpdateCustomer = async () => {
     const cleanPhone = phone.trim();
     if (!cleanPhone) return null;
 
     try {
-      if (customerId) {
+      let resolvedCustomerId = customerId;
+
+      if (resolvedCustomerId) {
         const { error } = await supabase
           .from('customers')
           .update({
@@ -179,10 +230,9 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
             backup_phone: backupPhone.trim() || null,
             maps_url: mapsUrl.trim() || null,
           })
-          .eq('id', customerId);
+          .eq('id', resolvedCustomerId);
 
         if (error) console.error('Error updating customer:', error.message);
-        return customerId;
       } else {
         const { data, error } = await supabase
           .from('customers')
@@ -203,8 +253,42 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
           console.error('Error upserting customer:', error.message);
           return null;
         }
-        return data?.id || null;
+        resolvedCustomerId = data?.id || null;
       }
+
+      // حفظ أو تحديث العنوان في جدول customer_addresses
+      const cleanAddress = deliveryAddress.trim();
+      const cleanMaps = mapsUrl.trim() || null;
+
+      if (resolvedCustomerId && cleanAddress) {
+        const existingMatch = savedAddresses.find(
+          (a) => a.address.trim().toLowerCase() === cleanAddress.toLowerCase()
+        );
+
+        if (existingMatch && existingMatch.id !== 'fallback-profile-addr') {
+          // تحديث توقيت آخر استخدام ورابط الخريطة إن وجد جديد
+          await supabase
+            .from('customer_addresses')
+            .update({
+              last_used_at: new Date().toISOString(),
+              maps_url: cleanMaps || existingMatch.maps_url,
+            })
+            .eq('id', existingMatch.id);
+        } else {
+          // إضافة العنوان كعنوان جديد لهذا الزبون
+          await supabase
+            .from('customer_addresses')
+            .insert({
+              customer_id: resolvedCustomerId,
+              address: cleanAddress,
+              maps_url: cleanMaps,
+              is_default: savedAddresses.length === 0,
+              last_used_at: new Date().toISOString(),
+            });
+        }
+      }
+
+      return resolvedCustomerId;
     } catch (err) {
       console.error('Customer save error:', err);
       return null;
@@ -314,11 +398,11 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
       className="relative space-y-4"
     >
       {/* رأس النموذج الفرعي مع زر تفريغ سريع */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#1b2234]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
         <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-400">
+          <span className="text-xs text-slate-500">
             تلميح: يمكنك الحفظ السريع بالضغط على{' '}
-            <kbd className="px-1.5 py-0.5 font-mono text-[11px] bg-[#141926] border border-[#212a3d] rounded text-slate-300">
+            <kbd className="px-1.5 py-0.5 font-mono text-[11px] bg-slate-100 border border-slate-300 rounded text-slate-700 shadow-2xs font-semibold">
               Ctrl + Enter
             </kbd>
           </span>
@@ -327,7 +411,7 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
         <button
           type="button"
           onClick={resetForm}
-          className="self-end sm:self-center flex items-center gap-1.5 text-xs font-medium text-slate-400 hover:text-slate-200 px-2.5 py-1 rounded-lg hover:bg-[#141926] border border-transparent hover:border-[#212a3d] transition-all cursor-pointer active:scale-95"
+          className="self-end sm:self-center flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-slate-800 px-2.5 py-1 rounded-lg hover:bg-slate-100 border border-transparent hover:border-slate-200 transition-all cursor-pointer active:scale-95"
           title="تفريغ الحقول للبدء من جديد"
         >
           <RotateCcw className="w-3.5 h-3.5" />
@@ -338,18 +422,18 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
       {/* رسائل التنبيه والنجاح */}
       {statusMessage && (
         <div
-          className={`p-3 rounded-xl text-xs sm:text-sm font-medium flex items-center gap-2.5 transition-all shadow-sm animate-fadeIn ${
+          className={`p-3.5 rounded-xl text-xs sm:text-sm font-medium flex items-center gap-2.5 transition-all shadow-xs animate-fadeIn ${
             statusMessage.type === 'success'
-              ? 'bg-emerald-950/40 border border-emerald-500/30 text-emerald-300'
-              : 'bg-rose-950/40 border border-rose-500/30 text-rose-300'
+              ? 'bg-emerald-50 border border-emerald-200 text-emerald-800'
+              : 'bg-rose-50 border border-rose-200 text-rose-800'
           }`}
         >
           {statusMessage.type === 'success' ? (
-            <div className="p-1 rounded-lg bg-emerald-500/20 text-emerald-400 shrink-0">
+            <div className="p-1 rounded-lg bg-emerald-100 text-emerald-600 shrink-0">
               <CheckCircle2 className="w-4 h-4" />
             </div>
           ) : (
-            <div className="p-1 rounded-lg bg-rose-500/20 text-rose-400 shrink-0 font-bold">
+            <div className="p-1 rounded-lg bg-rose-100 text-rose-600 shrink-0 font-bold">
               !
             </div>
           )}
@@ -359,10 +443,10 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* قسم 1: بيانات الزبون والاتصال */}
-        <div className="bg-[#0e131f] border border-[#1b2234] rounded-xl p-4 sm:p-5 shadow-sm space-y-4">
-          <div className="flex items-center justify-between border-b border-[#1b2234] pb-3">
-            <span className="text-xs font-semibold text-slate-200 flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-blue-500/10 text-blue-400">
+        <div className="bg-white border border-slate-200 rounded-xl p-4 sm:p-5 shadow-xs space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <span className="text-xs font-semibold text-slate-800 flex items-center gap-2">
+              <div className="p-1.5 rounded-lg bg-blue-50 text-blue-600 border border-blue-100">
                 <User className="w-3.5 h-3.5" />
               </div>
               بيانات الزبون ومعلومات التوصيل
@@ -370,20 +454,20 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
 
             {/* مؤشر حالة الزبون الذكي */}
             {isSearchingCustomer && (
-              <span className="text-xs text-indigo-400 flex items-center gap-1.5 font-medium">
+              <span className="text-xs text-indigo-600 flex items-center gap-1.5 font-medium">
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
                 جاري البحث...
               </span>
             )}
             {!isSearchingCustomer && customerFound === true && (
-              <span className="text-xs font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
-                <CheckCircle2 className="w-3.5 h-3.5" />
+              <span className="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-2xs">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                 {lookupMessage}
               </span>
             )}
             {!isSearchingCustomer && customerFound === false && phone.trim().length >= 7 && (
-              <span className="text-xs font-bold text-amber-400 bg-amber-500/10 border border-amber-500/30 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
-                <UserPlus className="w-3.5 h-3.5" />
+              <span className="text-xs font-bold text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-2xs">
+                <UserPlus className="w-3.5 h-3.5 text-amber-600" />
                 زبون جديد (سيتم الحفظ التلقائي)
               </span>
             )}
@@ -392,8 +476,8 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3.5">
             {/* رقم هاتف الزبون الأساسي */}
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                رقم هاتف الزبون <span className="text-rose-400">*</span>
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                رقم هاتف الزبون <span className="text-rose-500">*</span>
               </label>
               <div className="relative">
                 <input
@@ -412,16 +496,16 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
                       searchCustomer(phone);
                     }
                   }}
-                  className="w-full bg-[#121724] border border-[#212a3d] hover:border-slate-600 focus:border-blue-500 rounded-lg px-3 py-2 pl-9 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500/30 transition-all font-mono text-left"
+                  className="w-full bg-slate-50 border border-slate-300 hover:border-slate-400 focus:bg-white focus:border-blue-600 rounded-xl px-3 py-2 pl-9 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-blue-100 transition-all font-mono text-left"
                 />
-                <Phone className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-2.5 pointer-events-none" />
+                <Phone className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
               </div>
             </div>
 
             {/* اسم الزبون */}
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1.5">
-                اسم الزبون <span className="text-rose-400">*</span>
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                اسم الزبون <span className="text-rose-500">*</span>
               </label>
               <div className="relative">
                 <input
@@ -431,14 +515,14 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
                   placeholder="الاسم الكامل للزبون"
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
-                  className="w-full bg-[#121724] border border-[#212a3d] hover:border-slate-600 focus:border-blue-500 rounded-lg px-3 py-2 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500/30 transition-all"
+                  className="w-full bg-slate-50 border border-slate-300 hover:border-slate-400 focus:bg-white focus:border-blue-600 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-blue-100 transition-all"
                 />
               </div>
             </div>
 
             {/* الرقم الاحتياطي */}
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1.5">
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                 الرقم الاحتياطي (اختياري)
               </label>
               <div className="relative">
@@ -449,7 +533,7 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
                   placeholder="07XXXXXXXXX"
                   value={backupPhone}
                   onChange={(e) => setBackupPhone(e.target.value)}
-                  className="w-full bg-[#121724] border border-[#212a3d] hover:border-slate-600 focus:border-blue-500 rounded-lg px-3 py-2 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500/30 transition-all font-mono text-left"
+                  className="w-full bg-slate-50 border border-slate-300 hover:border-slate-400 focus:bg-white focus:border-blue-600 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-blue-100 transition-all font-mono text-left"
                 />
               </div>
             </div>
@@ -457,7 +541,7 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
             {/* رابط الموقع Google Maps */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="text-xs font-medium text-slate-300">
+                <label className="text-xs font-semibold text-slate-700">
                   رابط الخريطة (Google Maps)
                 </label>
                 {mapsUrl && (
@@ -465,7 +549,7 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
                     href={mapsUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-[11px] text-blue-400 hover:underline flex items-center gap-1 font-medium"
+                    className="text-[11px] text-blue-600 hover:underline flex items-center gap-1 font-medium"
                   >
                     <span>فتح الرابط</span>
                     <ExternalLink className="w-2.5 h-2.5" />
@@ -480,17 +564,105 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
                   placeholder="https://maps.google.com/..."
                   value={mapsUrl}
                   onChange={(e) => setMapsUrl(e.target.value)}
-                  className="w-full bg-[#121724] border border-[#212a3d] hover:border-slate-600 focus:border-blue-500 rounded-lg px-3 py-2 pl-9 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500/30 transition-all font-mono text-left truncate"
+                  className="w-full bg-slate-50 border border-slate-300 hover:border-slate-400 focus:bg-white focus:border-blue-600 rounded-xl px-3 py-2 pl-9 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-blue-100 transition-all font-mono text-left truncate"
                 />
-                <Compass className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-2.5 pointer-events-none" />
+                <Compass className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
               </div>
             </div>
 
+            {/* قائمة العناوين السابقة المحفوظة للزبون */}
+            {savedAddresses.length > 0 && (
+              <div className="md:col-span-2 lg:col-span-4 bg-slate-50/80 border border-slate-200 rounded-xl p-3 sm:p-3.5 space-y-2.5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-slate-200 pb-2">
+                  <span className="text-xs font-semibold text-slate-800 flex items-center gap-1.5">
+                    <History className="w-3.5 h-3.5 text-blue-600" />
+                    <span>العناوين المحفوظة لهذا الزبون ({savedAddresses.length})</span>
+                  </span>
+                  <span className="text-[11px] text-slate-500">
+                    اختر عنواناً مسجلاً لتعبئته فورياً أو أضف عنواناً جديداً
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                  {savedAddresses.map((addr, idx) => {
+                    const isSelected = selectedAddressId === addr.id;
+                    return (
+                      <button
+                        key={addr.id || idx}
+                        type="button"
+                        onClick={() => handleSelectAddress(addr)}
+                        className={`text-right p-2.5 rounded-xl border text-xs transition-all flex flex-col justify-between gap-2 relative cursor-pointer ${
+                          isSelected
+                            ? 'bg-blue-50/90 border-blue-500 text-blue-950 shadow-xs ring-1 ring-blue-500/30'
+                            : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-2 w-full">
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <div
+                              className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${
+                                isSelected
+                                  ? 'border-blue-600 bg-blue-600 text-white'
+                                  : 'border-slate-300 bg-white'
+                              }`}
+                            >
+                              {isSelected && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                            </div>
+                            <span className="font-semibold text-xs text-slate-900 truncate">
+                              {addr.title || (idx === 0 ? 'العنوان الأخير' : `عنوان ${idx + 1}`)}
+                            </span>
+                            {addr.is_default && (
+                              <span className="text-[9px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded border border-blue-200 font-medium">
+                                افتراضي
+                              </span>
+                            )}
+                          </div>
+                          {addr.maps_url && (
+                            <span className="text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 flex items-center gap-0.5 shrink-0">
+                              <Compass className="w-2.5 h-2.5" />
+                              موقع
+                            </span>
+                          )}
+                        </div>
+
+                        <p className="text-[11px] text-slate-600 line-clamp-2 leading-relaxed pr-5">
+                          {addr.address}
+                        </p>
+                      </button>
+                    );
+                  })}
+
+                  {/* زر إضافة عنوان جديد */}
+                  <button
+                    type="button"
+                    onClick={handleAddNewAddressOption}
+                    className={`text-right p-2.5 rounded-xl border text-xs transition-all flex items-center justify-center gap-2 cursor-pointer min-h-[58px] ${
+                      selectedAddressId === 'new'
+                        ? 'bg-amber-50 border-amber-400 text-amber-800 shadow-xs ring-1 ring-amber-400/40'
+                        : 'bg-white border-dashed border-slate-300 text-slate-600 hover:text-slate-900 hover:border-slate-400 hover:bg-slate-50'
+                    }`}
+                  >
+                    <Plus className="w-4 h-4 text-amber-600 shrink-0" />
+                    <span className="font-medium">
+                      {selectedAddressId === 'new' ? 'إدخال عنوان جديد (محدد)' : '+ إضافة عنوان جديد'}
+                    </span>
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* عنوان التوصيل بالتفصيل */}
             <div className="md:col-span-2 lg:col-span-4">
-              <label className="block text-xs font-medium text-slate-300 mb-1.5">
-                عنوان التوصيل بالتفصيل <span className="text-rose-400">*</span>
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-xs font-semibold text-slate-700">
+                  عنوان التوصيل بالتفصيل <span className="text-rose-500">*</span>
+                </label>
+                {selectedAddressId === 'new' && savedAddresses.length > 0 && (
+                  <span className="text-[10px] text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded font-medium">
+                    سيتم حفظ هذا العنوان الجديد في سجل الزبون
+                  </span>
+                )}
+              </div>
               <div className="relative">
                 <input
                   type="text"
@@ -499,7 +671,7 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
                   placeholder="المدينة، المنطقة، اسم الشارع، أقرب نقطة دالة، رقم الزقاق أو الدار..."
                   value={deliveryAddress}
                   onChange={(e) => setDeliveryAddress(e.target.value)}
-                  className="w-full bg-[#121724] border border-[#212a3d] hover:border-slate-600 focus:border-blue-500 rounded-lg px-3 py-2 pr-9 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500/30 transition-all"
+                  className="w-full bg-slate-50 border border-slate-300 hover:border-slate-400 focus:bg-white focus:border-blue-600 rounded-xl px-3 py-2 pr-9 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-blue-100 transition-all"
                 />
                 <MapPin className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-2.5 pointer-events-none" />
               </div>
@@ -508,12 +680,12 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
         </div>
 
         {/* قسم 2: تفاصيل الطلب */}
-        <div className="bg-[#0e131f] border border-[#1b2234] rounded-xl p-4 sm:p-5 shadow-sm space-y-2">
-          <label className="block text-xs font-semibold text-slate-200 flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-blue-500/10 text-blue-400">
+        <div className="bg-white border border-slate-200 rounded-xl p-4 sm:p-5 shadow-xs space-y-2">
+          <label className="block text-xs font-semibold text-slate-800 flex items-center gap-2">
+            <div className="p-1.5 rounded-lg bg-blue-50 text-blue-600 border border-blue-100">
               <FileText className="w-3.5 h-3.5" />
             </div>
-            تفاصيل الطلب وقائمة المواد <span className="text-rose-400">*</span>
+            تفاصيل الطلب وقائمة المواد <span className="text-rose-500">*</span>
           </label>
           <textarea
             ref={orderDetailsRef}
@@ -523,21 +695,21 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
             placeholder="اكتب اسم المتجر أو المطعم، تفاصيل المواد والأصناف، وأي ملاحظات خاصة بالتوصيل..."
             value={orderDetails}
             onChange={(e) => setOrderDetails(e.target.value)}
-            className="w-full bg-[#121724] border border-[#212a3d] hover:border-slate-600 focus:border-blue-500 rounded-lg p-3 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500/30 transition-all leading-relaxed"
+            className="w-full bg-slate-50 border border-slate-300 hover:border-slate-400 focus:bg-white focus:border-blue-600 rounded-xl p-3 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-blue-100 transition-all leading-relaxed"
           />
         </div>
 
         {/* قسم 3: الحسابات المالية وأجور التوصيل */}
-        <div className="bg-[#0e131f] border border-[#1b2234] rounded-xl p-4 sm:p-5 shadow-sm space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#1b2234] pb-3">
-            <span className="text-xs font-semibold text-slate-200 flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400">
+        <div className="bg-white border border-slate-200 rounded-xl p-4 sm:p-5 shadow-xs space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+            <span className="text-xs font-semibold text-slate-800 flex items-center gap-2">
+              <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100">
                 <Coins className="w-3.5 h-3.5" />
               </div>
               المبالغ وأجور التوصيل (ل.س)
             </span>
 
-            <div className="flex items-center gap-1.5 text-[11px] text-slate-400 bg-[#121724] px-2.5 py-1 rounded-md border border-[#212a3d]">
+            <div className="flex items-center gap-1.5 text-[11px] text-slate-500 bg-slate-50 px-2.5 py-1 rounded-md border border-slate-200">
               <Lock className="w-3 h-3 text-slate-400" />
               <span>توزيع افتراضي: 70% مندوب / 30% مكتب</span>
             </div>
@@ -546,7 +718,7 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* المبلغ المطلوب تحصيله من الزبون */}
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1.5">
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                 المبلغ المطلوب تحصيله من الزبون
               </label>
               <div className="relative">
@@ -557,9 +729,9 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
                   placeholder="0"
                   value={collectionAmount}
                   onChange={(e) => setCollectionAmount(e.target.value)}
-                  className="w-full bg-[#121724] border border-[#212a3d] hover:border-slate-600 focus:border-blue-500 rounded-lg px-3 py-2 pl-12 text-xs sm:text-sm text-white font-mono font-medium placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500/30 transition-all"
+                  className="w-full bg-slate-50 border border-slate-300 hover:border-slate-400 focus:bg-white focus:border-blue-600 rounded-xl px-3 py-2 pl-12 text-xs sm:text-sm text-slate-900 font-mono font-medium placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-blue-100 transition-all"
                 />
-                <span className="text-xs font-semibold text-slate-400 absolute left-3.5 top-2.5 pointer-events-none">
+                <span className="text-xs font-semibold text-slate-500 absolute left-3.5 top-2.5 pointer-events-none">
                   ل.س
                 </span>
               </div>
@@ -567,7 +739,7 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
 
             {/* أجرة التوصيل الكلية */}
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1.5">
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                 أجرة التوصيل الكلية
               </label>
               <div className="relative">
@@ -578,9 +750,9 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
                   placeholder="0"
                   value={deliveryFee}
                   onChange={(e) => setDeliveryFee(e.target.value)}
-                  className="w-full bg-[#121724] border border-[#212a3d] hover:border-slate-600 focus:border-blue-500 rounded-lg px-3 py-2 pl-12 text-xs sm:text-sm text-white font-mono font-medium placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500/30 transition-all"
+                  className="w-full bg-slate-50 border border-slate-300 hover:border-slate-400 focus:bg-white focus:border-blue-600 rounded-xl px-3 py-2 pl-12 text-xs sm:text-sm text-slate-900 font-mono font-medium placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-blue-100 transition-all"
                 />
-                <span className="text-xs font-semibold text-slate-400 absolute left-3.5 top-2.5 pointer-events-none">
+                <span className="text-xs font-semibold text-slate-500 absolute left-3.5 top-2.5 pointer-events-none">
                   ل.س
                 </span>
               </div>
@@ -589,21 +761,21 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
 
           {/* بطاقة المعاينة اللحظية لتوزيع الأجرة */}
           {numericDeliveryFee > 0 && (
-            <div className="mt-2.5 p-3 rounded-lg bg-[#101522] border border-[#1c2436] flex flex-col sm:flex-row items-center justify-between gap-3 animate-fadeIn">
+            <div className="mt-2.5 p-3 rounded-xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 animate-fadeIn">
               <div className="flex items-center gap-2">
-                <PieChart className="w-3.5 h-3.5 text-blue-400" />
-                <span className="text-xs text-slate-300 font-medium">معاينة توزيع الأجرة:</span>
+                <PieChart className="w-3.5 h-3.5 text-blue-600" />
+                <span className="text-xs text-slate-700 font-medium">معاينة توزيع الأجرة:</span>
               </div>
               <div className="flex items-center gap-4 text-xs font-mono">
                 <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-sky-400"></span>
-                  <span className="text-slate-400">حصة السائق (70%):</span>
-                  <strong className="text-sky-300 font-medium">{formatCurrency(driverShare)} ل.س</strong>
+                  <span className="w-2 h-2 rounded-full bg-sky-500"></span>
+                  <span className="text-slate-500">حصة السائق (70%):</span>
+                  <strong className="text-sky-700 font-semibold">{formatCurrency(driverShare)} ل.س</strong>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-slate-300"></span>
-                  <span className="text-slate-400">حصة المكتب (30%):</span>
-                  <strong className="text-slate-200 font-medium">{formatCurrency(officeShare)} ل.س</strong>
+                  <span className="w-2 h-2 rounded-full bg-slate-400"></span>
+                  <span className="text-slate-500">حصة المكتب (30%):</span>
+                  <strong className="text-slate-800 font-semibold">{formatCurrency(officeShare)} ل.س</strong>
                 </div>
               </div>
             </div>
@@ -612,9 +784,9 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
 
         {/* أزرار الحفظ والإرسال */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
-          <div className="text-xs text-slate-400 flex items-center gap-2">
+          <div className="text-xs text-slate-500 flex items-center gap-2">
             <span>حالة الطلب الابتدائية:</span>
-            <span className="font-medium text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+            <span className="font-medium text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
               بانتظار مندوب
             </span>
           </div>
@@ -623,7 +795,7 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
             <button
               type="button"
               onClick={resetForm}
-              className="w-1/3 sm:w-auto px-4 py-2 rounded-lg border border-[#222a3d] bg-[#131926] hover:bg-[#1a2233] text-slate-300 text-xs sm:text-sm font-medium transition-all cursor-pointer active:scale-95"
+              className="w-1/3 sm:w-auto px-4 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-medium transition-all cursor-pointer active:scale-95 shadow-2xs"
             >
               إلغاء
             </button>
@@ -631,7 +803,7 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
               type="submit"
               tabIndex={9}
               disabled={isSubmitting}
-              className="w-2/3 sm:w-auto flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 active:scale-95 text-white text-xs sm:text-sm font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer"
+              className="w-2/3 sm:w-auto flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-xs sm:text-sm font-semibold shadow-xs hover:shadow disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer"
             >
               {isSubmitting ? (
                 <>

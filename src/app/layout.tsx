@@ -22,7 +22,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ar" dir="rtl" className={`${alexandria.variable} h-full antialiased`}>
-      <body className="min-h-full font-sans bg-[#0a0d14] text-slate-100 selection:bg-blue-600 selection:text-white antialiased">
+      <body className="min-h-full font-sans bg-[#f8fafc] text-slate-900 selection:bg-blue-600 selection:text-white antialiased">
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
