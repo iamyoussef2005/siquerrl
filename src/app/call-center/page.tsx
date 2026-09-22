@@ -296,7 +296,7 @@ export default function CallCenterPage() {
                   </div>
                 </div>
                 <span className="text-[10px] font-bold text-amber-800 font-mono bg-amber-100/80 px-2 py-0.5 rounded-full border border-amber-300">
-                  Pending
+                  بانتظار الإسناد
                 </span>
               </div>
 
@@ -312,7 +312,7 @@ export default function CallCenterPage() {
                   </div>
                 </div>
                 <span className="text-[10px] font-bold text-blue-800 font-mono bg-blue-100/80 px-2 py-0.5 rounded-full border border-blue-300">
-                  Assigned
+                  بانتظار التحضير
                 </span>
               </div>
 
@@ -328,7 +328,7 @@ export default function CallCenterPage() {
                   </div>
                 </div>
                 <span className="text-[10px] font-bold text-sky-800 font-mono bg-sky-100/80 px-2 py-0.5 rounded-full border border-sky-300">
-                  Delivering
+                  قيد التوصيل
                 </span>
               </div>
 
@@ -344,7 +344,7 @@ export default function CallCenterPage() {
                   </div>
                 </div>
                 <span className="text-[10px] font-bold text-emerald-800 font-mono bg-emerald-100/80 px-2 py-0.5 rounded-full border border-emerald-300">
-                  Delivered
+                  تم التسليم
                 </span>
               </div>
             </div>
