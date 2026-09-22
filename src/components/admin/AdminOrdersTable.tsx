@@ -221,23 +221,23 @@ export function AdminOrdersTable({
   });
 
   return (
-    <div className="bg-white border border-slate-200 rounded-xl shadow-xs overflow-hidden transition-all">
+    <div className="bg-white/95 border border-orange-200/80 rounded-2xl shadow-sm shadow-orange-950/5 overflow-hidden transition-all">
       {/* شريط أدوات الجدول والفلاتر المتقدمة */}
-      <div className="p-3.5 lg:p-4 border-b border-slate-200 bg-slate-50/70 flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-3">
+      <div className="p-3.5 lg:p-4 border-b border-orange-200/70 bg-gradient-to-r from-orange-100/70 via-amber-50/50 to-orange-50/30 flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <div className="p-2 rounded-xl bg-orange-50 text-orange-600 border border-orange-100 shadow-2xs">
+          <div className="p-2 rounded-xl bg-orange-500 text-white shadow-xs">
             <Package className="w-4 h-4" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight">
+              <h3 className="text-sm sm:text-base font-bold text-zinc-900 tracking-tight">
                 جدول متابعة وتوزيع الطلبات
               </h3>
-              <span className="px-2 py-0.5 text-[11px] font-semibold bg-white text-slate-700 rounded-md border border-slate-200 font-mono shadow-2xs">
+              <span className="px-2 py-0.5 text-[11px] font-bold bg-white text-orange-800 rounded-md border border-orange-200 font-mono shadow-2xs">
                 {filteredOrders.length} طلب
               </span>
             </div>
-            <p className="text-[11px] text-slate-500">إسناد الطلبات للمناديب وتدقيق الحسابات</p>
+            <p className="text-[11px] text-zinc-500">إسناد الطلبات للمناديب وتدقيق الحسابات</p>
           </div>
         </div>
 
@@ -250,13 +250,13 @@ export function AdminOrdersTable({
               placeholder="بحث برقم الطلب، الزبون، أو الهاتف..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-white border border-slate-300 hover:border-slate-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 rounded-xl px-3 py-1.5 pr-8 pl-7 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-hidden transition-all shadow-2xs"
+              className="w-full bg-white border border-orange-200/80 hover:border-orange-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 rounded-xl px-3 py-1.5 pr-8 pl-7 text-xs text-zinc-900 placeholder:text-zinc-400 focus:outline-hidden transition-all shadow-2xs"
             />
-            <Search className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-2 pointer-events-none" />
+            <Search className="w-3.5 h-3.5 text-zinc-400 absolute right-2.5 top-2 pointer-events-none" />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute left-2 top-2 text-slate-400 hover:text-slate-600 p-0.5 rounded hover:bg-slate-100 transition-colors cursor-pointer"
+                className="absolute left-2 top-2 text-zinc-400 hover:text-zinc-600 p-0.5 rounded hover:bg-zinc-100 transition-colors cursor-pointer"
               >
                 <X className="w-3 h-3" />
               </button>
@@ -268,7 +268,7 @@ export function AdminOrdersTable({
             <select
               value={selectedDriverId}
               onChange={(e) => onSelectDriverId(e.target.value)}
-              className="w-full bg-white border border-slate-300 hover:border-slate-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 rounded-xl px-3 py-1.5 text-xs text-slate-700 font-medium focus:outline-hidden cursor-pointer appearance-none pl-7 shadow-2xs"
+              className="w-full bg-white border border-orange-200/80 hover:border-orange-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 rounded-xl px-3 py-1.5 text-xs text-zinc-800 font-semibold focus:outline-hidden cursor-pointer appearance-none pl-7 shadow-2xs"
             >
               <option value="all">جميع المناديب</option>
               {drivers.map((drv) => (
@@ -277,7 +277,7 @@ export function AdminOrdersTable({
                 </option>
               ))}
             </select>
-            <UserCheck className="w-3.5 h-3.5 text-slate-400 absolute left-2 top-2 pointer-events-none" />
+            <UserCheck className="w-3.5 h-3.5 text-zinc-400 absolute left-2 top-2 pointer-events-none" />
           </div>
 
           {/* فلترة حسب الحالة */}
@@ -285,7 +285,7 @@ export function AdminOrdersTable({
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full bg-white border border-slate-300 hover:border-slate-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 rounded-xl px-3 py-1.5 text-xs text-slate-700 font-medium focus:outline-hidden cursor-pointer appearance-none pl-7 shadow-2xs"
+              className="w-full bg-white border border-orange-200/80 hover:border-orange-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 rounded-xl px-3 py-1.5 text-xs text-zinc-800 font-semibold focus:outline-hidden cursor-pointer appearance-none pl-7 shadow-2xs"
             >
               <option value="all">جميع الحالات</option>
               <option value="pending">بانتظار مندوب</option>
@@ -293,7 +293,7 @@ export function AdminOrdersTable({
               <option value="delivered">تم التسليم</option>
               <option value="cancelled">ملغي</option>
             </select>
-            <Filter className="w-3.5 h-3.5 text-slate-400 absolute left-2 top-2 pointer-events-none" />
+            <Filter className="w-3.5 h-3.5 text-zinc-400 absolute left-2 top-2 pointer-events-none" />
           </div>
         </div>
       </div>
@@ -301,7 +301,7 @@ export function AdminOrdersTable({
       {/* الجدول العصري المتجاوب */}
       <div className="overflow-x-auto">
         <table className="w-full text-right text-xs">
-          <thead className="bg-slate-50 text-slate-600 border-b border-slate-200 text-[11px] font-semibold tracking-normal">
+          <thead className="bg-[#f5f1e8] text-zinc-800 border-b border-orange-200/90 text-[11px] font-bold tracking-normal">
             <tr>
               <th className="py-3 px-4">رقم الطلب</th>
               <th className="py-3 px-3">الوقت</th>
@@ -314,16 +314,16 @@ export function AdminOrdersTable({
               <th className="py-3 px-4 text-center">إجراءات</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100 text-slate-700">
+          <tbody className="divide-y divide-orange-100/60 text-zinc-800">
             {filteredOrders.length === 0 ? (
               <tr>
-                <td colSpan={9} className="py-14 text-center text-slate-500">
+                <td colSpan={9} className="py-14 text-center text-zinc-500">
                   <div className="flex flex-col items-center justify-center gap-2.5">
-                    <div className="p-3 rounded-2xl bg-slate-50 text-slate-400 border border-slate-200">
+                    <div className="p-3 rounded-2xl bg-orange-50 text-orange-400 border border-orange-200">
                       <AlertCircle className="w-6 h-6" />
                     </div>
-                    <p className="text-xs sm:text-sm font-semibold text-slate-800">لا توجد طلبات تطابق معايير البحث الحالية</p>
-                    <p className="text-[11px] text-slate-400">جرب تفريغ الفلاتر أو كتابة عبارة بحث أخرى</p>
+                    <p className="text-xs sm:text-sm font-semibold text-zinc-800">لا توجد طلبات تطابق معايير البحث الحالية</p>
+                    <p className="text-[11px] text-zinc-400">جرب تفريغ الفلاتر أو كتابة عبارة بحث أخرى</p>
                   </div>
                 </td>
               </tr>
@@ -333,28 +333,28 @@ export function AdminOrdersTable({
                 const isUpdating = updatingOrderId === order.id;
 
                 return (
-                  <tr key={order.id} className="hover:bg-slate-50/80 transition-colors group">
+                  <tr key={order.id} className="hover:bg-orange-50/50 transition-colors group">
                     {/* رقم الطلب */}
                     <td className="py-3 px-4 font-mono whitespace-nowrap">
-                      <span className="px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-700 font-semibold text-xs">
+                      <span className="px-2 py-0.5 rounded-md bg-orange-100/70 border border-orange-200/80 text-orange-900 font-bold text-xs shadow-2xs">
                         #{order.id}
                       </span>
                     </td>
 
                     {/* الوقت */}
-                    <td className="py-3 px-3 whitespace-nowrap text-slate-500 font-mono text-[11px]">
+                    <td className="py-3 px-3 whitespace-nowrap text-zinc-500 font-mono text-[11px]">
                       {formatTime(order.created_at)}
                     </td>
 
                     {/* الزبون والهاتف */}
                     <td className="py-3 px-4">
-                      <div className="font-semibold text-slate-900 text-xs sm:text-sm">{order.customer_name}</div>
+                      <div className="font-bold text-zinc-900 text-xs sm:text-sm">{order.customer_name}</div>
                       <a
                         href={`tel:${order.customer_phone}`}
-                        className="inline-flex items-center gap-1 text-[11px] text-slate-500 hover:text-orange-600 font-mono mt-0.5 transition-colors"
+                        className="inline-flex items-center gap-1 text-[11px] text-zinc-500 hover:text-orange-600 font-mono mt-0.5 transition-colors font-medium"
                         dir="ltr"
                       >
-                        <Phone className="w-3 h-3 text-slate-400 shrink-0" />
+                        <Phone className="w-3 h-3 text-orange-500/70 shrink-0" />
                         <span>{order.customer_phone}</span>
                       </a>
                     </td>
@@ -362,13 +362,13 @@ export function AdminOrdersTable({
                     {/* العنوان والمواد */}
                     <td className="py-3 px-4 max-w-xs">
                       <div className="flex items-start gap-1.5">
-                        <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
-                        <span className="line-clamp-1 text-slate-800 font-medium text-xs" title={order.delivery_address}>
+                        <MapPin className="w-3.5 h-3.5 text-orange-500 shrink-0 mt-0.5" />
+                        <span className="line-clamp-1 text-zinc-800 font-medium text-xs" title={order.delivery_address}>
                           {order.delivery_address}
                         </span>
                       </div>
                       {order.order_details && (
-                        <p className="line-clamp-1 text-[11px] text-slate-500 mt-0.5 font-normal" title={order.order_details}>
+                        <p className="line-clamp-1 text-[11px] text-zinc-500 mt-0.5 font-normal" title={order.order_details}>
                           {order.order_details}
                         </p>
                       )}
@@ -393,15 +393,15 @@ export function AdminOrdersTable({
 
                     {/* توزيع الأجرة (سائق ومكتب) */}
                     <td className="py-3 px-4 text-center whitespace-nowrap font-mono">
-                      <div className="text-slate-900 font-bold text-xs">
-                        {formatCurrency(Number(order.delivery_fee))} <span className="text-[10px] text-slate-500">ل.س</span>
+                      <div className="text-zinc-900 font-bold text-xs">
+                        {formatCurrency(Number(order.delivery_fee))} <span className="text-[10px] text-zinc-500">ل.س</span>
                       </div>
-                      <div className="flex items-center justify-center gap-2 text-[10px] mt-0.5 bg-slate-100 py-0.5 px-2 rounded-md border border-slate-200">
-                        <span className="text-slate-700 font-medium">
+                      <div className="flex items-center justify-center gap-2 text-[10px] mt-0.5 bg-orange-50/80 py-0.5 px-2 rounded-md border border-orange-200/70">
+                        <span className="text-zinc-700 font-medium">
                           سائق: {formatCurrency(Number(order.driver_fee))}
                         </span>
-                        <span className="text-slate-300">|</span>
-                        <span className="text-orange-700 font-medium">
+                        <span className="text-orange-200">|</span>
+                        <span className="text-orange-800 font-bold">
                           مكتب: {formatCurrency(Number(order.office_fee))}
                         </span>
                       </div>
@@ -414,7 +414,7 @@ export function AdminOrdersTable({
                           disabled={isUpdating || order.status === 'cancelled' || order.status === 'delivered'}
                           value={order.driver_id || ''}
                           onChange={(e) => handleAssignDriver(order, e.target.value)}
-                          className="w-full bg-white border border-slate-300 hover:border-slate-400 rounded-lg px-2 py-1 text-xs text-slate-800 focus:outline-hidden focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-2xs"
+                          className="w-full bg-white border border-orange-200/80 hover:border-orange-300 rounded-lg px-2 py-1 text-xs text-zinc-800 focus:outline-hidden focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-2xs font-medium"
                         >
                           <option value="">لم يُسند</option>
                           {drivers.map((drv) => (
@@ -446,7 +446,7 @@ export function AdminOrdersTable({
                         <button
                           type="button"
                           onClick={() => onOpenEditModal(order)}
-                          className="p-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-900 border border-slate-200 transition-all cursor-pointer active:scale-95 shadow-2xs"
+                          className="p-1.5 rounded-lg bg-white/90 hover:bg-orange-50 text-zinc-700 hover:text-orange-700 border border-orange-200/80 transition-all cursor-pointer active:scale-95 shadow-2xs"
                           title="تعديل الطلب"
                         >
                           <Edit3 className="w-3.5 h-3.5" />

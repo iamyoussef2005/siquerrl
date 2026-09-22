@@ -72,60 +72,60 @@ export function AdminAccountingCards({ orders, selectedDriver, dateFilter = 'all
       {/* بطاقات المؤشرات المالية الرئيسية */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
         {/* 1. إجمالي المبالغ المطلوب تحصيلها */}
-        <div className="rounded-2xl bg-white border border-zinc-200/80 p-4 sm:p-5 shadow-xs hover:border-orange-300 hover:shadow-md hover:shadow-orange-500/5 transition-all">
+        <div className="rounded-2xl bg-gradient-to-br from-amber-500/10 via-amber-50/60 to-white border border-amber-200/90 p-4 sm:p-5 shadow-xs hover:border-amber-300 hover:shadow-md hover:shadow-amber-500/10 transition-all">
           <div className="flex items-center justify-between text-zinc-500 mb-3">
-            <span className="text-xs font-bold text-zinc-700">إجمالي مبالغ التحصيل</span>
-            <div className="p-2 rounded-xl bg-orange-50 border border-orange-100 text-orange-600 shadow-2xs">
+            <span className="text-xs font-bold text-amber-950">إجمالي مبالغ التحصيل</span>
+            <div className="p-2 rounded-xl bg-amber-100/80 border border-amber-200 text-amber-700 shadow-2xs">
               <Coins className="w-4 h-4" />
             </div>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-black text-zinc-900 font-mono tracking-tight">
+            <span className="text-2xl sm:text-3xl font-black text-amber-950 font-mono tracking-tight">
               {formatCurrency(totalCollection)}
             </span>
-            <span className="text-xs font-bold text-orange-600">ل.س</span>
+            <span className="text-xs font-black text-amber-600">ل.س</span>
           </div>
-          <p className="text-[11px] text-zinc-400 mt-2 font-medium">
+          <p className="text-[11px] text-amber-800/70 mt-2 font-medium">
             مجموع مبالغ التحصيل المحسوبة ({filterLabel})
           </p>
         </div>
 
-        {/* 2. أرباح المكتب */}
-        <div className="rounded-2xl bg-white border border-zinc-200/80 p-4 sm:p-5 shadow-xs hover:border-amber-300 hover:shadow-md hover:shadow-amber-500/5 transition-all">
+        {/* 2. أرباح المكتب (HERO CARD) */}
+        <div className="rounded-2xl bg-gradient-to-br from-orange-500/15 via-amber-500/10 to-orange-50/40 border-2 border-orange-300/90 p-4 sm:p-5 shadow-sm shadow-orange-500/10 hover:border-orange-400 hover:shadow-md hover:shadow-orange-500/15 transition-all">
           <div className="flex items-center justify-between text-zinc-500 mb-3">
-            <span className="text-xs font-bold text-zinc-700">أرباح المكتب (عمولات التوصيل)</span>
-            <div className="p-2 rounded-xl bg-amber-50 border border-amber-100 text-amber-600 shadow-2xs">
+            <span className="text-xs font-black text-orange-950">أرباح المكتب (عمولات التوصيل)</span>
+            <div className="p-2 rounded-xl btn-sinjab-primary text-white shadow-xs">
               <TrendingUp className="w-4 h-4" />
             </div>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-black text-zinc-900 font-mono tracking-tight">
+            <span className="text-2xl sm:text-3xl font-black text-orange-950 font-mono tracking-tight">
               {formatCurrency(totalOfficeProfit)}
             </span>
-            <span className="text-xs font-bold text-amber-600">ل.س</span>
+            <span className="text-xs font-black text-orange-600">ل.س</span>
           </div>
-          <p className="text-[11px] text-zinc-400 mt-2 font-medium">
+          <p className="text-[11px] text-orange-800/80 mt-2 font-medium">
             صافي حصة المكتب من أجور التوصيل ({filterLabel})
           </p>
         </div>
 
         {/* 3. مستحقات المناديب */}
-        <div className="rounded-2xl bg-white border border-zinc-200/80 p-4 sm:p-5 shadow-xs hover:border-emerald-300 hover:shadow-md hover:shadow-emerald-500/5 transition-all">
+        <div className="rounded-2xl bg-gradient-to-br from-emerald-500/10 via-emerald-50/60 to-white border border-emerald-200/90 p-4 sm:p-5 shadow-xs hover:border-emerald-300 hover:shadow-md hover:shadow-emerald-500/10 transition-all">
           <div className="flex items-center justify-between text-zinc-500 mb-3">
-            <span className="text-xs font-bold text-zinc-700">
+            <span className="text-xs font-bold text-emerald-950">
               {selectedDriver ? `مستحقات ${selectedDriver.name}` : 'إجمالي مستحقات المناديب'}
             </span>
-            <div className="p-2 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-600 shadow-2xs">
+            <div className="p-2 rounded-xl bg-emerald-100/80 border border-emerald-200 text-emerald-700 shadow-2xs">
               <Wallet className="w-4 h-4" />
             </div>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-black text-emerald-700 font-mono tracking-tight">
+            <span className="text-2xl sm:text-3xl font-black text-emerald-800 font-mono tracking-tight">
               {formatCurrency(totalDriverDues)}
             </span>
-            <span className="text-xs font-bold text-emerald-600">ل.س</span>
+            <span className="text-xs font-black text-emerald-600">ل.س</span>
           </div>
-          <p className="text-[11px] text-zinc-400 mt-2 font-medium">
+          <p className="text-[11px] text-emerald-800/70 mt-2 font-medium">
             حصة السائقين المقررة عن التوصيل ({filterLabel})
           </p>
         </div>
@@ -134,53 +134,53 @@ export function AdminAccountingCards({ orders, selectedDriver, dateFilter = 'all
       {/* عدادات الحالات التنفيذية الأنيقة */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
         {/* قيد الانتظار */}
-        <div className="bg-white border border-slate-200 rounded-xl p-3 flex items-center justify-between hover:border-slate-300 transition-colors shadow-2xs">
+        <div className="bg-gradient-to-br from-amber-50/90 to-orange-50/50 border border-amber-200/80 rounded-xl p-3 flex items-center justify-between hover:border-amber-300 transition-colors shadow-2xs">
           <div className="flex items-center gap-2.5">
-            <div className="p-1.5 rounded-lg bg-amber-50 text-amber-600 border border-amber-100">
+            <div className="p-1.5 rounded-lg bg-amber-100/90 text-amber-700 border border-amber-200/80 shadow-2xs">
               <Clock className="w-3.5 h-3.5" />
             </div>
             <div>
-              <div className="text-[11px] text-slate-500 font-medium">بانتظار مندوب</div>
-              <div className="text-base font-bold text-amber-600 font-mono mt-0.5">{pendingOrders}</div>
+              <div className="text-[11px] text-amber-900 font-semibold">بانتظار مندوب</div>
+              <div className="text-base font-black text-amber-700 font-mono mt-0.5">{pendingOrders}</div>
             </div>
           </div>
         </div>
 
         {/* قيد التوصيل */}
-        <div className="bg-white border border-slate-200 rounded-xl p-3 flex items-center justify-between hover:border-slate-300 transition-colors shadow-2xs">
+        <div className="bg-gradient-to-br from-sky-50/90 to-indigo-50/40 border border-sky-200/80 rounded-xl p-3 flex items-center justify-between hover:border-sky-300 transition-colors shadow-2xs">
           <div className="flex items-center gap-2.5">
-            <div className="p-1.5 rounded-lg bg-sky-50 text-sky-600 border border-sky-100">
+            <div className="p-1.5 rounded-lg bg-sky-100/90 text-sky-700 border border-sky-200/80 shadow-2xs">
               <Truck className="w-3.5 h-3.5" />
             </div>
             <div>
-              <div className="text-[11px] text-slate-500 font-medium">قيد التوصيل</div>
-              <div className="text-base font-bold text-sky-600 font-mono mt-0.5">{inDeliveryOrders}</div>
+              <div className="text-[11px] text-sky-900 font-semibold">قيد التوصيل</div>
+              <div className="text-base font-black text-sky-700 font-mono mt-0.5">{inDeliveryOrders}</div>
             </div>
           </div>
         </div>
 
         {/* مكتملة */}
-        <div className="bg-white border border-slate-200 rounded-xl p-3 flex items-center justify-between hover:border-slate-300 transition-colors shadow-2xs">
+        <div className="bg-gradient-to-br from-emerald-50/90 to-teal-50/40 border border-emerald-200/80 rounded-xl p-3 flex items-center justify-between hover:border-emerald-300 transition-colors shadow-2xs">
           <div className="flex items-center gap-2.5">
-            <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100">
+            <div className="p-1.5 rounded-lg bg-emerald-100/90 text-emerald-700 border border-emerald-200/80 shadow-2xs">
               <CheckCircle2 className="w-3.5 h-3.5" />
             </div>
             <div>
-              <div className="text-[11px] text-slate-500 font-medium">مكتملة ومسلّمة</div>
-              <div className="text-base font-bold text-emerald-600 font-mono mt-0.5">{completedOrders}</div>
+              <div className="text-[11px] text-emerald-900 font-semibold">مكتملة ومسلّمة</div>
+              <div className="text-base font-black text-emerald-700 font-mono mt-0.5">{completedOrders}</div>
             </div>
           </div>
         </div>
 
         {/* ملغاة */}
-        <div className="bg-white border border-slate-200 rounded-xl p-3 flex items-center justify-between hover:border-slate-300 transition-colors shadow-2xs">
+        <div className="bg-gradient-to-br from-rose-50/90 to-red-50/40 border border-rose-200/80 rounded-xl p-3 flex items-center justify-between hover:border-rose-300 transition-colors shadow-2xs">
           <div className="flex items-center gap-2.5">
-            <div className="p-1.5 rounded-lg bg-rose-50 text-rose-600 border border-rose-100">
+            <div className="p-1.5 rounded-lg bg-rose-100/90 text-rose-700 border border-rose-200/80 shadow-2xs">
               <XCircle className="w-3.5 h-3.5" />
             </div>
             <div>
-              <div className="text-[11px] text-slate-500 font-medium">ملغاة</div>
-              <div className="text-base font-bold text-rose-600 font-mono mt-0.5">{cancelledOrders}</div>
+              <div className="text-[11px] text-rose-900 font-semibold">ملغاة</div>
+              <div className="text-base font-black text-rose-700 font-mono mt-0.5">{cancelledOrders}</div>
             </div>
           </div>
         </div>

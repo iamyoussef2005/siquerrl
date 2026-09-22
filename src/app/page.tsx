@@ -197,7 +197,7 @@ export default function AdminHomePage() {
 
   return (
     <ProtectedRoute allowedRoles={['admin']}>
-      <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col selection:bg-orange-100 selection:text-orange-900 pb-16">
+      <div className="min-h-screen bg-transparent text-slate-900 flex flex-col selection:bg-orange-100 selection:text-orange-900 pb-16">
         {/* رأس صفحة الإدارة */}
         <AdminHeader
           realtimeConnected={realtimeConnected}
@@ -216,7 +216,7 @@ export default function AdminHomePage() {
         {/* إشعارات التحديث اللحظي */}
         {notification && (
           <div className="fixed bottom-5 left-5 z-50 animate-fadeIn">
-            <div className="bg-white text-slate-900 px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2.5 text-xs font-semibold border border-slate-200">
+            <div className="bg-white text-slate-900 px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2.5 text-xs font-semibold border border-orange-200">
               <Bell className="w-4 h-4 text-orange-600" />
               <span>{notification}</span>
             </div>
@@ -226,19 +226,19 @@ export default function AdminHomePage() {
         {/* المحتوى الرئيسي للوحة الإدارة */}
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 lg:px-8">
           {/* شريط الفلترة الزمنية للمدير */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white border border-zinc-200/80 rounded-2xl p-3 px-4 shadow-xs mb-5">
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-xl bg-orange-50 text-orange-600 border border-orange-100 shadow-2xs">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-gradient-to-r from-orange-100/70 via-amber-50/80 to-orange-50/60 border border-orange-200/90 rounded-2xl p-3.5 px-5 shadow-sm shadow-orange-950/5 mb-5">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-2xl bg-orange-500 text-white shadow-sm shadow-orange-500/30">
                 <Calendar className="w-4 h-4" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-extrabold text-zinc-900">النطاق الزمني للعمليات:</span>
-                  <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-orange-50 text-orange-700 border border-orange-200 font-bold shadow-2xs">
+                  <span className="text-xs font-black text-zinc-900">النطاق الزمني للعمليات:</span>
+                  <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-orange-500 text-white font-bold shadow-xs">
                     {orders.length} {orders.length === 1 ? 'طلب معروض' : 'طلبات معروضة'}
                   </span>
                 </div>
-                <p className="text-[11px] text-zinc-500 mt-0.5">
+                <p className="text-[11px] text-zinc-600 mt-0.5 font-medium">
                   {dateFilter === 'today' && 'يتم عرض طلبات اليوم الحالي فقط'}
                   {dateFilter === '24h' && 'يتم عرض الطلبات المسجلة خلال آخر 24 ساعة'}
                   {dateFilter === 'all' && 'يتم عرض كافة الطلبات المسجلة في النظام'}
@@ -246,14 +246,14 @@ export default function AdminHomePage() {
               </div>
             </div>
 
-            <div className="inline-flex p-1 bg-zinc-100 border border-zinc-200/80 rounded-xl text-xs gap-1 self-start sm:self-auto">
+            <div className="inline-flex p-1 bg-white/90 backdrop-blur-xs border border-orange-200/80 rounded-xl text-xs gap-1 self-start sm:self-auto shadow-2xs">
               <button
                 type="button"
                 onClick={() => handleDateFilterChange('today')}
                 className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
                   dateFilter === 'today'
-                    ? 'bg-white text-orange-600 shadow-xs border border-orange-200/80'
-                    : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200/60'
+                    ? 'btn-sinjab-primary text-white shadow-xs'
+                    : 'text-zinc-700 hover:text-orange-900 hover:bg-orange-50'
                 }`}
               >
                 <Clock className="w-3.5 h-3.5" />
@@ -264,8 +264,8 @@ export default function AdminHomePage() {
                 onClick={() => handleDateFilterChange('24h')}
                 className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
                   dateFilter === '24h'
-                    ? 'bg-white text-orange-600 shadow-xs border border-orange-200/80'
-                    : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200/60'
+                    ? 'btn-sinjab-primary text-white shadow-xs'
+                    : 'text-zinc-700 hover:text-orange-900 hover:bg-orange-50'
                 }`}
               >
                 <Calendar className="w-3.5 h-3.5" />
@@ -276,8 +276,8 @@ export default function AdminHomePage() {
                 onClick={() => handleDateFilterChange('all')}
                 className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
                   dateFilter === 'all'
-                    ? 'bg-white text-orange-600 shadow-xs border border-orange-200/80'
-                    : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200/60'
+                    ? 'btn-sinjab-primary text-white shadow-xs'
+                    : 'text-zinc-700 hover:text-orange-900 hover:bg-orange-50'
                 }`}
               >
                 <Layers className="w-3.5 h-3.5" />
