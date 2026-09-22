@@ -19,6 +19,7 @@ import {
   Package,
   Bike,
   Edit3,
+  UserCheck,
 } from 'lucide-react';
 
 interface TodayOrdersTableProps {
@@ -72,6 +73,13 @@ export function TodayOrdersTable({
           icon: Clock,
         };
       case 'assigned':
+        return {
+          label: 'تم الإسناد',
+          className: 'bg-blue-50 text-blue-700 border-blue-200',
+          dotColor: 'bg-blue-500',
+          icon: UserCheck,
+        };
+      case 'preparing':
         return {
           label: 'بانتظار تحضير الطلب',
           className: 'bg-orange-50 text-orange-700 border-orange-200',
@@ -188,7 +196,8 @@ export function TodayOrdersTable({
             >
               <option value="all">جميع الحالات</option>
               <option value="pending">بانتظار الإسناد</option>
-              <option value="assigned">بانتظار تحضير الطلب</option>
+              <option value="assigned">تم الإسناد</option>
+              <option value="preparing">بانتظار تحضير الطلب</option>
               <option value="delivering">قيد التوصيل</option>
               <option value="delivered">مكتملة ومسلّمة</option>
               <option value="cancelled">ملغي</option>

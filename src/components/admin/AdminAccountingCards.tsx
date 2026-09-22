@@ -10,6 +10,7 @@ import {
   XCircle,
   Truck,
   Clock,
+  Package,
   Coins,
   Wallet,
   ArrowUpRight,
@@ -36,7 +37,8 @@ export function AdminAccountingCards({ orders, selectedDriver, dateFilter = 'all
   const totalOrdersCount = relevantOrders.length;
   const completedOrders = relevantOrders.filter((o) => o.status === 'delivered').length;
   const inDeliveryOrders = relevantOrders.filter((o) => o.status === 'delivering').length;
-  const preparingOrders = relevantOrders.filter((o) => o.status === 'assigned').length;
+  const preparingOrders = relevantOrders.filter((o) => o.status === 'preparing').length;
+  const assignedOrders = relevantOrders.filter((o) => o.status === 'assigned').length;
   const pendingAssignmentOrders = relevantOrders.filter((o) => o.status === 'pending').length;
   const cancelledOrders = relevantOrders.filter((o) => o.status === 'cancelled').length;
 
@@ -133,7 +135,7 @@ export function AdminAccountingCards({ orders, selectedDriver, dateFilter = 'all
       </div>
 
       {/* عدادات الحالات التنفيذية الأنيقة */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
         {/* بانتظار الإسناد */}
         <div className="bg-gradient-to-br from-amber-50/90 to-yellow-50/50 border border-amber-200/80 rounded-xl p-3 flex items-center justify-between hover:border-amber-300 transition-colors shadow-2xs">
           <div className="flex items-center gap-2.5">
@@ -147,11 +149,24 @@ export function AdminAccountingCards({ orders, selectedDriver, dateFilter = 'all
           </div>
         </div>
 
+        {/* تم الإسناد */}
+        <div className="bg-gradient-to-br from-blue-50/90 to-sky-50/50 border border-blue-200/80 rounded-xl p-3 flex items-center justify-between hover:border-blue-300 transition-colors shadow-2xs">
+          <div className="flex items-center gap-2.5">
+            <div className="p-1.5 rounded-lg bg-blue-100/90 text-blue-700 border border-blue-200/80 shadow-2xs">
+              <UserCheck className="w-3.5 h-3.5" />
+            </div>
+            <div>
+              <div className="text-[11px] text-blue-900 font-semibold">تم الإسناد</div>
+              <div className="text-base font-black text-blue-700 font-mono mt-0.5">{assignedOrders}</div>
+            </div>
+          </div>
+        </div>
+
         {/* بانتظار تحضير الطلب */}
         <div className="bg-gradient-to-br from-orange-50/90 to-amber-50/50 border border-orange-200/80 rounded-xl p-3 flex items-center justify-between hover:border-orange-300 transition-colors shadow-2xs">
           <div className="flex items-center gap-2.5">
             <div className="p-1.5 rounded-lg bg-orange-100/90 text-orange-700 border border-orange-200/80 shadow-2xs">
-              <UserCheck className="w-3.5 h-3.5" />
+              <Package className="w-3.5 h-3.5" />
             </div>
             <div>
               <div className="text-[11px] text-orange-900 font-semibold">بانتظار التحضير</div>

@@ -77,6 +77,13 @@ export function AdminOrdersTable({
         };
       case 'assigned':
         return {
+          label: 'تم الإسناد',
+          className: 'bg-blue-50 text-blue-700 border-blue-200',
+          dotColor: 'bg-blue-500',
+          icon: UserCheck,
+        };
+      case 'preparing':
+        return {
           label: 'بانتظار تحضير الطلب',
           className: 'bg-orange-50 text-orange-700 border-orange-200',
           dotColor: 'bg-orange-500',
@@ -113,7 +120,7 @@ export function AdminOrdersTable({
     }
   };
 
-  // Handle Driver Assignment with Custom Commission Rate (Status stays unchanged)
+  // Handle Driver Assignment with Custom Commission Rate
   const handleAssignDriver = async (order: Order, driverId: string) => {
     setUpdatingOrderId(order.id!);
     const newDriverId = driverId === '' ? null : driverId;
@@ -130,10 +137,10 @@ export function AdminOrdersTable({
       newOfficeFee = Math.max(0, deliveryFee - newDriverFee);
     }
 
-    // Transition status: if assigned a driver, becomes 'assigned' (بانتظار تحضير الطلب), if unassigned returns to 'pending' (بانتظار الإسناد)
+    // Transition status: if assigned a driver, becomes 'assigned' (تم الإسناد), if unassigned returns to 'pending' (بانتظار الإسناد)
     const newStatus: OrderStatus = newDriverId
       ? (order.status === 'pending' ? 'assigned' : order.status)
-      : (order.status === 'assigned' ? 'pending' : order.status);
+      : (order.status === 'assigned' || order.status === 'preparing' ? 'pending' : order.status);
 
     try {
       const { data, error } = await supabase
@@ -292,7 +299,8 @@ export function AdminOrdersTable({
             >
               <option value="all">جميع الحالات</option>
               <option value="pending">بانتظار الإسناد</option>
-              <option value="assigned">بانتظار تحضير الطلب</option>
+              <option value="assigned">تم الإسناد</option>
+              <option value="preparing">بانتظار تحضير الطلب</option>
               <option value="delivering">قيد التوصيل</option>
               <option value="delivered">مكتملة ومسلّمة</option>
               <option value="cancelled">ملغي</option>

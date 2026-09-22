@@ -18,6 +18,7 @@ import {
   ChevronDown,
   ChevronUp,
   XCircle,
+  Package,
 } from 'lucide-react';
 
 interface DriverOrderCardProps {
@@ -100,9 +101,15 @@ export function DriverOrderCard({ order, onStatusUpdated }: DriverOrderCardProps
     switch (order.status) {
       case 'assigned':
         return {
-          label: 'بانتظار تحضير الطلب واستلامك',
-          className: 'bg-orange-50 text-orange-700 border-orange-200 font-bold',
+          label: 'تم إسناد الطلب إليك',
+          className: 'bg-blue-50 text-blue-700 border-blue-200 font-bold',
           icon: Clock,
+        };
+      case 'preparing':
+        return {
+          label: 'بانتظار تحضير الطلب',
+          className: 'bg-orange-50 text-orange-700 border-orange-200 font-bold',
+          icon: Package,
         };
       case 'pending':
         return {
@@ -145,8 +152,10 @@ export function DriverOrderCard({ order, onStatusUpdated }: DriverOrderCardProps
       className={`rounded-2xl border transition-all duration-200 shadow-xs overflow-hidden ${
         order.status === 'delivering'
           ? 'bg-white border-orange-500 ring-2 ring-orange-500/20 shadow-md'
-          : order.status === 'assigned' || order.status === 'pending'
-          ? 'bg-white border-orange-200 shadow-xs'
+          : order.status === 'preparing'
+          ? 'bg-white border-amber-300 ring-1 ring-amber-300/30 shadow-xs'
+          : order.status === 'assigned'
+          ? 'bg-white border-blue-200 shadow-xs'
           : order.status === 'cancelled'
           ? 'bg-slate-50 border-rose-200 opacity-80'
           : 'bg-white border-slate-200'
@@ -270,13 +279,48 @@ export function DriverOrderCard({ order, onStatusUpdated }: DriverOrderCardProps
         </div>
 
         {/* أزرار تغيير الحالة الكبيرة (صلاحية حصرية للمندوب) */}
-        <div className="pt-1">
-          {(order.status === 'assigned' || order.status === 'pending') && (
+        <div className="pt-1 space-y-2">
+          {/* حالة تم الإسناد: تأكيد الطلب والانتقال إلى بانتظار التحضير */}
+          {order.status === 'assigned' && (
+            <div className="space-y-2">
+              <button
+                type="button"
+                disabled={isUpdating}
+                onClick={() => handleUpdateStatus('preparing', false)}
+                className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 active:scale-[0.98] text-white text-sm font-bold shadow-md shadow-orange-500/20 flex items-center justify-center gap-2.5 disabled:opacity-50 transition-all cursor-pointer touch-manipulation"
+              >
+                {isUpdating ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <span>جاري التحديث...</span>
+                  </>
+                ) : (
+                  <>
+                    <Package className="w-5 h-5" />
+                    <span>تأكيد الطلب ⬅️ بانتظار تحضير الطلب</span>
+                  </>
+                )}
+              </button>
+
+              <button
+                type="button"
+                disabled={isUpdating}
+                onClick={() => handleUpdateStatus('delivering', true)}
+                className="w-full py-2.5 px-3 rounded-lg border border-orange-200 bg-orange-50/80 hover:bg-orange-100 text-orange-800 text-xs font-bold flex items-center justify-center gap-2 transition-colors cursor-pointer"
+              >
+                <Truck className="w-4 h-4 text-orange-600" />
+                <span>الطلب جاهز بالفعل؟ استلام وبدء التوصيل فوراً</span>
+              </button>
+            </div>
+          )}
+
+          {/* حالة بانتظار التحضير: استلام وبدء التوصيل */}
+          {order.status === 'preparing' && (
             <button
               type="button"
               disabled={isUpdating}
               onClick={() => handleUpdateStatus('delivering', true)}
-              className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 active:scale-[0.98] text-white text-sm font-bold shadow-md shadow-orange-500/20 flex items-center justify-center gap-2.5 disabled:opacity-50 transition-all cursor-pointer touch-manipulation"
+              className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 active:scale-[0.98] text-white text-sm font-bold shadow-md shadow-orange-500/20 flex items-center justify-center gap-2.5 disabled:opacity-50 transition-all cursor-pointer touch-manipulation animate-pulse"
             >
               {isUpdating ? (
                 <>
@@ -286,12 +330,13 @@ export function DriverOrderCard({ order, onStatusUpdated }: DriverOrderCardProps
               ) : (
                 <>
                   <Truck className="w-5 h-5" />
-                  <span>استلام الطلب والبدء بالتوصيل (مع إشعار واتساب)</span>
+                  <span>تم تجهيز الطلب ⬅️ استلام وبدء التوصيل (مع واتساب)</span>
                 </>
               )}
             </button>
           )}
 
+          {/* حالة قيد التوصيل: تسليم الطلب للزبون */}
           {order.status === 'delivering' && (
             <button
               type="button"

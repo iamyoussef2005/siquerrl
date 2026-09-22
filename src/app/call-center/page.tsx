@@ -18,6 +18,7 @@ import {
   Headphones,
   PlusCircle,
   Layers,
+  UserCheck,
 } from 'lucide-react';
 
 export default function CallCenterPage() {
@@ -161,7 +162,8 @@ export default function CallCenterPage() {
   // Status stats calculations
   const totalCount = orders.length;
   const pendingAssignmentCount = orders.filter((o) => o.status === 'pending').length;
-  const preparingCount = orders.filter((o) => o.status === 'assigned').length;
+  const assignedCount = orders.filter((o) => o.status === 'assigned').length;
+  const preparingCount = orders.filter((o) => o.status === 'preparing').length;
   const inDeliveryCount = orders.filter((o) => o.status === 'delivering').length;
   const deliveredCount = orders.filter((o) => o.status === 'delivered').length;
 
@@ -270,7 +272,7 @@ export default function CallCenterPage() {
             </div>
 
             {/* شريط إحصائيات سريعة للطلبات */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
               {/* إجمالي طلبات اليوم */}
               <div className="bg-gradient-to-br from-orange-50/90 to-amber-50/50 border border-orange-200/80 rounded-2xl p-4 flex items-center justify-between shadow-xs">
                 <div className="flex items-center gap-3">
@@ -278,7 +280,7 @@ export default function CallCenterPage() {
                     <Package className="w-4 h-4" />
                   </div>
                   <div>
-                    <div className="text-xs text-orange-950 font-bold">إجمالي الطلبات اليوم</div>
+                    <div className="text-xs text-orange-950 font-bold">إجمالي طلبات اليوم</div>
                     <div className="text-xl font-black text-orange-900 font-mono">{totalCount}</div>
                   </div>
                 </div>
@@ -300,18 +302,34 @@ export default function CallCenterPage() {
                 </span>
               </div>
 
-              {/* بانتظار تحضير الطلب */}
-              <div className="bg-gradient-to-br from-blue-50/90 to-indigo-50/50 border border-blue-200/80 rounded-2xl p-4 flex items-center justify-between shadow-xs">
+              {/* تم الإسناد */}
+              <div className="bg-gradient-to-br from-blue-50/90 to-sky-50/50 border border-blue-200/80 rounded-2xl p-4 flex items-center justify-between shadow-xs">
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-xl bg-blue-100/90 border border-blue-200/80 text-blue-700 shadow-2xs">
-                    <Package className="w-4 h-4" />
+                    <UserCheck className="w-4 h-4" />
                   </div>
                   <div>
-                    <div className="text-xs text-blue-950 font-bold">بانتظار التحضير</div>
-                    <div className="text-xl font-black text-blue-700 font-mono">{preparingCount}</div>
+                    <div className="text-xs text-blue-950 font-bold">تم الإسناد</div>
+                    <div className="text-xl font-black text-blue-700 font-mono">{assignedCount}</div>
                   </div>
                 </div>
                 <span className="text-[10px] font-bold text-blue-800 font-mono bg-blue-100/80 px-2 py-0.5 rounded-full border border-blue-300">
+                  تم الإسناد
+                </span>
+              </div>
+
+              {/* بانتظار تحضير الطلب */}
+              <div className="bg-gradient-to-br from-orange-50/90 to-amber-50/50 border border-orange-200/80 rounded-2xl p-4 flex items-center justify-between shadow-xs">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-orange-100/90 border border-orange-200/80 text-orange-700 shadow-2xs">
+                    <Package className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="text-xs text-orange-950 font-bold">بانتظار التحضير</div>
+                    <div className="text-xl font-black text-orange-700 font-mono">{preparingCount}</div>
+                  </div>
+                </div>
+                <span className="text-[10px] font-bold text-orange-800 font-mono bg-orange-100/80 px-2 py-0.5 rounded-full border border-orange-300">
                   بانتظار التحضير
                 </span>
               </div>
