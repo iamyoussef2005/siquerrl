@@ -21,12 +21,15 @@ import {
   EyeOff,
   RefreshCw,
   ShieldCheck,
+  Trash2,
+  AlertTriangle,
 } from 'lucide-react';
 
 interface StaffManagementModalProps {
   isOpen: boolean;
   onClose: () => void;
   onUserCreated?: (role: 'driver' | 'call_center') => void;
+  onUserDeleted?: (role: 'driver' | 'call_center') => void;
 }
 
 interface StaffMember {
@@ -43,6 +46,7 @@ export function StaffManagementModal({
   isOpen,
   onClose,
   onUserCreated,
+  onUserDeleted,
 }: StaffManagementModalProps) {
   const { session } = useAuth();
   const [activeTab, setActiveTab] = useState<'create' | 'list'>('create');
@@ -62,6 +66,8 @@ export function StaffManagementModal({
   // Staff List State
   const [staffList, setStaffList] = useState<StaffMember[]>([]);
   const [isLoadingStaff, setIsLoadingStaff] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [memberToDelete, setMemberToDelete] = useState<StaffMember | null>(null);
 
   // Fetch staff list from API (with direct database fallback)
   const fetchStaff = async () => {
@@ -101,10 +107,52 @@ export function StaffManagementModal({
     }
   };
 
+  // Delete a staff member (driver or call_center)
+  const handleDeleteMember = async (member: StaffMember) => {
+    if (!session?.access_token) {
+      setFeedback({ type: 'error', text: 'جلسة المستخدم منتهية، يرجى إعادة تسجيل الدخول' });
+      return;
+    }
+
+    setDeletingId(member.id);
+    setFeedback(null);
+
+    try {
+      const res = await fetch(`/api/admin/users?id=${member.id}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'فشلت عملية حذف الحساب');
+      }
+
+      // Remove member from local state
+      setStaffList((prev) => prev.filter((m) => m.id !== member.id));
+      setFeedback({ type: 'success', text: data.message || 'تم حذف الحساب بنجاح' });
+      setMemberToDelete(null);
+
+      // Trigger parent callback to refresh driver lists if needed
+      if (onUserDeleted) {
+        onUserDeleted(member.role as 'driver' | 'call_center');
+      }
+    } catch (err: any) {
+      console.error('Error deleting staff member:', err);
+      setFeedback({ type: 'error', text: err.message || 'حدث خطأ أثناء محاولة حذف الحساب' });
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   useEffect(() => {
     if (isOpen) {
       fetchStaff();
       setFeedback(null);
+      setMemberToDelete(null);
     }
   }, [isOpen]);
 
@@ -523,6 +571,7 @@ export function StaffManagementModal({
                         <th className="py-2.5 px-4">الدور والصلاحية</th>
                         <th className="py-2.5 px-4">البريد الإلكتروني</th>
                         <th className="py-2.5 px-4 text-center">العمولة</th>
+                        <th className="py-2.5 px-4 text-center">الإجراءات</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 text-slate-700">
@@ -573,6 +622,27 @@ export function StaffManagementModal({
                                 <span className="text-slate-400">—</span>
                               )}
                             </td>
+                            <td className="py-2.5 px-4 text-center">
+                              {isAdmin ? (
+                                <span className="text-[10px] text-slate-400 font-medium px-2 py-0.5 rounded bg-slate-100">
+                                  محمي
+                                </span>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => setMemberToDelete(member)}
+                                  disabled={deletingId === member.id}
+                                  className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer disabled:opacity-50 inline-flex items-center justify-center"
+                                  title={`حذف حساب ${member.full_name}`}
+                                >
+                                  {deletingId === member.id ? (
+                                    <Loader2 className="w-4 h-4 animate-spin text-rose-600" />
+                                  ) : (
+                                    <Trash2 className="w-4 h-4" />
+                                  )}
+                                </button>
+                              )}
+                            </td>
                           </tr>
                         );
                       })}
@@ -583,6 +653,61 @@ export function StaffManagementModal({
             </div>
           )}
         </div>
+
+        {/* نافذة تأكيد حذف الموظف نهائياً */}
+        {memberToDelete && (
+          <div className="fixed inset-0 z-60 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl border border-rose-200 animate-in fade-in zoom-in-95 duration-150">
+              <div className="flex items-center gap-3 text-rose-600 mb-3">
+                <div className="w-10 h-10 rounded-xl bg-rose-50 border border-rose-100 flex items-center justify-center shrink-0">
+                  <AlertTriangle className="w-5 h-5 text-rose-600" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-slate-900 text-sm">تأكيد حذف الحساب</h4>
+                  <p className="text-[11px] text-slate-500">هذا الإجراء نهائي ولا يمكن التراجع عنه</p>
+                </div>
+              </div>
+
+              <p className="text-xs text-slate-600 mb-4 leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-100">
+                هل أنت متأكد من رغبتك في حذف حساب{' '}
+                <strong className="text-slate-900 font-bold">
+                  {memberToDelete.full_name}
+                </strong>{' '}
+                ({memberToDelete.role === 'driver' ? 'مندوب توصيل' : 'موظف كول سنتر'})؟
+                سيتم إلغاء صلاحية دخوله للنظام وسحب أي طلبات مرتبطة به.
+              </p>
+
+              <div className="flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setMemberToDelete(null)}
+                  disabled={deletingId !== null}
+                  className="px-3.5 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors cursor-pointer"
+                >
+                  إلغاء
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDeleteMember(memberToDelete)}
+                  disabled={deletingId !== null}
+                  className="px-4 py-1.5 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                >
+                  {deletingId ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>جاري الحذف...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>تأكيد الحذف نهائياً</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

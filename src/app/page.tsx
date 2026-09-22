@@ -318,6 +318,12 @@ export default function AdminHomePage() {
             }
             showNotification('✨ تم إنشاء الحساب بنجاح وتم تحديث قائمة المناديب!');
           }}
+          onUserDeleted={(deletedRole) => {
+            if (deletedRole === 'driver') {
+              fetchDrivers();
+            }
+            showNotification('🗑️ تم حذف الحساب وتحديث قائمة المناديب بنجاح!');
+          }}
         />
 
         {/* نافذة تعديل تفاصيل وحسابات الطلب للمدير */}

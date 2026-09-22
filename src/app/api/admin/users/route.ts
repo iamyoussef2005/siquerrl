@@ -181,3 +181,86 @@ export async function GET(req: NextRequest) {
     );
   }
 }
+
+// DELETE: Delete a staff member account (driver or call_center)
+export async function DELETE(req: NextRequest) {
+  try {
+    const authCheck = await verifyAdminCaller(req);
+    if ('error' in authCheck) {
+      return NextResponse.json({ error: authCheck.error }, { status: authCheck.status });
+    }
+
+    const { user: callerUser, adminClient } = authCheck;
+    const { searchParams } = new URL(req.url);
+    const userId = searchParams.get('id');
+
+    if (!userId) {
+      return NextResponse.json({ error: 'معرّف المستخدم (ID) مطلوب للحذف' }, { status: 400 });
+    }
+
+    // 1. Prevent admin from deleting their own account
+    if (userId === callerUser.id) {
+      return NextResponse.json(
+        { error: 'لا يمكنك حذف حسابك الشخصي الذي تستخدمه حالياً لتسجيل الدخول' },
+        { status: 400 }
+      );
+    }
+
+    // 2. Fetch the target profile to check role
+    const { data: targetProfile, error: targetError } = await adminClient
+      .from('profiles')
+      .select('id, full_name, role')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (targetError || !targetProfile) {
+      return NextResponse.json({ error: 'لم يتم العثور على الحساب المطلوب حذفه' }, { status: 404 });
+    }
+
+    // 3. Prevent deleting another admin account
+    if (targetProfile.role === 'admin') {
+      return NextResponse.json(
+        { error: 'لا يمكن حذف حسابات المدراء عبر هذه النافذة لحماية أمان النظام' },
+        { status: 403 }
+      );
+    }
+
+    // 4. Detach driver_id from any orders before deletion
+    await adminClient
+      .from('orders')
+      .update({ driver_id: null })
+      .eq('driver_id', userId);
+
+    // 5. Delete the profile record from public.profiles
+    const { error: deleteProfileError } = await adminClient
+      .from('profiles')
+      .delete()
+      .eq('id', userId);
+
+    if (deleteProfileError) {
+      console.error('Error deleting profile:', deleteProfileError);
+      return NextResponse.json(
+        { error: `حدث خطأ أثناء حذف الملف الشخصي: ${deleteProfileError.message}` },
+        { status: 500 }
+      );
+    }
+
+    // 6. Delete the user from Supabase Auth so they can no longer log in
+    const { error: deleteAuthError } = await adminClient.auth.admin.deleteUser(userId);
+    if (deleteAuthError) {
+      console.warn('Notice: auth user deletion warning:', deleteAuthError);
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: `تم حذف حساب ${targetProfile.role === 'driver' ? 'المندوب' : 'موظف الكول سنتر'} (${targetProfile.full_name}) نهائياً بنجاح 🗑️`,
+    });
+  } catch (err: any) {
+    console.error('Server error in /api/admin/users (DELETE):', err);
+    return NextResponse.json(
+      { error: err.message || 'حدث خطأ غير متوقع أثناء حذف الحساب' },
+      { status: 500 }
+    );
+  }
+}
+
