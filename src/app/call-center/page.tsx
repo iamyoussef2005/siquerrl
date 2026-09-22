@@ -160,7 +160,8 @@ export default function CallCenterPage() {
 
   // Status stats calculations
   const totalCount = orders.length;
-  const pendingCount = orders.filter((o) => o.status === 'pending').length;
+  const pendingAssignmentCount = orders.filter((o) => o.status === 'pending').length;
+  const preparingCount = orders.filter((o) => o.status === 'assigned').length;
   const inDeliveryCount = orders.filter((o) => o.status === 'delivering').length;
   const deliveredCount = orders.filter((o) => o.status === 'delivered').length;
 
@@ -269,7 +270,7 @@ export default function CallCenterPage() {
             </div>
 
             {/* شريط إحصائيات سريعة للطلبات */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
               {/* إجمالي طلبات اليوم */}
               <div className="bg-gradient-to-br from-orange-50/90 to-amber-50/50 border border-orange-200/80 rounded-2xl p-4 flex items-center justify-between shadow-xs">
                 <div className="flex items-center gap-3">
@@ -283,19 +284,35 @@ export default function CallCenterPage() {
                 </div>
               </div>
 
-              {/* بانتظار تحضير الطلب */}
-              <div className="bg-gradient-to-br from-amber-50/90 to-orange-50/50 border border-orange-200/80 rounded-2xl p-4 flex items-center justify-between shadow-xs">
+              {/* بانتظار الإسناد */}
+              <div className="bg-gradient-to-br from-amber-50/90 to-orange-50/50 border border-amber-200/80 rounded-2xl p-4 flex items-center justify-between shadow-xs">
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-xl bg-amber-100/90 border border-amber-200/80 text-amber-700 shadow-2xs">
                     <Clock className="w-4 h-4" />
                   </div>
                   <div>
-                    <div className="text-xs text-amber-950 font-bold">بانتظار تحضير الطلب</div>
-                    <div className="text-xl font-black text-amber-700 font-mono">{pendingCount}</div>
+                    <div className="text-xs text-amber-950 font-bold">بانتظار الإسناد</div>
+                    <div className="text-xl font-black text-amber-700 font-mono">{pendingAssignmentCount}</div>
                   </div>
                 </div>
                 <span className="text-[10px] font-bold text-amber-800 font-mono bg-amber-100/80 px-2 py-0.5 rounded-full border border-amber-300">
                   Pending
+                </span>
+              </div>
+
+              {/* بانتظار تحضير الطلب */}
+              <div className="bg-gradient-to-br from-blue-50/90 to-indigo-50/50 border border-blue-200/80 rounded-2xl p-4 flex items-center justify-between shadow-xs">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-xl bg-blue-100/90 border border-blue-200/80 text-blue-700 shadow-2xs">
+                    <Package className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="text-xs text-blue-950 font-bold">بانتظار التحضير</div>
+                    <div className="text-xl font-black text-blue-700 font-mono">{preparingCount}</div>
+                  </div>
+                </div>
+                <span className="text-[10px] font-bold text-blue-800 font-mono bg-blue-100/80 px-2 py-0.5 rounded-full border border-blue-300">
+                  Assigned
                 </span>
               </div>
 

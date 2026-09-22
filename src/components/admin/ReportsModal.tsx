@@ -64,7 +64,9 @@ export function ReportsModal({
       const assigned = filteredOrders.filter((o) => o.driver_id === driver.id);
       const delivered = assigned.filter((o) => o.status === 'delivered');
       const inProgress = assigned.filter((o) => o.status === 'delivering');
-      const pending = assigned.filter((o) => o.status === 'pending');
+      const pending = assigned.filter(
+        (o) => o.status === 'assigned' || o.status === 'pending'
+      );
 
       // Active delivered revenue calculations
       const totalCollection = delivered.reduce(
@@ -109,7 +111,8 @@ export function ReportsModal({
     const totalOrdersCount = filteredOrders.length;
     const delivered = filteredOrders.filter((o) => o.status === 'delivered');
     const inProgress = filteredOrders.filter((o) => o.status === 'delivering');
-    const pending = filteredOrders.filter((o) => o.status === 'pending');
+    const assignedPrep = filteredOrders.filter((o) => o.status === 'assigned');
+    const pendingAssignment = filteredOrders.filter((o) => o.status === 'pending');
     const cancelled = filteredOrders.filter((o) => o.status === 'cancelled');
 
     const totalCollection = delivered.reduce(
@@ -135,7 +138,8 @@ export function ReportsModal({
       totalOrdersCount,
       deliveredCount: delivered.length,
       inProgressCount: inProgress.length,
-      pendingCount: pending.length,
+      assignedCount: assignedPrep.length,
+      pendingCount: pendingAssignment.length,
       cancelledCount: cancelled.length,
       unassignedCount: unassignedOrders.length,
       totalCollection,
@@ -192,7 +196,7 @@ export function ReportsModal({
       totals.totalOrdersCount,
       totals.deliveredCount,
       totals.inProgressCount,
-      totals.pendingCount,
+      totals.assignedCount,
       '""',
       totals.totalCollection,
       totals.totalDeliveryFee,
@@ -400,13 +404,21 @@ export function ReportsModal({
           </div>
 
           {/* 2. شريط حالة الطلبات */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs font-semibold">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 text-xs font-semibold">
             <div className="p-3 rounded-xl bg-slate-50/70 border border-slate-200 text-slate-700 flex items-center justify-between shadow-2xs print:border-gray-300 print:bg-white print:text-black">
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 print:text-black" />
-                <span>طلبات تم تسليمها:</span>
+                <Clock className="w-4 h-4 text-orange-600 print:text-black" />
+                <span>بانتظار الإسناد:</span>
               </div>
-              <span className="font-bold font-mono text-sm text-emerald-700 print:text-black">{totals.deliveredCount}</span>
+              <span className="font-bold font-mono text-sm text-orange-700 print:text-black">{totals.pendingCount}</span>
+            </div>
+
+            <div className="p-3 rounded-xl bg-slate-50/70 border border-slate-200 text-slate-700 flex items-center justify-between shadow-2xs print:border-gray-300 print:bg-white print:text-black">
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 text-amber-600 print:text-black" />
+                <span>بانتظار التحضير:</span>
+              </div>
+              <span className="font-bold font-mono text-sm text-amber-700 print:text-black">{totals.assignedCount}</span>
             </div>
 
             <div className="p-3 rounded-xl bg-slate-50/70 border border-slate-200 text-slate-700 flex items-center justify-between shadow-2xs print:border-gray-300 print:bg-white print:text-black">
@@ -419,10 +431,10 @@ export function ReportsModal({
 
             <div className="p-3 rounded-xl bg-slate-50/70 border border-slate-200 text-slate-700 flex items-center justify-between shadow-2xs print:border-gray-300 print:bg-white print:text-black">
               <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-amber-600 print:text-black" />
-                <span>بانتظار التحضير:</span>
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 print:text-black" />
+                <span>طلبات تم تسليمها:</span>
               </div>
-              <span className="font-bold font-mono text-sm text-amber-700 print:text-black">{totals.pendingCount}</span>
+              <span className="font-bold font-mono text-sm text-emerald-700 print:text-black">{totals.deliveredCount}</span>
             </div>
 
             <div className="p-3 rounded-xl bg-slate-50/70 border border-slate-200 text-slate-700 flex items-center justify-between shadow-2xs print:border-gray-300 print:bg-white print:text-black">
@@ -549,7 +561,7 @@ export function ReportsModal({
                       {totals.deliveredCount}
                     </td>
                     <td className="py-3 px-3 text-center font-mono text-amber-700 print:text-black">
-                      {totals.pendingCount}
+                      {totals.assignedCount}
                     </td>
                     <td className="py-3 px-3 text-center text-slate-400 print:text-black">—</td>
                     <td className="py-3 px-3 text-center font-mono text-emerald-700 print:text-black whitespace-nowrap">

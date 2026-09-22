@@ -10,7 +10,9 @@ interface StatsCardsProps {
 
 export function StatsCards({ orders }: StatsCardsProps) {
   const totalOrders = orders.length;
-  const pendingOrders = orders.filter((o) => o.status === 'pending').length;
+  const pendingOrders = orders.filter(
+    (o) => o.status === 'assigned' || o.status === 'pending'
+  ).length;
   const deliveredOrders = orders.filter((o) => o.status === 'delivered').length;
   const inDeliveryOrders = orders.filter((o) => o.status === 'delivering').length;
 

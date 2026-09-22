@@ -36,7 +36,8 @@ export function AdminAccountingCards({ orders, selectedDriver, dateFilter = 'all
   const totalOrdersCount = relevantOrders.length;
   const completedOrders = relevantOrders.filter((o) => o.status === 'delivered').length;
   const inDeliveryOrders = relevantOrders.filter((o) => o.status === 'delivering').length;
-  const pendingOrders = relevantOrders.filter((o) => o.status === 'pending').length;
+  const preparingOrders = relevantOrders.filter((o) => o.status === 'assigned').length;
+  const pendingAssignmentOrders = relevantOrders.filter((o) => o.status === 'pending').length;
   const cancelledOrders = relevantOrders.filter((o) => o.status === 'cancelled').length;
 
   // Financial calculations (excluding cancelled orders)
@@ -132,16 +133,29 @@ export function AdminAccountingCards({ orders, selectedDriver, dateFilter = 'all
       </div>
 
       {/* عدادات الحالات التنفيذية الأنيقة */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
-        {/* بانتظار تحضير الطلب */}
-        <div className="bg-gradient-to-br from-amber-50/90 to-orange-50/50 border border-amber-200/80 rounded-xl p-3 flex items-center justify-between hover:border-amber-300 transition-colors shadow-2xs">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
+        {/* بانتظار الإسناد */}
+        <div className="bg-gradient-to-br from-amber-50/90 to-yellow-50/50 border border-amber-200/80 rounded-xl p-3 flex items-center justify-between hover:border-amber-300 transition-colors shadow-2xs">
           <div className="flex items-center gap-2.5">
             <div className="p-1.5 rounded-lg bg-amber-100/90 text-amber-700 border border-amber-200/80 shadow-2xs">
               <Clock className="w-3.5 h-3.5" />
             </div>
             <div>
-              <div className="text-[11px] text-amber-900 font-semibold">بانتظار التحضير</div>
-              <div className="text-base font-black text-amber-700 font-mono mt-0.5">{pendingOrders}</div>
+              <div className="text-[11px] text-amber-900 font-semibold">بانتظار الإسناد</div>
+              <div className="text-base font-black text-amber-700 font-mono mt-0.5">{pendingAssignmentOrders}</div>
+            </div>
+          </div>
+        </div>
+
+        {/* بانتظار تحضير الطلب */}
+        <div className="bg-gradient-to-br from-orange-50/90 to-amber-50/50 border border-orange-200/80 rounded-xl p-3 flex items-center justify-between hover:border-orange-300 transition-colors shadow-2xs">
+          <div className="flex items-center gap-2.5">
+            <div className="p-1.5 rounded-lg bg-orange-100/90 text-orange-700 border border-orange-200/80 shadow-2xs">
+              <UserCheck className="w-3.5 h-3.5" />
+            </div>
+            <div>
+              <div className="text-[11px] text-orange-900 font-semibold">بانتظار التحضير</div>
+              <div className="text-base font-black text-orange-700 font-mono mt-0.5">{preparingOrders}</div>
             </div>
           </div>
         </div>

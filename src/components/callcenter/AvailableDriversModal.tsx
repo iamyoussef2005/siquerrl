@@ -96,7 +96,7 @@ export function AvailableDriversModal({
             filteredDrivers.map((driver) => {
               const driverOrders = orders.filter((o) => o.driver_id === driver.id);
               const activeCount = driverOrders.filter(
-                (o) => o.status === 'delivering' || o.status === 'pending'
+                (o) => o.status === 'delivering' || o.status === 'assigned' || o.status === 'pending'
               ).length;
               const deliveredCount = driverOrders.filter((o) => o.status === 'delivered').length;
 

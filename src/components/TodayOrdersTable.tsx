@@ -66,10 +66,17 @@ export function TodayOrdersTable({
     switch (status) {
       case 'pending':
         return {
-          label: 'بانتظار تحضير الطلب',
+          label: 'بانتظار الإسناد',
           className: 'bg-amber-50 text-amber-700 border-amber-200',
           dotColor: 'bg-amber-500',
           icon: Clock,
+        };
+      case 'assigned':
+        return {
+          label: 'بانتظار تحضير الطلب',
+          className: 'bg-orange-50 text-orange-700 border-orange-200',
+          dotColor: 'bg-orange-500',
+          icon: Package,
         };
       case 'delivering':
         return {
@@ -180,7 +187,8 @@ export function TodayOrdersTable({
               className="w-full bg-white border border-orange-200/80 hover:border-orange-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 rounded-xl px-3 py-1.5 text-xs text-zinc-800 font-semibold focus:outline-hidden cursor-pointer appearance-none pl-7 shadow-2xs"
             >
               <option value="all">جميع الحالات</option>
-              <option value="pending">بانتظار تحضير الطلب</option>
+              <option value="pending">بانتظار الإسناد</option>
+              <option value="assigned">بانتظار تحضير الطلب</option>
               <option value="delivering">قيد التوصيل</option>
               <option value="delivered">مكتملة ومسلّمة</option>
               <option value="cancelled">ملغي</option>
