@@ -51,12 +51,6 @@ export function AdminHeader({
               <span className="px-2 py-0.5 text-[10px] font-bold bg-orange-50 text-orange-700 border border-orange-200 rounded-md">
                 لوحة الإدارة
               </span>
-              <div className="flex items-center gap-1.5 text-[10px] mr-1">
-                <span className={`w-2 h-2 rounded-full ${realtimeConnected ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
-                <span className={realtimeConnected ? 'text-emerald-700 font-semibold' : 'text-amber-700 font-semibold'}>
-                  {realtimeConnected ? 'مباشر' : 'مزامنة...'}
-                </span>
-              </div>
             </div>
             <p className="text-[11px] text-zinc-500 font-medium">منظومة إدارة وتوزيع الطلبات والتدقيق اللحظي</p>
           </div>

@@ -57,16 +57,6 @@ export function DriverHeader({
               <h1 className="text-sm font-black text-zinc-900 tracking-tight leading-tight">
                 سنجاب دليفري
               </h1>
-              <div className="flex items-center gap-1.5 text-[10px]">
-                <Radio
-                  className={`w-2.5 h-2.5 ${
-                    realtimeConnected ? 'text-emerald-600 animate-pulse' : 'text-amber-600'
-                  }`}
-                />
-                <span className={realtimeConnected ? 'text-emerald-700 font-bold' : 'text-amber-700 font-bold'}>
-                  {realtimeConnected ? 'مباشر Realtime' : 'مزامنة...'}
-                </span>
-              </div>
             </div>
           </div>
 
