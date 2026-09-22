@@ -18,6 +18,7 @@ import {
   X,
   Package,
   Bike,
+  Edit3,
 } from 'lucide-react';
 
 interface TodayOrdersTableProps {
@@ -26,6 +27,7 @@ interface TodayOrdersTableProps {
   onRefresh: () => void;
   isLoading: boolean;
   highlightedOrderId?: string | number | null;
+  onOpenEditModal?: (order: Order) => void;
 }
 
 export function TodayOrdersTable({
@@ -34,6 +36,7 @@ export function TodayOrdersTable({
   onRefresh,
   isLoading,
   highlightedOrderId,
+  onOpenEditModal,
 }: TodayOrdersTableProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -70,9 +73,9 @@ export function TodayOrdersTable({
         };
       case 'assigned':
         return {
-          label: 'مُسند',
-          className: 'bg-indigo-50 text-indigo-700 border-indigo-200',
-          dotColor: 'bg-indigo-500',
+          label: 'مُسند للمندوب',
+          className: 'bg-orange-50 text-orange-700 border-orange-200 font-bold',
+          dotColor: 'bg-orange-500',
           icon: Truck,
         };
       case 'delivering':
@@ -138,7 +141,7 @@ export function TodayOrdersTable({
       {/* شريط التحكم بالجدول والفلترة */}
       <div className="p-3.5 lg:p-4 border-b border-slate-200 bg-slate-50/70 flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <div className="p-2 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 shadow-2xs">
+          <div className="p-2 rounded-xl bg-orange-50 text-orange-600 border border-orange-100 shadow-2xs">
             <Package className="w-4 h-4" />
           </div>
           <div>
@@ -151,8 +154,8 @@ export function TodayOrdersTable({
               </span>
             </div>
             <p className="text-[11px] text-slate-500 flex items-center gap-1">
-              <Eye className="w-3.5 h-3.5 text-slate-400" />
-              <span>وضع الاطلاع والمتابعة اللحظية (قراءة فقط)</span>
+              <Edit3 className="w-3.5 h-3.5 text-orange-600" />
+              <span>عرض ومتابعة وتعديل بيانات الطلبات والحسابات</span>
             </p>
           </div>
         </div>
@@ -166,7 +169,7 @@ export function TodayOrdersTable({
               placeholder="بحث برقم الطلب، الزبون، أو الهاتف..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-white border border-slate-300 hover:border-slate-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 rounded-xl px-3 py-1.5 pr-8 pl-7 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-hidden transition-all shadow-2xs"
+              className="w-full bg-white border border-slate-300 hover:border-slate-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 rounded-xl px-3 py-1.5 pr-8 pl-7 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-hidden transition-all shadow-2xs"
             />
             <Search className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-2 pointer-events-none" />
             {searchQuery && (
@@ -184,7 +187,7 @@ export function TodayOrdersTable({
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full bg-white border border-slate-300 hover:border-slate-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 rounded-xl px-3 py-1.5 text-xs text-slate-700 font-medium focus:outline-hidden cursor-pointer appearance-none pl-7 shadow-2xs"
+              className="w-full bg-white border border-slate-300 hover:border-slate-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 rounded-xl px-3 py-1.5 text-xs text-slate-700 font-medium focus:outline-hidden cursor-pointer appearance-none pl-7 shadow-2xs"
             >
               <option value="all">جميع الحالات</option>
               <option value="pending">بانتظار مندوب</option>
@@ -197,7 +200,7 @@ export function TodayOrdersTable({
         </div>
       </div>
 
-      {/* الجدول العصري المقيد (Read-Only) */}
+      {/* جدول طلبات اليوم */}
       <div className="overflow-x-auto">
         <table className="w-full text-right text-xs">
           <thead className="bg-slate-50 text-slate-600 border-b border-slate-200 text-[11px] font-semibold tracking-normal">
@@ -210,12 +213,13 @@ export function TodayOrdersTable({
               <th className="py-3 px-4 text-center">أجرة التوصيل</th>
               <th className="py-3 px-4">المندوب المسند</th>
               <th className="py-3 px-4 text-center">الحالة</th>
+              {onOpenEditModal && <th className="py-3 px-4 text-center">الإجراءات</th>}
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 text-slate-700">
             {filteredOrders.length === 0 ? (
               <tr>
-                <td colSpan={8} className="py-14 text-center text-slate-500">
+                <td colSpan={onOpenEditModal ? 9 : 8} className="py-14 text-center text-slate-500">
                   <div className="flex flex-col items-center justify-center gap-2.5">
                     <div className="p-3 rounded-2xl bg-slate-50 text-slate-400 border border-slate-200">
                       <AlertCircle className="w-6 h-6" />
@@ -255,7 +259,7 @@ export function TodayOrdersTable({
                       <div className="font-semibold text-slate-900 text-xs sm:text-sm">{order.customer_name}</div>
                       <a
                         href={`tel:${order.customer_phone}`}
-                        className="inline-flex items-center gap-1 text-[11px] text-slate-500 hover:text-blue-600 font-mono mt-0.5 transition-colors"
+                        className="inline-flex items-center gap-1 text-[11px] text-slate-500 hover:text-orange-600 font-mono mt-0.5 transition-colors"
                         dir="ltr"
                       >
                         <Phone className="w-3 h-3 text-slate-400 shrink-0" />
@@ -281,7 +285,7 @@ export function TodayOrdersTable({
                           href={order.maps_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="mt-1 px-1.5 py-0.5 rounded bg-blue-50 hover:bg-blue-100 border border-blue-200 text-[10px] text-blue-700 inline-flex items-center gap-1 transition-colors font-medium"
+                          className="mt-1 px-1.5 py-0.5 rounded bg-orange-50 hover:bg-orange-100 border border-orange-200 text-[10px] text-orange-700 inline-flex items-center gap-1 transition-colors font-medium"
                         >
                           <span>عرض الخريطة</span>
                           <ExternalLink className="w-2.5 h-2.5" />
@@ -326,6 +330,21 @@ export function TodayOrdersTable({
                         <span>{badge.label}</span>
                       </span>
                     </td>
+
+                    {/* زر تعديل الطلب للكول سنتر */}
+                    {onOpenEditModal && (
+                      <td className="py-3 px-4 text-center whitespace-nowrap">
+                        <button
+                          type="button"
+                          onClick={() => onOpenEditModal(order)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-orange-50 hover:bg-orange-100 text-orange-700 border border-orange-200 text-xs font-semibold transition-all cursor-pointer active:scale-95 shadow-2xs hover:shadow-xs"
+                          title="تعديل تفاصيل الطلب والحسابات"
+                        >
+                          <Edit3 className="w-3.5 h-3.5" />
+                          <span>تعديل</span>
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 );
               })

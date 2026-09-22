@@ -236,10 +236,10 @@ export function OrdersCleanupModal({
 
         <div className="p-5 sm:p-6 space-y-5">
           {/* تنبيه الأمان وضمان الحفظ */}
-          <div className="bg-blue-50/80 border border-blue-200 rounded-xl p-3.5 flex items-start gap-3">
-            <ShieldCheck className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+          <div className="bg-orange-50/80 border border-orange-200 rounded-xl p-3.5 flex items-start gap-3">
+            <ShieldCheck className="w-5 h-5 text-orange-600 shrink-0 mt-0.5" />
             <div className="text-xs space-y-1">
-              <div className="font-bold text-blue-900">
+              <div className="font-bold text-orange-950">
                 ضمان أمان البيانات التام:
               </div>
               <p className="text-slate-600 leading-relaxed text-[11px]">
@@ -279,7 +279,7 @@ export function OrdersCleanupModal({
                 onClick={() => setRange('30days')}
                 className={`p-2.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer text-center ${
                   range === '30days'
-                    ? 'bg-blue-600 border-blue-600 text-white shadow-xs'
+                    ? 'bg-orange-600 border-orange-600 text-white shadow-xs'
                     : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50'
                 }`}
               >
@@ -290,7 +290,7 @@ export function OrdersCleanupModal({
                 onClick={() => setRange('60days')}
                 className={`p-2.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer text-center ${
                   range === '60days'
-                    ? 'bg-blue-600 border-blue-600 text-white shadow-xs'
+                    ? 'bg-orange-600 border-orange-600 text-white shadow-xs'
                     : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50'
                 }`}
               >
@@ -301,7 +301,7 @@ export function OrdersCleanupModal({
                 onClick={() => setRange('90days')}
                 className={`p-2.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer text-center ${
                   range === '90days'
-                    ? 'bg-blue-600 border-blue-600 text-white shadow-xs'
+                    ? 'bg-orange-600 border-orange-600 text-white shadow-xs'
                     : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50'
                 }`}
               >
@@ -312,7 +312,7 @@ export function OrdersCleanupModal({
                 onClick={() => setRange('custom')}
                 className={`p-2.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer text-center ${
                   range === 'custom'
-                    ? 'bg-blue-600 border-blue-600 text-white shadow-xs'
+                    ? 'bg-orange-600 border-orange-600 text-white shadow-xs'
                     : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50'
                 }`}
               >
@@ -328,7 +328,7 @@ export function OrdersCleanupModal({
                   dir="ltr"
                   value={customDate}
                   onChange={(e) => setCustomDate(e.target.value)}
-                  className="bg-white border border-slate-300 text-xs text-slate-900 rounded-xl px-3 py-1.5 focus:outline-hidden focus:border-blue-600 shadow-2xs"
+                  className="bg-white border border-slate-300 text-xs text-slate-900 rounded-xl px-3 py-1.5 focus:outline-hidden focus:border-orange-500 shadow-2xs"
                 />
               </div>
             )}
@@ -341,7 +341,7 @@ export function OrdersCleanupModal({
                 type="checkbox"
                 checked={onlyCompleted}
                 onChange={(e) => setOnlyCompleted(e.target.checked)}
-                className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-100 bg-white"
+                className="w-4 h-4 rounded border-slate-300 text-orange-600 focus:ring-orange-500/20 bg-white"
               />
               <span className="text-xs font-semibold text-slate-800">
                 حذف الطلبات المنتهية فقط (المسلّمة والملغية) — موصى به جداً

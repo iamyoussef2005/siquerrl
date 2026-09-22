@@ -102,6 +102,37 @@ CREATE POLICY "Call Center insert orders" ON public.orders
   FOR INSERT TO authenticated
   WITH CHECK (public.get_current_role() = 'call_center');
 
+-- الكول سنتر: تعديل بيانات الطلب وتفاصيله وحساباته
+DROP POLICY IF EXISTS "الكول سنتر يعدل بيانات الطلب" ON public.orders;
+CREATE POLICY "الكول سنتر يعدل بيانات الطلب"
+  ON public.orders
+  FOR UPDATE TO authenticated
+  USING (public.get_current_role() = 'call_center')
+  WITH CHECK (public.get_current_role() = 'call_center');
+
+-- دالة ومحفز لمنع الكول سنتر من تغيير حالة الطلب أو إسناد المندوب
+CREATE OR REPLACE FUNCTION public.validate_call_center_order_update()
+RETURNS trigger AS $$
+BEGIN
+  IF public.get_current_role() = 'call_center' THEN
+    IF NEW.status IS DISTINCT FROM OLD.status THEN
+      RAISE EXCEPTION 'غير مصرح لموظف الكول سنتر بتغيير حالة الطلب؛ الصلاحية محصورة بالمندوب وإدارة العمليات.';
+    END IF;
+    IF NEW.driver_id IS DISTINCT FROM OLD.driver_id THEN
+      RAISE EXCEPTION 'غير مصرح لموظف الكول سنتر بإسناد أو تغيير المندوب؛ الصلاحية محصورة بإدارة العمليات.';
+    END IF;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS tr_validate_call_center_update ON public.orders;
+DROP TRIGGER IF EXISTS tr_a_validate_call_center_update ON public.orders;
+CREATE TRIGGER tr_a_validate_call_center_update
+  BEFORE UPDATE ON public.orders
+  FOR EACH ROW
+  EXECUTE FUNCTION public.validate_call_center_order_update();
+
 -- 3. المندوب: يقرأ فقط الطلبات المسندة إليه
 DROP POLICY IF EXISTS "Driver view assigned orders" ON public.orders;
 CREATE POLICY "Driver view assigned orders" ON public.orders

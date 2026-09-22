@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { ShieldCheck, Radio, RefreshCw, LogOut, PlusCircle, Sliders, FileSpreadsheet, User, Users, Trash2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
+import Image from 'next/image';
+
 interface AdminHeaderProps {
   realtimeConnected: boolean;
   onRefresh: () => void;
@@ -28,23 +30,35 @@ export function AdminHeader({
   const { profile, user, logout } = useAuth();
 
   return (
-    <header className="border-b border-slate-200 bg-white/95 backdrop-blur-md sticky top-0 z-30 px-4 lg:px-8 py-3 mb-6 shadow-xs">
+    <header className="border-b border-zinc-200/90 bg-white/95 backdrop-blur-md sticky top-0 z-30 px-4 lg:px-8 py-2.5 mb-6 shadow-xs">
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 max-w-7xl mx-auto">
-        {/* عنوان اللوحة والشعار الاحترافي */}
+        {/* عنوان اللوحة وشعار سنجاب دليفري الاحترافي */}
         <div className="flex items-center gap-3">
-          <div className="h-9 w-9 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 shadow-2xs">
-            <ShieldCheck className="w-5 h-5" />
+          <div className="relative h-10 w-10 rounded-2xl bg-orange-50 border border-orange-200/80 p-1 flex items-center justify-center shadow-xs overflow-hidden shrink-0">
+            <Image
+              src="/sinjab-logo.png"
+              alt="Sinjab Delivery"
+              width={38}
+              height={38}
+              className="object-contain"
+            />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight">
-                لوحة الإدارة والعمليات
+              <h1 className="text-sm sm:text-base font-extrabold text-zinc-900 tracking-tight">
+                سنجاب دليفري
               </h1>
-              <span className="px-2 py-0.5 text-[10px] font-semibold bg-slate-100 text-slate-700 border border-slate-200 rounded-md">
-                مسؤول النظام
+              <span className="px-2 py-0.5 text-[10px] font-bold bg-orange-50 text-orange-700 border border-orange-200 rounded-md">
+                لوحة الإدارة
               </span>
+              <div className="flex items-center gap-1.5 text-[10px] mr-1">
+                <span className={`w-2 h-2 rounded-full ${realtimeConnected ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
+                <span className={realtimeConnected ? 'text-emerald-700 font-semibold' : 'text-amber-700 font-semibold'}>
+                  {realtimeConnected ? 'مباشر' : 'مزامنة...'}
+                </span>
+              </div>
             </div>
-            <p className="text-[11px] text-slate-500 font-normal">إدارة وتوزيع الطلبات ومتابعة الحسابات اللحظية</p>
+            <p className="text-[11px] text-zinc-500 font-medium">منظومة إدارة وتوزيع الطلبات والتدقيق اللحظي</p>
           </div>
         </div>
 
@@ -54,7 +68,7 @@ export function AdminHeader({
           {onOpenCreateModal && (
             <button
               onClick={onOpenCreateModal}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-xs font-semibold text-white shadow-xs hover:shadow transition-all duration-150 cursor-pointer active:scale-95"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl btn-sinjab-primary text-xs font-bold transition-all duration-150 cursor-pointer active:scale-95"
               title="تسجيل طلب جديد"
             >
               <PlusCircle className="w-3.5 h-3.5" />
@@ -117,14 +131,14 @@ export function AdminHeader({
             className="p-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-900 transition-all duration-150 disabled:opacity-50 cursor-pointer active:scale-95 shadow-2xs"
             title="تحديث البيانات"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-blue-600' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-orange-500' : ''}`} />
           </button>
 
           {/* ملف المدير وزر تسجيل الخروج */}
           {user && (
             <div className="flex items-center gap-2 pr-2 border-r border-slate-200">
               <div className="hidden sm:flex items-center gap-2 bg-slate-100 border border-slate-200 rounded-lg px-2.5 py-1">
-                <div className="w-5 h-5 rounded-md bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-[10px]">
+                <div className="w-5 h-5 rounded-md bg-orange-100 text-orange-700 flex items-center justify-center font-bold text-[10px]">
                   <User className="w-3 h-3" />
                 </div>
                 <span className="text-xs font-semibold text-slate-700">

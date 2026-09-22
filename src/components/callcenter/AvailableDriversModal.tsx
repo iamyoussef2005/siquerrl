@@ -46,7 +46,7 @@ export function AvailableDriversModal({
         {/* رأس النافذة */}
         <div className="flex items-center justify-between p-4 sm:p-5 px-6 border-b border-slate-200 bg-white z-20">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 shadow-2xs">
+            <div className="p-2 rounded-xl bg-orange-50 border border-orange-100 text-orange-600 shadow-2xs">
               <Bike className="w-5 h-5" />
             </div>
             <div>
@@ -80,7 +80,7 @@ export function AvailableDriversModal({
               placeholder="بحث باسم المندوب أو رقم الهاتف..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-white border border-slate-300 rounded-xl pr-9 pl-3.5 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:border-blue-600 focus:ring-2 focus:ring-blue-100 transition-all shadow-2xs"
+              className="w-full bg-white border border-slate-300 rounded-xl pr-9 pl-3.5 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 transition-all shadow-2xs"
             />
             <Search className="w-4 h-4 text-slate-400 absolute right-3 top-2.5 pointer-events-none" />
           </div>
@@ -106,7 +106,7 @@ export function AvailableDriversModal({
                   className="bg-slate-50/70 border border-slate-200 rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors hover:border-slate-300 hover:bg-slate-50 shadow-2xs"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center shadow-2xs">
+                    <div className="w-9 h-9 rounded-xl bg-orange-50 border border-orange-100 text-orange-600 flex items-center justify-center shadow-2xs">
                       <Bike className="w-4 h-4" />
                     </div>
                     <div>
@@ -138,7 +138,7 @@ export function AvailableDriversModal({
                   {driver.phone ? (
                     <a
                       href={`tel:${driver.phone}`}
-                      className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs hover:shadow transition-all"
+                      className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white text-xs font-semibold shadow-xs hover:shadow transition-all"
                       title={`الاتصال بالمندوب ${driver.name}`}
                     >
                       <Phone className="w-3.5 h-3.5" />

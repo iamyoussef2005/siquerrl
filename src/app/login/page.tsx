@@ -14,6 +14,8 @@ import {
   AlertCircle,
 } from 'lucide-react';
 
+import Image from 'next/image';
+
 export default function LoginPage() {
   const router = useRouter();
   const { login, user, role, isLoading: isAuthLoading } = useAuth();
@@ -69,27 +71,43 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col justify-center items-center px-4 py-12 selection:bg-blue-100 selection:text-blue-900 relative">
+    <div className="min-h-screen bg-[#fcfcfd] text-zinc-900 flex flex-col justify-center items-center px-4 py-12 selection:bg-orange-500 selection:text-white relative overflow-hidden">
+      {/* خلفية ضوئية برتقالية خافتة وفخمة */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[550px] bg-gradient-to-tr from-orange-400/15 via-amber-300/10 to-transparent rounded-full blur-3xl pointer-events-none" />
+
       <div className="max-w-md w-full relative z-10 space-y-6">
-        {/* Header / Logo */}
-        <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 mb-1 shadow-xs">
-            <ShieldCheck className="w-6 h-6" />
+        {/* Header / Brand Logo */}
+        <div className="text-center space-y-3">
+          <div className="inline-flex items-center justify-center p-2.5 rounded-3xl bg-white border border-orange-100 shadow-lg shadow-orange-500/10 mb-1 hover:scale-105 transition-transform duration-300">
+            <Image
+              src="/sinjab-logo.png"
+              alt="Sinjab Delivery Logo"
+              width={105}
+              height={105}
+              priority
+              className="object-contain rounded-2xl"
+            />
           </div>
 
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
-            تسجيل الدخول للنظام
-          </h1>
-          <p className="text-xs text-slate-500 font-normal">
-            منظومة إدارة وتوزيع الطلبات والتدقيق المالي اللحظي
-          </p>
+          <div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-50 border border-orange-200 text-orange-700 text-[11px] font-bold mb-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-ping" />
+              <span>منظومة إدارة وتوزيع العمليات</span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-zinc-900">
+              سنجاب دليفري
+            </h1>
+            <p className="text-xs font-semibold text-zinc-500 font-mono tracking-wide mt-0.5">
+              SINJAB DELIVERY OPERATIONS
+            </p>
+          </div>
         </div>
 
         {/* Card */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 shadow-sm space-y-5">
+        <div className="bg-white border border-zinc-200/90 rounded-3xl p-6 sm:p-8 shadow-xl shadow-zinc-200/50 space-y-5 backdrop-blur-md">
           {/* Error notification */}
           {errorMessage && (
-            <div className="bg-rose-50 border border-rose-200 rounded-xl p-3 flex items-center gap-2.5 text-xs text-rose-700">
+            <div className="bg-rose-50 border border-rose-200 rounded-xl p-3 flex items-center gap-2.5 text-xs text-rose-700 animate-fadeIn">
               <AlertCircle className="w-4 h-4 shrink-0 text-rose-500" />
               <span>{errorMessage}</span>
             </div>
@@ -98,11 +116,11 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Email input */}
             <div className="space-y-1.5">
-              <label className="block text-xs font-semibold text-slate-700">
+              <label className="block text-xs font-bold text-zinc-700">
                 البريد الإلكتروني
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-400">
+                <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-zinc-400">
                   <Mail className="w-4 h-4" />
                 </div>
                 <input
@@ -111,19 +129,19 @@ export default function LoginPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="user@delivery.com"
-                  className="w-full bg-slate-50 border border-slate-300 focus:bg-white focus:border-blue-600 focus:ring-2 focus:ring-blue-100 rounded-xl pr-10 pl-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-hidden transition-all text-left"
+                  placeholder="admin@sinjabdelivery.com"
+                  className="w-full bg-zinc-50/60 border border-zinc-300 focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 rounded-xl pr-10 pl-3.5 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-hidden transition-all text-left font-medium"
                 />
               </div>
             </div>
 
             {/* Password input */}
             <div className="space-y-1.5">
-              <label className="block text-xs font-semibold text-slate-700">
+              <label className="block text-xs font-bold text-zinc-700">
                 كلمة المرور
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-400">
+                <div className="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-zinc-400">
                   <Lock className="w-4 h-4" />
                 </div>
                 <input
@@ -133,32 +151,32 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full bg-slate-50 border border-slate-300 focus:bg-white focus:border-blue-600 focus:ring-2 focus:ring-blue-100 rounded-xl pr-10 pl-11 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-hidden transition-all text-left"
+                  className="w-full bg-zinc-50/60 border border-zinc-300 focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 rounded-xl pr-10 pl-11 py-2.5 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-hidden transition-all text-left font-medium"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+                  className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-zinc-400 hover:text-zinc-600 transition-colors cursor-pointer"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
 
-            {/* Submit button */}
+            {/* Submit button with Sinjab orange gradient */}
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full mt-2 py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm flex items-center justify-center gap-2 shadow-sm hover:shadow transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              className="w-full mt-3 py-3 px-4 rounded-xl btn-sinjab-primary font-bold text-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>جاري التحقق...</span>
+                  <span>جاري التحقق والدخول...</span>
                 </>
               ) : (
                 <>
-                  <span>تسجيل الدخول</span>
+                  <span>تسجيل الدخول إلى النظام</span>
                   <ArrowLeft className="w-4 h-4" />
                 </>
               )}
@@ -166,16 +184,16 @@ export default function LoginPage() {
           </form>
 
           {/* Security notice */}
-          <div className="pt-3 border-t border-slate-100 text-center">
-            <p className="text-[11px] text-slate-400">
-              الدخول مقيد للمصرح لهم فقط • منظومة التدقيق المالي وإدارة العمليات
+          <div className="pt-3 border-t border-zinc-100 text-center">
+            <p className="text-[11px] text-zinc-400 font-medium">
+              سنجاب دليفري • نظام التدقيق اللحظي وإدارة الطلبات السريعة
             </p>
           </div>
         </div>
 
         {/* Footer */}
-        <p className="text-center text-[11px] text-slate-400">
-          Supabase Row-Level Security (RLS) Active
+        <p className="text-center text-[11px] text-zinc-400">
+          Sinjab Delivery System • Realtime Sync Active
         </p>
       </div>
     </div>

@@ -16,6 +16,8 @@ import {
   ExternalLink,
   History,
   Check,
+  User,
+  Phone,
 } from 'lucide-react';
 
 interface EditOrderModalProps {
@@ -33,6 +35,9 @@ export function EditOrderModal({
   onOrderUpdated,
   drivers,
 }: EditOrderModalProps) {
+  const [customerName, setCustomerName] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
+  const [backupPhone, setBackupPhone] = useState('');
   const [address, setAddress] = useState('');
   const [orderDetails, setOrderDetails] = useState('');
   const [mapsUrl, setMapsUrl] = useState('');
@@ -48,6 +53,9 @@ export function EditOrderModal({
   // Populate form fields whenever order changes
   useEffect(() => {
     if (order) {
+      setCustomerName(order.customer_name || '');
+      setCustomerPhone(order.customer_phone || '');
+      setBackupPhone(order.backup_phone || '');
       setAddress(order.delivery_address || '');
       setOrderDetails(order.order_details || '');
       setMapsUrl(order.maps_url || '');
@@ -97,8 +105,14 @@ export function EditOrderModal({
 
     const cleanAddress = address.trim();
     const cleanMaps = mapsUrl.trim() || null;
+    const cleanCustomerName = customerName.trim();
+    const cleanCustomerPhone = customerPhone.trim();
+    const cleanBackupPhone = backupPhone.trim() || null;
 
     const updatedPayload: Partial<Order> = {
+      customer_name: cleanCustomerName,
+      customer_phone: cleanCustomerPhone,
+      backup_phone: cleanBackupPhone,
       delivery_address: cleanAddress,
       order_details: orderDetails.trim(),
       maps_url: cleanMaps,
@@ -164,7 +178,7 @@ export function EditOrderModal({
         {/* رأس النافذة */}
         <div className="flex items-center justify-between p-3.5 sm:p-4 px-5 sm:px-6 border-b border-slate-200 sticky top-0 bg-white/95 backdrop-blur-md z-20">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 shadow-2xs">
+            <div className="p-2 rounded-xl bg-orange-50 border border-orange-100 text-orange-600 shadow-2xs">
               <Edit3 className="w-4 h-4" />
             </div>
             <div>
@@ -198,6 +212,65 @@ export function EditOrderModal({
             </div>
           )}
 
+          {/* بيانات الزبون والاتصال */}
+          <div className="bg-slate-50/70 border border-slate-200 rounded-xl p-4 sm:p-5 space-y-3">
+            <span className="text-xs font-semibold text-slate-800 flex items-center gap-2">
+              <div className="p-1.5 rounded-lg bg-orange-50 text-orange-600 border border-orange-100">
+                <User className="w-3.5 h-3.5" />
+              </div>
+              بيانات الزبون والاتصال
+            </span>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                  اسم الزبون
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={customerName}
+                  onChange={(e) => setCustomerName(e.target.value)}
+                  className="w-full bg-white border border-slate-300 hover:border-slate-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 rounded-xl p-2 text-xs sm:text-sm text-slate-900 focus:outline-hidden shadow-2xs"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                  رقم الهاتف الأساسي
+                </label>
+                <div className="relative">
+                  <input
+                    type="tel"
+                    required
+                    dir="ltr"
+                    value={customerPhone}
+                    onChange={(e) => setCustomerPhone(e.target.value)}
+                    className="w-full bg-white border border-slate-300 hover:border-slate-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 rounded-xl p-2 pl-8 text-xs sm:text-sm text-slate-900 font-mono focus:outline-hidden shadow-2xs text-left"
+                  />
+                  <Phone className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5 pointer-events-none" />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                  رقم هاتف احتياطي (اختياري)
+                </label>
+                <div className="relative">
+                  <input
+                    type="tel"
+                    dir="ltr"
+                    value={backupPhone}
+                    onChange={(e) => setBackupPhone(e.target.value)}
+                    placeholder="اختياري"
+                    className="w-full bg-white border border-slate-300 hover:border-slate-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 rounded-xl p-2 pl-8 text-xs sm:text-sm text-slate-900 font-mono focus:outline-hidden shadow-2xs text-left"
+                  />
+                  <Phone className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5 pointer-events-none" />
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* العنوان ورابط الخريطة */}
           <div className="bg-slate-50/70 border border-slate-200 rounded-xl p-4 sm:p-5 space-y-3">
             {/* العناوين السابقة المحفوظة للزبون */}
@@ -205,7 +278,7 @@ export function EditOrderModal({
               <div className="bg-white border border-slate-200 rounded-xl p-3 space-y-2 shadow-2xs">
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] font-semibold text-slate-800 flex items-center gap-1.5">
-                    <History className="w-3.5 h-3.5 text-blue-600" />
+                    <History className="w-3.5 h-3.5 text-orange-600" />
                     <span>عناوين أخرى محفوظة لنفس الزبون ({savedAddresses.length}):</span>
                   </span>
                   <span className="text-[10px] text-slate-500">
@@ -225,12 +298,12 @@ export function EditOrderModal({
                         }}
                         className={`text-right p-2 rounded-lg border text-xs transition-all flex items-center justify-between gap-2 cursor-pointer ${
                           isCurrent
-                            ? 'bg-blue-50 border-blue-500 text-blue-900 font-semibold shadow-2xs'
+                            ? 'bg-orange-50 border-orange-500 text-orange-950 font-semibold shadow-2xs'
                             : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-white'
                         }`}
                       >
                         <div className="flex items-center gap-1.5 min-w-0">
-                          {isCurrent && <Check className="w-3 h-3 text-blue-600 shrink-0" />}
+                          {isCurrent && <Check className="w-3 h-3 text-orange-600 shrink-0" />}
                           <span className="truncate">{addr.address}</span>
                         </div>
                         {addr.maps_url && (
@@ -255,7 +328,7 @@ export function EditOrderModal({
                 required
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
-                className="w-full bg-white border border-slate-300 hover:border-slate-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 rounded-xl p-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-hidden transition-all shadow-2xs"
+                className="w-full bg-white border border-slate-300 hover:border-slate-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 rounded-xl p-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-hidden transition-all shadow-2xs"
               />
             </div>
 
@@ -270,7 +343,7 @@ export function EditOrderModal({
                     href={mapsUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-[11px] text-blue-600 hover:underline flex items-center gap-1 font-medium"
+                    className="text-[11px] text-orange-600 hover:underline flex items-center gap-1 font-medium"
                   >
                     <span>فتح الرابط</span>
                     <ExternalLink className="w-2.5 h-2.5" />
@@ -283,7 +356,7 @@ export function EditOrderModal({
                 value={mapsUrl}
                 onChange={(e) => setMapsUrl(e.target.value)}
                 placeholder="https://maps.google.com/..."
-                className="w-full bg-white border border-slate-300 hover:border-slate-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 rounded-xl p-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-hidden font-mono text-left transition-all shadow-2xs"
+                className="w-full bg-white border border-slate-300 hover:border-slate-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 rounded-xl p-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-hidden font-mono text-left transition-all shadow-2xs"
               />
             </div>
           </div>
@@ -299,7 +372,7 @@ export function EditOrderModal({
               required
               value={orderDetails}
               onChange={(e) => setOrderDetails(e.target.value)}
-              className="w-full bg-white border border-slate-300 hover:border-slate-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 rounded-xl p-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-hidden leading-relaxed transition-all shadow-2xs"
+              className="w-full bg-white border border-slate-300 hover:border-slate-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 rounded-xl p-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-hidden leading-relaxed transition-all shadow-2xs"
             />
           </div>
 
@@ -336,7 +409,7 @@ export function EditOrderModal({
                     step="any"
                     value={collectionAmount}
                     onChange={(e) => setCollectionAmount(e.target.value)}
-                    className="w-full bg-white border border-slate-300 hover:border-slate-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 rounded-xl p-2 pl-9 text-xs text-emerald-700 font-mono font-bold focus:outline-hidden shadow-2xs"
+                    className="w-full bg-white border border-slate-300 hover:border-slate-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 rounded-xl p-2 pl-9 text-xs text-emerald-700 font-mono font-bold focus:outline-hidden shadow-2xs"
                   />
                   <span className="text-[10px] text-emerald-600 absolute left-2.5 top-2.5 pointer-events-none">ل.س</span>
                 </div>
@@ -353,7 +426,7 @@ export function EditOrderModal({
                     step="any"
                     value={deliveryFee}
                     onChange={(e) => setDeliveryFee(e.target.value)}
-                    className="w-full bg-white border border-slate-300 hover:border-slate-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 rounded-xl p-2 pl-9 text-xs text-slate-900 font-mono font-bold focus:outline-hidden shadow-2xs"
+                    className="w-full bg-white border border-slate-300 hover:border-slate-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 rounded-xl p-2 pl-9 text-xs text-slate-900 font-mono font-bold focus:outline-hidden shadow-2xs"
                   />
                   <span className="text-[10px] text-slate-500 absolute left-2.5 top-2.5 pointer-events-none">ل.س</span>
                 </div>
@@ -361,7 +434,7 @@ export function EditOrderModal({
 
               {/* حصة المندوب المعدلة */}
               <div>
-                <label className="block text-[11px] font-semibold text-sky-700 mb-1">
+                <label className="block text-[11px] font-semibold text-slate-700 mb-1">
                   حصة المندوب (Driver Fee)
                 </label>
                 <div className="relative">
@@ -370,15 +443,15 @@ export function EditOrderModal({
                     step="any"
                     value={driverFee}
                     onChange={(e) => setDriverFee(e.target.value)}
-                    className="w-full bg-white border border-sky-300 focus:border-sky-600 focus:ring-2 focus:ring-sky-100 rounded-xl p-2 pl-9 text-xs text-sky-700 font-mono font-bold focus:outline-hidden shadow-2xs"
+                    className="w-full bg-white border border-slate-300 hover:border-slate-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 rounded-xl p-2 pl-9 text-xs text-slate-800 font-mono font-bold focus:outline-hidden shadow-2xs"
                   />
-                  <span className="text-[10px] text-sky-600 absolute left-2.5 top-2.5 pointer-events-none">ل.س</span>
+                  <span className="text-[10px] text-slate-500 absolute left-2.5 top-2.5 pointer-events-none">ل.س</span>
                 </div>
               </div>
 
               {/* حصة المكتب المعدلة */}
               <div>
-                <label className="block text-[11px] font-semibold text-slate-700 mb-1">
+                <label className="block text-[11px] font-semibold text-orange-800 mb-1">
                   حصة المكتب (Office Fee)
                 </label>
                 <div className="relative">
@@ -387,9 +460,9 @@ export function EditOrderModal({
                     step="any"
                     value={officeFee}
                     onChange={(e) => setOfficeFee(e.target.value)}
-                    className="w-full bg-white border border-slate-300 hover:border-slate-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 rounded-xl p-2 pl-9 text-xs text-slate-800 font-mono font-bold focus:outline-hidden shadow-2xs"
+                    className="w-full bg-white border border-orange-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 rounded-xl p-2 pl-9 text-xs text-orange-900 font-mono font-bold focus:outline-hidden shadow-2xs"
                   />
-                  <span className="text-[10px] text-slate-500 absolute left-2.5 top-2.5 pointer-events-none">ل.س</span>
+                  <span className="text-[10px] text-orange-600 absolute left-2.5 top-2.5 pointer-events-none">ل.س</span>
                 </div>
               </div>
             </div>
@@ -407,7 +480,7 @@ export function EditOrderModal({
             <button
               type="submit"
               disabled={isSaving}
-              className="flex items-center gap-1.5 px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-xs font-semibold shadow-xs hover:shadow disabled:opacity-50 transition-all cursor-pointer"
+              className="btn-sinjab-primary flex items-center gap-1.5 px-5 py-2 rounded-xl active:scale-95 text-white text-xs font-semibold shadow-xs hover:shadow disabled:opacity-50 transition-all cursor-pointer"
             >
               {isSaving ? (
                 <>

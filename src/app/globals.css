@@ -1,31 +1,37 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  --background: #fcfcfd;
+  --foreground: #18181b;
+  --brand-orange: #ff5e00;
+  --brand-orange-dark: #ea580c;
+  --brand-orange-light: #fff7ed;
+  --brand-black: #18181b;
   --card-bg: #ffffff;
-  --card-border: #e2e8f0;
+  --card-border: #f1f5f9;
 }
 
 body {
   background-color: var(--background);
   color: var(--foreground);
   font-family: var(--font-alexandria), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background-image: radial-gradient(ellipse at 50% 0%, rgba(226, 232, 240, 0.45) 0%, transparent 70%);
+  background-image: 
+    radial-gradient(ellipse at 50% -5%, rgba(255, 125, 0, 0.12) 0%, rgba(254, 215, 170, 0.05) 50%, transparent 80%),
+    radial-gradient(ellipse at 85% 15%, rgba(255, 106, 0, 0.04) 0%, transparent 40%);
   background-attachment: fixed;
   background-repeat: no-repeat;
   min-height: 100vh;
   letter-spacing: -0.01em;
 }
 
-/* Custom sleek modern scrollbars (Light Mode) */
+/* Custom sleek modern scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: #f8fafc;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -34,14 +40,32 @@ body {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #f97316;
 }
 
-/* Enterprise Surface & Card Utilities (Light Mode) */
+/* Sinjab Brand Glow & Button Utilities */
+.btn-sinjab-primary {
+  background: linear-gradient(135deg, #ff6b00 0%, #ea580c 100%);
+  color: #ffffff;
+  box-shadow: 0 2px 10px -1px rgba(234, 88, 12, 0.3), 0 1px 3px rgba(234, 88, 12, 0.2);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-sinjab-primary:hover {
+  background: linear-gradient(135deg, #f97316 0%, #c2410c 100%);
+  box-shadow: 0 4px 16px -2px rgba(234, 88, 12, 0.45), 0 2px 6px rgba(234, 88, 12, 0.25);
+  transform: translateY(-1px);
+}
+
+.btn-sinjab-primary:active {
+  transform: scale(0.98);
+}
+
+/* Enterprise Surface & Card Utilities */
 .erp-card {
   background: #ffffff;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.02);
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.03), 0 1px 2px -1px rgba(0, 0, 0, 0.02);
 }
 
 .erp-card-hover {
@@ -49,37 +73,14 @@ body {
 }
 
 .erp-card-hover:hover {
-  border-color: #cbd5e1;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.03);
+  border-color: #fed7aa;
+  box-shadow: 0 6px 16px -3px rgba(234, 88, 12, 0.08), 0 2px 6px -2px rgba(0, 0, 0, 0.03);
 }
 
-/* Backwards-compatible glass aliases */
-.glass-panel {
-  background: rgba(255, 255, 255, 0.94);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid #e2e8f0;
-}
-
-.glass-card {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.03);
-}
-
-.glass-card-hover {
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.glass-card-hover:hover {
-  border-color: #cbd5e1;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.06);
-}
-
-/* Row highlight animation on update */
+/* Row highlight animation on update with Sinjab Orange pulse */
 @keyframes highlightPulse {
   0% {
-    background-color: rgba(59, 130, 246, 0.12);
+    background-color: rgba(255, 107, 0, 0.16);
   }
   100% {
     background-color: transparent;
@@ -87,7 +88,7 @@ body {
 }
 
 .animate-new-row {
-  animation: highlightPulse 2.5s ease-out;
+  animation: highlightPulse 2.8s ease-out;
 }
 
 @keyframes fadeIn {

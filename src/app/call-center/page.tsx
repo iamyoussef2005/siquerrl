@@ -7,6 +7,7 @@ import { CallCenterHeader } from '@/components/CallCenterHeader';
 import { NewOrderForm } from '@/components/NewOrderForm';
 import { TodayOrdersTable } from '@/components/TodayOrdersTable';
 import { AvailableDriversModal } from '@/components/callcenter/AvailableDriversModal';
+import { EditOrderModal } from '@/components/admin/EditOrderModal';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import {
   Bell,
@@ -28,6 +29,7 @@ export default function CallCenterPage() {
   const [notification, setNotification] = useState<string | null>(null);
   const [highlightedOrderId, setHighlightedOrderId] = useState<string | number | null>(null);
   const [isDriversModalOpen, setIsDriversModalOpen] = useState(false);
+  const [editingOrder, setEditingOrder] = useState<Order | null>(null);
 
   // Notification Toast
   const showNotification = (msg: string) => {
@@ -148,6 +150,14 @@ export default function CallCenterPage() {
     showNotification(`✨ تم تسجيل الطلب #${newOrder.id} بنجاح!`);
   };
 
+  // Handle local order update
+  const handleOrderUpdated = (updatedOrder: Order) => {
+    setOrders((prev) =>
+      prev.map((o) => (o.id === updatedOrder.id ? { ...o, ...updatedOrder } : o))
+    );
+    showNotification(`✨ تم حفظ وتعديل بيانات الطلب #${updatedOrder.id} بنجاح`);
+  };
+
   // Status stats calculations
   const totalCount = orders.length;
   const pendingCount = orders.filter((o) => o.status === 'pending').length;
@@ -158,7 +168,7 @@ export default function CallCenterPage() {
 
   return (
     <ProtectedRoute allowedRoles={['call_center', 'admin']}>
-      <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col selection:bg-blue-100 selection:text-blue-900 pb-16">
+      <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col selection:bg-orange-100 selection:text-orange-900 pb-16">
         {/* رأس شاشة الكول سنتر */}
         <CallCenterHeader
           realtimeConnected={realtimeConnected}
@@ -177,7 +187,7 @@ export default function CallCenterPage() {
         {notification && (
           <div className="fixed bottom-5 left-5 z-50 animate-fadeIn">
             <div className="bg-white text-slate-900 px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2.5 text-xs font-semibold border border-slate-200">
-              <Bell className="w-4 h-4 text-blue-600" />
+              <Bell className="w-4 h-4 text-orange-600" />
               <span>{notification}</span>
             </div>
           </div>
@@ -190,7 +200,7 @@ export default function CallCenterPage() {
             {/* شريط الإجراءات والزر للدخول لجدول الطلبات والتفاصيل */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white border border-slate-200 rounded-xl p-3.5 px-4 sm:px-5 shadow-xs">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 shadow-2xs">
+                <div className="p-2.5 rounded-xl bg-orange-50 border border-orange-100 text-orange-600 shadow-2xs">
                   <Headphones className="w-5 h-5" />
                 </div>
                 <div>
@@ -214,9 +224,9 @@ export default function CallCenterPage() {
                 onClick={() => setActiveView('table')}
                 className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 hover:border-slate-300 text-xs font-semibold text-slate-700 hover:text-slate-900 transition-all shadow-2xs cursor-pointer group active:scale-95"
               >
-                <Layers className="w-4 h-4 text-blue-600 group-hover:scale-110 transition-transform" />
+                <Layers className="w-4 h-4 text-orange-600 group-hover:scale-110 transition-transform" />
                 <span>جدول طلبات اليوم والتفاصيل</span>
-                <span className="bg-blue-50 border border-blue-200 text-blue-700 text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full mr-1">
+                <span className="bg-orange-50 border border-orange-200 text-orange-700 text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full mr-1">
                   {totalCount} طلبات
                 </span>
               </button>
@@ -231,7 +241,7 @@ export default function CallCenterPage() {
             {/* شريط رأس جدول الطلبات وزر العودة لتسجيل طلب */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white border border-slate-200 rounded-xl p-3.5 px-4 sm:px-5 shadow-xs">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 shadow-2xs">
+                <div className="p-2.5 rounded-xl bg-orange-50 border border-orange-100 text-orange-600 shadow-2xs">
                   <Package className="w-5 h-5" />
                 </div>
                 <div>
@@ -239,7 +249,7 @@ export default function CallCenterPage() {
                     <h2 className="text-sm sm:text-base font-bold text-slate-900">
                       جدول ومتابعة طلبات اليوم
                     </h2>
-                    <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 font-mono font-semibold shadow-2xs">
+                    <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-orange-50 text-orange-700 border border-orange-200 font-mono font-semibold shadow-2xs">
                       {totalCount} إجمالي اليوم
                     </span>
                   </div>
@@ -253,7 +263,7 @@ export default function CallCenterPage() {
               <button
                 type="button"
                 onClick={() => setActiveView('create')}
-                className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-xs font-bold text-white transition-all shadow-xs hover:shadow cursor-pointer active:scale-95"
+                className="btn-sinjab-primary flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold text-white transition-all shadow-xs hover:shadow cursor-pointer active:scale-95"
               >
                 <PlusCircle className="w-4 h-4" />
                 <span>العودة لشاشة تسجيل طلب جديد</span>
@@ -265,7 +275,7 @@ export default function CallCenterPage() {
               {/* إجمالي طلبات اليوم */}
               <div className="bg-white border border-slate-200 rounded-xl p-4 flex items-center justify-between shadow-xs">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 shadow-2xs">
+                  <div className="p-2 rounded-xl bg-orange-50 border border-orange-100 text-orange-600 shadow-2xs">
                     <Package className="w-4 h-4" />
                   </div>
                   <div>
@@ -324,16 +334,26 @@ export default function CallCenterPage() {
               </div>
             </div>
 
-            {/* جدول متابعة وحالات الطلبات اللحظي (قراءة فقط) */}
+            {/* جدول متابعة وحالات وتعديل الطلبات اللحظي */}
             <TodayOrdersTable
               orders={orders}
               drivers={drivers}
               onRefresh={fetchOrders}
               isLoading={isLoading}
               highlightedOrderId={highlightedOrderId}
+              onOpenEditModal={(order) => setEditingOrder(order)}
             />
           </div>
         </main>
+
+        {/* نافذة تعديل تفاصيل وحسابات الطلب للكول سنتر */}
+        <EditOrderModal
+          order={editingOrder}
+          isOpen={Boolean(editingOrder)}
+          onClose={() => setEditingOrder(null)}
+          onOrderUpdated={handleOrderUpdated}
+          drivers={drivers}
+        />
 
         {/* نافذة استعراض المناديب المتاحين والتواصل معهم */}
         <AvailableDriversModal

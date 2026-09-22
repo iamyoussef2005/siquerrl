@@ -443,10 +443,10 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* قسم 1: بيانات الزبون والاتصال */}
-        <div className="bg-white border border-slate-200 rounded-xl p-4 sm:p-5 shadow-xs space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <span className="text-xs font-semibold text-slate-800 flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-blue-50 text-blue-600 border border-blue-100">
+        <div className="bg-white border border-zinc-200/80 rounded-2xl p-4 sm:p-5 shadow-xs space-y-4">
+          <div className="flex items-center justify-between border-b border-zinc-100 pb-3">
+            <span className="text-xs font-bold text-zinc-900 flex items-center gap-2">
+              <div className="p-1.5 rounded-lg bg-orange-50 text-orange-600 border border-orange-100">
                 <User className="w-3.5 h-3.5" />
               </div>
               بيانات الزبون ومعلومات التوصيل
@@ -496,7 +496,7 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
                       searchCustomer(phone);
                     }
                   }}
-                  className="w-full bg-slate-50 border border-slate-300 hover:border-slate-400 focus:bg-white focus:border-blue-600 rounded-xl px-3 py-2 pl-9 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-blue-100 transition-all font-mono text-left"
+                  className="w-full bg-slate-50 border border-slate-300 hover:border-slate-400 focus:bg-white focus:border-orange-500 rounded-xl px-3 py-2 pl-9 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:ring-4 focus:ring-orange-500/10 transition-all font-mono text-left font-semibold"
                 />
                 <Phone className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
               </div>
@@ -515,7 +515,7 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
                   placeholder="الاسم الكامل للزبون"
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-300 hover:border-slate-400 focus:bg-white focus:border-blue-600 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-blue-100 transition-all"
+                  className="w-full bg-slate-50 border border-slate-300 hover:border-slate-400 focus:bg-white focus:border-orange-500 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:ring-4 focus:ring-orange-500/10 transition-all font-semibold"
                 />
               </div>
             </div>
@@ -533,7 +533,7 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
                   placeholder="07XXXXXXXXX"
                   value={backupPhone}
                   onChange={(e) => setBackupPhone(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-300 hover:border-slate-400 focus:bg-white focus:border-blue-600 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-blue-100 transition-all font-mono text-left"
+                  className="w-full bg-slate-50 border border-slate-300 hover:border-slate-400 focus:bg-white focus:border-orange-500 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:ring-4 focus:ring-orange-500/10 transition-all font-mono text-left"
                 />
               </div>
             </div>
@@ -549,7 +549,7 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
                     href={mapsUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-[11px] text-blue-600 hover:underline flex items-center gap-1 font-medium"
+                    className="text-[11px] text-orange-600 hover:underline flex items-center gap-1 font-medium"
                   >
                     <span>فتح الرابط</span>
                     <ExternalLink className="w-2.5 h-2.5" />
@@ -564,7 +564,7 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
                   placeholder="https://maps.google.com/..."
                   value={mapsUrl}
                   onChange={(e) => setMapsUrl(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-300 hover:border-slate-400 focus:bg-white focus:border-blue-600 rounded-xl px-3 py-2 pl-9 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-blue-100 transition-all font-mono text-left truncate"
+                  className="w-full bg-slate-50 border border-slate-300 hover:border-slate-400 focus:bg-white focus:border-orange-500 rounded-xl px-3 py-2 pl-9 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:ring-4 focus:ring-orange-500/10 transition-all font-mono text-left truncate"
                 />
                 <Compass className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
               </div>
@@ -575,7 +575,7 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
               <div className="md:col-span-2 lg:col-span-4 bg-slate-50/80 border border-slate-200 rounded-xl p-3 sm:p-3.5 space-y-2.5">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-slate-200 pb-2">
                   <span className="text-xs font-semibold text-slate-800 flex items-center gap-1.5">
-                    <History className="w-3.5 h-3.5 text-blue-600" />
+                    <History className="w-3.5 h-3.5 text-orange-600" />
                     <span>العناوين المحفوظة لهذا الزبون ({savedAddresses.length})</span>
                   </span>
                   <span className="text-[11px] text-slate-500">
@@ -593,7 +593,7 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
                         onClick={() => handleSelectAddress(addr)}
                         className={`text-right p-2.5 rounded-xl border text-xs transition-all flex flex-col justify-between gap-2 relative cursor-pointer ${
                           isSelected
-                            ? 'bg-blue-50/90 border-blue-500 text-blue-950 shadow-xs ring-1 ring-blue-500/30'
+                            ? 'bg-orange-50/90 border-orange-500 text-orange-950 shadow-xs ring-1 ring-orange-500/30'
                             : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50'
                         }`}
                       >
@@ -602,7 +602,7 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
                             <div
                               className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${
                                 isSelected
-                                  ? 'border-blue-600 bg-blue-600 text-white'
+                                  ? 'border-orange-500 bg-orange-500 text-white'
                                   : 'border-slate-300 bg-white'
                               }`}
                             >
@@ -612,7 +612,7 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
                               {addr.title || (idx === 0 ? 'العنوان الأخير' : `عنوان ${idx + 1}`)}
                             </span>
                             {addr.is_default && (
-                              <span className="text-[9px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded border border-blue-200 font-medium">
+                              <span className="text-[9px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded border border-orange-200 font-medium">
                                 افتراضي
                               </span>
                             )}
@@ -671,7 +671,7 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
                   placeholder="المدينة، المنطقة، اسم الشارع، أقرب نقطة دالة، رقم الزقاق أو الدار..."
                   value={deliveryAddress}
                   onChange={(e) => setDeliveryAddress(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-300 hover:border-slate-400 focus:bg-white focus:border-blue-600 rounded-xl px-3 py-2 pr-9 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-blue-100 transition-all"
+                  className="w-full bg-slate-50 border border-slate-300 hover:border-slate-400 focus:bg-white focus:border-orange-500 rounded-xl px-3 py-2 pr-9 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:ring-4 focus:ring-orange-500/10 transition-all"
                 />
                 <MapPin className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-2.5 pointer-events-none" />
               </div>
@@ -680,9 +680,9 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
         </div>
 
         {/* قسم 2: تفاصيل الطلب */}
-        <div className="bg-white border border-slate-200 rounded-xl p-4 sm:p-5 shadow-xs space-y-2">
-          <label className="block text-xs font-semibold text-slate-800 flex items-center gap-2">
-            <div className="p-1.5 rounded-lg bg-blue-50 text-blue-600 border border-blue-100">
+        <div className="bg-white border border-zinc-200/80 rounded-2xl p-4 sm:p-5 shadow-xs space-y-2">
+          <label className="block text-xs font-bold text-zinc-900 flex items-center gap-2">
+            <div className="p-1.5 rounded-lg bg-orange-50 text-orange-600 border border-orange-100">
               <FileText className="w-3.5 h-3.5" />
             </div>
             تفاصيل الطلب وقائمة المواد <span className="text-rose-500">*</span>
@@ -695,7 +695,7 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
             placeholder="اكتب اسم المتجر أو المطعم، تفاصيل المواد والأصناف، وأي ملاحظات خاصة بالتوصيل..."
             value={orderDetails}
             onChange={(e) => setOrderDetails(e.target.value)}
-            className="w-full bg-slate-50 border border-slate-300 hover:border-slate-400 focus:bg-white focus:border-blue-600 rounded-xl p-3 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-blue-100 transition-all leading-relaxed"
+            className="w-full bg-slate-50 border border-slate-300 hover:border-slate-400 focus:bg-white focus:border-orange-500 rounded-xl p-3 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:ring-4 focus:ring-orange-500/10 transition-all leading-relaxed"
           />
         </div>
 
@@ -729,7 +729,7 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
                   placeholder="0"
                   value={collectionAmount}
                   onChange={(e) => setCollectionAmount(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-300 hover:border-slate-400 focus:bg-white focus:border-blue-600 rounded-xl px-3 py-2 pl-12 text-xs sm:text-sm text-slate-900 font-mono font-medium placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-blue-100 transition-all"
+                  className="w-full bg-slate-50 border border-slate-300 hover:border-slate-400 focus:bg-white focus:border-orange-500 rounded-xl px-3 py-2 pl-12 text-xs sm:text-sm text-slate-900 font-mono font-medium placeholder:text-slate-400 focus:outline-hidden focus:ring-4 focus:ring-orange-500/10 transition-all"
                 />
                 <span className="text-xs font-semibold text-slate-500 absolute left-3.5 top-2.5 pointer-events-none">
                   ل.س
@@ -750,7 +750,7 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
                   placeholder="0"
                   value={deliveryFee}
                   onChange={(e) => setDeliveryFee(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-300 hover:border-slate-400 focus:bg-white focus:border-blue-600 rounded-xl px-3 py-2 pl-12 text-xs sm:text-sm text-slate-900 font-mono font-medium placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-blue-100 transition-all"
+                  className="w-full bg-slate-50 border border-slate-300 hover:border-slate-400 focus:bg-white focus:border-orange-500 rounded-xl px-3 py-2 pl-12 text-xs sm:text-sm text-slate-900 font-mono font-medium placeholder:text-slate-400 focus:outline-hidden focus:ring-4 focus:ring-orange-500/10 transition-all"
                 />
                 <span className="text-xs font-semibold text-slate-500 absolute left-3.5 top-2.5 pointer-events-none">
                   ل.س
@@ -761,21 +761,21 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
 
           {/* بطاقة المعاينة اللحظية لتوزيع الأجرة */}
           {numericDeliveryFee > 0 && (
-            <div className="mt-2.5 p-3 rounded-xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 animate-fadeIn">
+            <div className="mt-2.5 p-3 rounded-xl bg-orange-50/50 border border-orange-100 flex flex-col sm:flex-row items-center justify-between gap-3 animate-fadeIn">
               <div className="flex items-center gap-2">
-                <PieChart className="w-3.5 h-3.5 text-blue-600" />
+                <PieChart className="w-3.5 h-3.5 text-orange-600" />
                 <span className="text-xs text-slate-700 font-medium">معاينة توزيع الأجرة:</span>
               </div>
               <div className="flex items-center gap-4 text-xs font-mono">
                 <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-sky-500"></span>
+                  <span className="w-2 h-2 rounded-full bg-slate-500"></span>
                   <span className="text-slate-500">حصة السائق (70%):</span>
-                  <strong className="text-sky-700 font-semibold">{formatCurrency(driverShare)} ل.س</strong>
+                  <strong className="text-slate-800 font-semibold">{formatCurrency(driverShare)} ل.س</strong>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-slate-400"></span>
+                  <span className="w-2 h-2 rounded-full bg-orange-500"></span>
                   <span className="text-slate-500">حصة المكتب (30%):</span>
-                  <strong className="text-slate-800 font-semibold">{formatCurrency(officeShare)} ل.س</strong>
+                  <strong className="text-orange-700 font-semibold">{formatCurrency(officeShare)} ل.س</strong>
                 </div>
               </div>
             </div>
@@ -803,7 +803,7 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
               type="submit"
               tabIndex={9}
               disabled={isSubmitting}
-              className="w-2/3 sm:w-auto flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-xs sm:text-sm font-semibold shadow-xs hover:shadow disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer"
+              className="w-2/3 sm:w-auto flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl btn-sinjab-primary text-xs sm:text-sm font-bold shadow-md shadow-orange-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer active:scale-95"
             >
               {isSubmitting ? (
                 <>
@@ -813,7 +813,7 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
               ) : (
                 <>
                   <Send className="w-3.5 h-3.5" />
-                  <span>تسجيل الطلب</span>
+                  <span>تثبيت وإرسال الطلب فوراً</span>
                 </>
               )}
             </button>

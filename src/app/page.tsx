@@ -197,7 +197,7 @@ export default function AdminHomePage() {
 
   return (
     <ProtectedRoute allowedRoles={['admin']}>
-      <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col selection:bg-blue-100 selection:text-blue-900 pb-16">
+      <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col selection:bg-orange-100 selection:text-orange-900 pb-16">
         {/* رأس صفحة الإدارة */}
         <AdminHeader
           realtimeConnected={realtimeConnected}
@@ -217,7 +217,7 @@ export default function AdminHomePage() {
         {notification && (
           <div className="fixed bottom-5 left-5 z-50 animate-fadeIn">
             <div className="bg-white text-slate-900 px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2.5 text-xs font-semibold border border-slate-200">
-              <Bell className="w-4 h-4 text-blue-600" />
+              <Bell className="w-4 h-4 text-orange-600" />
               <span>{notification}</span>
             </div>
           </div>
@@ -226,19 +226,19 @@ export default function AdminHomePage() {
         {/* المحتوى الرئيسي للوحة الإدارة */}
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 lg:px-8">
           {/* شريط الفلترة الزمنية للمدير */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white border border-slate-200 rounded-xl p-3 px-4 shadow-xs mb-5">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white border border-zinc-200/80 rounded-2xl p-3 px-4 shadow-xs mb-5">
             <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 shadow-2xs">
+              <div className="p-2 rounded-xl bg-orange-50 text-orange-600 border border-orange-100 shadow-2xs">
                 <Calendar className="w-4 h-4" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-slate-900">النطاق الزمني للعمليات:</span>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 font-semibold shadow-2xs">
+                  <span className="text-xs font-extrabold text-zinc-900">النطاق الزمني للعمليات:</span>
+                  <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-orange-50 text-orange-700 border border-orange-200 font-bold shadow-2xs">
                     {orders.length} {orders.length === 1 ? 'طلب معروض' : 'طلبات معروضة'}
                   </span>
                 </div>
-                <p className="text-[11px] text-slate-500 mt-0.5">
+                <p className="text-[11px] text-zinc-500 mt-0.5">
                   {dateFilter === 'today' && 'يتم عرض طلبات اليوم الحالي فقط'}
                   {dateFilter === '24h' && 'يتم عرض الطلبات المسجلة خلال آخر 24 ساعة'}
                   {dateFilter === 'all' && 'يتم عرض كافة الطلبات المسجلة في النظام'}
@@ -246,14 +246,14 @@ export default function AdminHomePage() {
               </div>
             </div>
 
-            <div className="inline-flex p-1 bg-slate-100 border border-slate-200 rounded-xl text-xs gap-1 self-start sm:self-auto">
+            <div className="inline-flex p-1 bg-zinc-100 border border-zinc-200/80 rounded-xl text-xs gap-1 self-start sm:self-auto">
               <button
                 type="button"
                 onClick={() => handleDateFilterChange('today')}
-                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-semibold transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
                   dateFilter === 'today'
-                    ? 'bg-white text-blue-600 shadow-xs border border-slate-200/80 font-bold'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                    ? 'bg-white text-orange-600 shadow-xs border border-orange-200/80'
+                    : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200/60'
                 }`}
               >
                 <Clock className="w-3.5 h-3.5" />
@@ -262,10 +262,10 @@ export default function AdminHomePage() {
               <button
                 type="button"
                 onClick={() => handleDateFilterChange('24h')}
-                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-semibold transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
                   dateFilter === '24h'
-                    ? 'bg-white text-blue-600 shadow-xs border border-slate-200/80 font-bold'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                    ? 'bg-white text-orange-600 shadow-xs border border-orange-200/80'
+                    : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200/60'
                 }`}
               >
                 <Calendar className="w-3.5 h-3.5" />
@@ -274,10 +274,10 @@ export default function AdminHomePage() {
               <button
                 type="button"
                 onClick={() => handleDateFilterChange('all')}
-                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-semibold transition-all cursor-pointer ${
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
                   dateFilter === 'all'
-                    ? 'bg-white text-blue-600 shadow-xs border border-slate-200/80 font-bold'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+                    ? 'bg-white text-orange-600 shadow-xs border border-orange-200/80'
+                    : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-200/60'
                 }`}
               >
                 <Layers className="w-3.5 h-3.5" />

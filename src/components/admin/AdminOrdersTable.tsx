@@ -78,8 +78,8 @@ export function AdminOrdersTable({
       case 'assigned':
         return {
           label: 'مُسند',
-          className: 'bg-indigo-50 text-indigo-700 border-indigo-200',
-          dotColor: 'bg-indigo-500',
+          className: 'bg-orange-50 text-orange-700 border-orange-200 font-bold',
+          dotColor: 'bg-orange-500',
           icon: Truck,
         };
       case 'delivering':
@@ -225,7 +225,7 @@ export function AdminOrdersTable({
       {/* شريط أدوات الجدول والفلاتر المتقدمة */}
       <div className="p-3.5 lg:p-4 border-b border-slate-200 bg-slate-50/70 flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <div className="p-2 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 shadow-2xs">
+          <div className="p-2 rounded-xl bg-orange-50 text-orange-600 border border-orange-100 shadow-2xs">
             <Package className="w-4 h-4" />
           </div>
           <div>
@@ -250,7 +250,7 @@ export function AdminOrdersTable({
               placeholder="بحث برقم الطلب، الزبون، أو الهاتف..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-white border border-slate-300 hover:border-slate-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 rounded-xl px-3 py-1.5 pr-8 pl-7 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-hidden transition-all shadow-2xs"
+              className="w-full bg-white border border-slate-300 hover:border-slate-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 rounded-xl px-3 py-1.5 pr-8 pl-7 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-hidden transition-all shadow-2xs"
             />
             <Search className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-2 pointer-events-none" />
             {searchQuery && (
@@ -268,7 +268,7 @@ export function AdminOrdersTable({
             <select
               value={selectedDriverId}
               onChange={(e) => onSelectDriverId(e.target.value)}
-              className="w-full bg-white border border-slate-300 hover:border-slate-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 rounded-xl px-3 py-1.5 text-xs text-slate-700 font-medium focus:outline-hidden cursor-pointer appearance-none pl-7 shadow-2xs"
+              className="w-full bg-white border border-slate-300 hover:border-slate-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 rounded-xl px-3 py-1.5 text-xs text-slate-700 font-medium focus:outline-hidden cursor-pointer appearance-none pl-7 shadow-2xs"
             >
               <option value="all">جميع المناديب</option>
               {drivers.map((drv) => (
@@ -285,7 +285,7 @@ export function AdminOrdersTable({
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full bg-white border border-slate-300 hover:border-slate-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 rounded-xl px-3 py-1.5 text-xs text-slate-700 font-medium focus:outline-hidden cursor-pointer appearance-none pl-7 shadow-2xs"
+              className="w-full bg-white border border-slate-300 hover:border-slate-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 rounded-xl px-3 py-1.5 text-xs text-slate-700 font-medium focus:outline-hidden cursor-pointer appearance-none pl-7 shadow-2xs"
             >
               <option value="all">جميع الحالات</option>
               <option value="pending">بانتظار مندوب</option>
@@ -351,7 +351,7 @@ export function AdminOrdersTable({
                       <div className="font-semibold text-slate-900 text-xs sm:text-sm">{order.customer_name}</div>
                       <a
                         href={`tel:${order.customer_phone}`}
-                        className="inline-flex items-center gap-1 text-[11px] text-slate-500 hover:text-blue-600 font-mono mt-0.5 transition-colors"
+                        className="inline-flex items-center gap-1 text-[11px] text-slate-500 hover:text-orange-600 font-mono mt-0.5 transition-colors"
                         dir="ltr"
                       >
                         <Phone className="w-3 h-3 text-slate-400 shrink-0" />
@@ -377,7 +377,7 @@ export function AdminOrdersTable({
                           href={order.maps_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="mt-1 px-1.5 py-0.5 rounded bg-blue-50 hover:bg-blue-100 border border-blue-200 text-[10px] text-blue-700 inline-flex items-center gap-1 transition-colors font-medium"
+                          className="mt-1 px-1.5 py-0.5 rounded bg-orange-50 hover:bg-orange-100 border border-orange-200 text-[10px] text-orange-700 inline-flex items-center gap-1 transition-colors font-medium"
                         >
                           <span>عرض الخريطة</span>
                           <ExternalLink className="w-2.5 h-2.5" />
@@ -397,11 +397,11 @@ export function AdminOrdersTable({
                         {formatCurrency(Number(order.delivery_fee))} <span className="text-[10px] text-slate-500">ل.س</span>
                       </div>
                       <div className="flex items-center justify-center gap-2 text-[10px] mt-0.5 bg-slate-100 py-0.5 px-2 rounded-md border border-slate-200">
-                        <span className="text-sky-700 font-medium">
+                        <span className="text-slate-700 font-medium">
                           سائق: {formatCurrency(Number(order.driver_fee))}
                         </span>
                         <span className="text-slate-300">|</span>
-                        <span className="text-slate-700 font-medium">
+                        <span className="text-orange-700 font-medium">
                           مكتب: {formatCurrency(Number(order.office_fee))}
                         </span>
                       </div>
@@ -414,7 +414,7 @@ export function AdminOrdersTable({
                           disabled={isUpdating || order.status === 'cancelled' || order.status === 'delivered'}
                           value={order.driver_id || ''}
                           onChange={(e) => handleAssignDriver(order, e.target.value)}
-                          className="w-full bg-white border border-slate-300 hover:border-slate-400 rounded-lg px-2 py-1 text-xs text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-blue-100 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-2xs"
+                          className="w-full bg-white border border-slate-300 hover:border-slate-400 rounded-lg px-2 py-1 text-xs text-slate-800 focus:outline-hidden focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-2xs"
                         >
                           <option value="">لم يُسند</option>
                           {drivers.map((drv) => (
@@ -424,7 +424,7 @@ export function AdminOrdersTable({
                           ))}
                         </select>
                         {isUpdating && (
-                          <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-600 absolute left-2 top-2 pointer-events-none" />
+                          <Loader2 className="w-3.5 h-3.5 animate-spin text-orange-500 absolute left-2 top-2 pointer-events-none" />
                         )}
                       </div>
                     </td>

@@ -29,8 +29,8 @@ export function ProtectedRoute({ children, allowedRoles = ['admin'] }: Protected
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center text-slate-800 p-4">
         <div className="relative">
-          <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-200 animate-pulse flex items-center justify-center shadow-xs">
-            <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
+          <div className="w-12 h-12 rounded-2xl bg-orange-50 border border-orange-200 animate-pulse flex items-center justify-center shadow-xs">
+            <Loader2 className="w-6 h-6 text-orange-500 animate-spin" />
           </div>
         </div>
         <p className="mt-4 text-xs font-semibold text-slate-500">جاري التحقق من صلاحيات الدخول...</p>

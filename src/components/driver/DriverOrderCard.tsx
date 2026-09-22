@@ -100,13 +100,13 @@ export function DriverOrderCard({ order, onStatusUpdated }: DriverOrderCardProps
       case 'assigned':
         return {
           label: 'جديد: بانتظار استلامك',
-          className: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+          className: 'bg-orange-50 text-orange-700 border-orange-200 font-bold',
           icon: Clock,
         };
       case 'delivering':
         return {
           label: 'قيد التوصيل معك الآن',
-          className: 'bg-sky-50 text-sky-700 border-sky-200 animate-pulse',
+          className: 'bg-amber-50 text-amber-800 border-amber-200 animate-pulse font-bold',
           icon: Truck,
         };
       case 'delivered':
@@ -131,9 +131,9 @@ export function DriverOrderCard({ order, onStatusUpdated }: DriverOrderCardProps
     <div
       className={`rounded-2xl border transition-all duration-200 shadow-xs overflow-hidden ${
         order.status === 'delivering'
-          ? 'bg-white border-blue-500 ring-2 ring-blue-500/20 shadow-md'
+          ? 'bg-white border-orange-500 ring-2 ring-orange-500/20 shadow-md'
           : order.status === 'assigned'
-          ? 'bg-white border-indigo-300 shadow-xs'
+          ? 'bg-white border-orange-200 shadow-xs'
           : 'bg-white border-slate-200'
       }`}
     >
@@ -149,7 +149,7 @@ export function DriverOrderCard({ order, onStatusUpdated }: DriverOrderCardProps
 
         <div className="text-left font-mono">
           <span className="text-[11px] text-slate-500 font-medium block">حصة المندوب</span>
-          <span className="text-sm font-black text-sky-700">
+          <span className="text-sm font-black text-orange-600">
             {formatCurrency(Number(order.driver_fee))} ل.س
           </span>
         </div>
@@ -213,7 +213,7 @@ export function DriverOrderCard({ order, onStatusUpdated }: DriverOrderCardProps
             href={getMapsUrl()}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 active:scale-95 transition-all shrink-0 text-center shadow-2xs"
+            className="flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-xl bg-orange-50 hover:bg-orange-100 text-orange-700 border border-orange-200 active:scale-95 transition-all shrink-0 text-center shadow-2xs"
             title="فتح في Google Maps"
           >
             <Navigation className="w-4 h-4" />
@@ -261,7 +261,7 @@ export function DriverOrderCard({ order, onStatusUpdated }: DriverOrderCardProps
               type="button"
               disabled={isUpdating}
               onClick={() => handleUpdateStatus('delivering', true)}
-              className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-[0.98] text-white text-sm font-bold shadow-md shadow-blue-500/20 flex items-center justify-center gap-2.5 disabled:opacity-50 transition-all cursor-pointer touch-manipulation"
+              className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 active:scale-[0.98] text-white text-sm font-bold shadow-md shadow-orange-500/20 flex items-center justify-center gap-2.5 disabled:opacity-50 transition-all cursor-pointer touch-manipulation"
             >
               {isUpdating ? (
                 <>

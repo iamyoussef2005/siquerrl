@@ -99,7 +99,7 @@ export function DriversCommissionModal({
         {/* رأس النافذة */}
         <div className="flex items-center justify-between p-4 sm:p-5 px-6 border-b border-slate-200 sticky top-0 bg-white z-20">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-blue-50 border border-blue-100 text-blue-600">
+            <div className="p-2.5 rounded-xl bg-orange-50 border border-orange-100 text-orange-600">
               <Sliders className="w-5 h-5" />
             </div>
             <div>
@@ -127,8 +127,8 @@ export function DriversCommissionModal({
 
         {/* محتوى النافذة */}
         <div className="p-4 sm:p-6 space-y-4">
-          <div className="bg-blue-50/70 border border-blue-100 rounded-xl p-3 text-xs text-blue-900 flex items-center gap-2.5 font-medium">
-            <div className="p-1.5 rounded-lg bg-blue-100 text-blue-700 shrink-0">
+          <div className="bg-orange-50/70 border border-orange-100 rounded-xl p-3 text-xs text-orange-950 flex items-center gap-2.5 font-medium">
+            <div className="p-1.5 rounded-lg bg-orange-100 text-orange-700 shrink-0">
               <Percent className="w-4 h-4" />
             </div>
             <span>
@@ -158,13 +158,13 @@ export function DriversCommissionModal({
                     {/* معلومات المندوب وأدوات التحكم */}
                     <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-sky-50 border border-sky-200 text-sky-700 flex items-center justify-center">
+                        <div className="w-9 h-9 rounded-xl bg-orange-50 border border-orange-200 text-orange-700 flex items-center justify-center">
                           <Bike className="w-4 h-4" />
                         </div>
                         <div>
                           <div className="flex items-center gap-2">
                             <h4 className="text-sm font-bold text-slate-900">{driver.name}</h4>
-                            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-sky-50 text-sky-700 border border-sky-200 font-mono">
+                            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-orange-50 text-orange-700 border border-orange-200 font-mono">
                               {currentRate}% عمولة
                             </span>
                           </div>
@@ -182,7 +182,7 @@ export function DriversCommissionModal({
                             step="any"
                             value={currentRate}
                             onChange={(e) => handleRateChange(driver.id, parseFloat(e.target.value) || 0)}
-                            className="w-full bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-900 text-center focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 pl-5 font-mono shadow-2xs"
+                            className="w-full bg-white border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-900 text-center focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 pl-5 font-mono shadow-2xs"
                           />
                           <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-slate-400 pointer-events-none font-bold">
                             %
@@ -198,7 +198,7 @@ export function DriversCommissionModal({
                               onClick={() => handleRateChange(driver.id, preset)}
                               className={`px-2.5 py-1 text-xs rounded-lg border font-bold transition-colors cursor-pointer ${
                                 currentRate === preset
-                                  ? 'bg-blue-600 text-white border-blue-600 shadow-2xs'
+                                  ? 'bg-orange-600 text-white border-orange-600 shadow-2xs'
                                   : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
                               }`}
                             >
@@ -212,7 +212,7 @@ export function DriversCommissionModal({
                           type="button"
                           disabled={isSaving}
                           onClick={() => handleSaveDriverRate(driver)}
-                          className="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center gap-1.5 transition-colors disabled:opacity-50 cursor-pointer shadow-xs"
+                          className="btn-sinjab-primary px-3.5 py-1.5 rounded-xl text-white font-bold text-xs flex items-center gap-1.5 transition-colors disabled:opacity-50 cursor-pointer shadow-xs"
                           title="حفظ النسبة في قاعدة البيانات"
                         >
                           {isSaving ? (
@@ -230,7 +230,7 @@ export function DriversCommissionModal({
                       <div className="w-full h-2 rounded-full bg-slate-200 overflow-hidden flex">
                         <div
                           style={{ width: `${currentRate}%` }}
-                          className="bg-blue-600 h-full transition-all duration-300"
+                          className="bg-orange-500 h-full transition-all duration-300"
                         />
                         <div
                           style={{ width: `${officeRate}%` }}
@@ -238,7 +238,7 @@ export function DriversCommissionModal({
                         />
                       </div>
                       <div className="flex items-center justify-between text-[11px] font-mono">
-                        <span className="text-blue-700 font-bold">السائق: {currentRate}%</span>
+                        <span className="text-orange-700 font-bold">السائق: {currentRate}%</span>
                         <span className="text-slate-600 font-bold">المكتب: {officeRate}%</span>
                       </div>
                     </div>

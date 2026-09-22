@@ -11,8 +11,12 @@ const alexandria = Alexandria({
 });
 
 export const metadata: Metadata = {
-  title: "نظام إدارة توصيل الطلبات - Siquerrl",
-  description: "منظومة متكاملة لإدارة توصيل الطلبات والمناديب والحسابات لحظياً",
+  title: "سنجاب دليفري | Sinjab Delivery - منظومة إدارة وتوصيل الطلبات",
+  description: "المنظومة السحابية الذكية لإدارة وتوزيع طلبات التوصيل والتدقيق المالي والعمليات اللحظية",
+  icons: {
+    icon: "/sinjab-logo.png",
+    apple: "/sinjab-logo.png",
+  },
 };
 
 export default function RootLayout({
@@ -22,7 +26,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ar" dir="rtl" className={`${alexandria.variable} h-full antialiased`}>
-      <body className="min-h-full font-sans bg-[#f8fafc] text-slate-900 selection:bg-blue-600 selection:text-white antialiased">
+      <body className="min-h-full font-sans bg-[#fcfcfd] text-zinc-900 selection:bg-orange-500 selection:text-white antialiased">
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>

@@ -53,17 +53,17 @@ export function AdminAccountingCards({ orders, selectedDriver, dateFilter = 'all
     <div className="mb-6 space-y-3">
       {/* تنبيه فلترة المندوب */}
       {selectedDriver && (
-        <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-2.5 text-xs flex items-center justify-between text-slate-700 shadow-2xs">
+        <div className="bg-orange-50 border border-orange-200/90 rounded-xl px-4 py-2.5 text-xs flex items-center justify-between text-zinc-800 shadow-2xs">
           <div className="flex items-center gap-2">
-            <UserCheck className="w-4 h-4 text-blue-600" />
+            <UserCheck className="w-4 h-4 text-orange-600" />
             <span>
               عرض حسابات المندوب:{' '}
-              <strong className="text-slate-900 font-bold">
+              <strong className="text-zinc-900 font-bold">
                 {selectedDriver.name}
               </strong>
             </span>
           </div>
-          <span className="bg-white text-blue-700 border border-blue-200 px-2.5 py-0.5 rounded-md font-mono text-[11px] font-semibold shadow-2xs">
+          <span className="bg-white text-orange-700 border border-orange-200 px-2.5 py-0.5 rounded-md font-mono text-[11px] font-bold shadow-2xs">
             {relevantOrders.length} {relevantOrders.length === 1 ? 'طلب' : 'طلبات'}
           </span>
         </div>
@@ -72,60 +72,60 @@ export function AdminAccountingCards({ orders, selectedDriver, dateFilter = 'all
       {/* بطاقات المؤشرات المالية الرئيسية */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
         {/* 1. إجمالي المبالغ المطلوب تحصيلها */}
-        <div className="rounded-xl bg-white border border-slate-200 p-4 sm:p-5 shadow-xs hover:shadow transition-all">
-          <div className="flex items-center justify-between text-slate-500 mb-3">
-            <span className="text-xs font-semibold">إجمالي مبالغ التحصيل</span>
-            <div className="p-2 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-600 shadow-2xs">
+        <div className="rounded-2xl bg-white border border-zinc-200/80 p-4 sm:p-5 shadow-xs hover:border-orange-300 hover:shadow-md hover:shadow-orange-500/5 transition-all">
+          <div className="flex items-center justify-between text-zinc-500 mb-3">
+            <span className="text-xs font-bold text-zinc-700">إجمالي مبالغ التحصيل</span>
+            <div className="p-2 rounded-xl bg-orange-50 border border-orange-100 text-orange-600 shadow-2xs">
               <Coins className="w-4 h-4" />
             </div>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-bold text-slate-900 font-mono tracking-tight">
+            <span className="text-2xl sm:text-3xl font-black text-zinc-900 font-mono tracking-tight">
               {formatCurrency(totalCollection)}
             </span>
-            <span className="text-xs font-semibold text-slate-500">ل.س</span>
+            <span className="text-xs font-bold text-orange-600">ل.س</span>
           </div>
-          <p className="text-[11px] text-slate-400 mt-2 font-normal">
+          <p className="text-[11px] text-zinc-400 mt-2 font-medium">
             مجموع مبالغ التحصيل المحسوبة ({filterLabel})
           </p>
         </div>
 
         {/* 2. أرباح المكتب */}
-        <div className="rounded-xl bg-white border border-slate-200 p-4 sm:p-5 shadow-xs hover:shadow transition-all">
-          <div className="flex items-center justify-between text-slate-500 mb-3">
-            <span className="text-xs font-semibold">أرباح المكتب (عمولات التوصيل)</span>
-            <div className="p-2 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 shadow-2xs">
+        <div className="rounded-2xl bg-white border border-zinc-200/80 p-4 sm:p-5 shadow-xs hover:border-amber-300 hover:shadow-md hover:shadow-amber-500/5 transition-all">
+          <div className="flex items-center justify-between text-zinc-500 mb-3">
+            <span className="text-xs font-bold text-zinc-700">أرباح المكتب (عمولات التوصيل)</span>
+            <div className="p-2 rounded-xl bg-amber-50 border border-amber-100 text-amber-600 shadow-2xs">
               <TrendingUp className="w-4 h-4" />
             </div>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-bold text-slate-900 font-mono tracking-tight">
+            <span className="text-2xl sm:text-3xl font-black text-zinc-900 font-mono tracking-tight">
               {formatCurrency(totalOfficeProfit)}
             </span>
-            <span className="text-xs font-semibold text-slate-500">ل.س</span>
+            <span className="text-xs font-bold text-amber-600">ل.س</span>
           </div>
-          <p className="text-[11px] text-slate-400 mt-2 font-normal">
+          <p className="text-[11px] text-zinc-400 mt-2 font-medium">
             صافي حصة المكتب من أجور التوصيل ({filterLabel})
           </p>
         </div>
 
         {/* 3. مستحقات المناديب */}
-        <div className="rounded-xl bg-white border border-slate-200 p-4 sm:p-5 shadow-xs hover:shadow transition-all">
-          <div className="flex items-center justify-between text-slate-500 mb-3">
-            <span className="text-xs font-semibold">
+        <div className="rounded-2xl bg-white border border-zinc-200/80 p-4 sm:p-5 shadow-xs hover:border-emerald-300 hover:shadow-md hover:shadow-emerald-500/5 transition-all">
+          <div className="flex items-center justify-between text-zinc-500 mb-3">
+            <span className="text-xs font-bold text-zinc-700">
               {selectedDriver ? `مستحقات ${selectedDriver.name}` : 'إجمالي مستحقات المناديب'}
             </span>
-            <div className="p-2 rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-600 shadow-2xs">
+            <div className="p-2 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-600 shadow-2xs">
               <Wallet className="w-4 h-4" />
             </div>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-bold text-slate-900 font-mono tracking-tight">
+            <span className="text-2xl sm:text-3xl font-black text-emerald-700 font-mono tracking-tight">
               {formatCurrency(totalDriverDues)}
             </span>
-            <span className="text-xs font-semibold text-slate-500">ل.س</span>
+            <span className="text-xs font-bold text-emerald-600">ل.س</span>
           </div>
-          <p className="text-[11px] text-slate-400 mt-2 font-normal">
+          <p className="text-[11px] text-zinc-400 mt-2 font-medium">
             حصة السائقين المقررة عن التوصيل ({filterLabel})
           </p>
         </div>

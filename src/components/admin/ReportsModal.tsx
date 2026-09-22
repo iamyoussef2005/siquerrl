@@ -242,7 +242,7 @@ export function ReportsModal({
         {/* رأس النافذة وأدوات التحكم */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 sm:p-5 px-6 border-b border-slate-200 bg-white z-20 print:hidden">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-blue-50 border border-blue-100 text-blue-600">
+            <div className="p-2.5 rounded-xl bg-orange-50 border border-orange-100 text-orange-600">
               <FileSpreadsheet className="w-5 h-5" />
             </div>
             <div>
@@ -268,7 +268,7 @@ export function ReportsModal({
                 onClick={() => setDateFilter('today')}
                 className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${
                   dateFilter === 'today'
-                    ? 'bg-white text-blue-700 shadow-2xs font-bold'
+                    ? 'bg-white text-orange-700 shadow-2xs font-bold'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
@@ -279,7 +279,7 @@ export function ReportsModal({
                 onClick={() => setDateFilter('all')}
                 className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${
                   dateFilter === 'all'
-                    ? 'bg-white text-blue-700 shadow-2xs font-bold'
+                    ? 'bg-white text-orange-700 shadow-2xs font-bold'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
@@ -302,7 +302,7 @@ export function ReportsModal({
             <button
               type="button"
               onClick={handlePrint}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-xs font-bold text-white shadow-xs transition-colors cursor-pointer"
+              className="btn-sinjab-primary flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-white shadow-xs transition-colors cursor-pointer"
               title="طباعة التقرير أو حفظه كملف PDF"
             >
               <Printer className="w-3.5 h-3.5" />
@@ -325,7 +325,7 @@ export function ReportsModal({
         <div className="hidden print:block p-6 border-b border-gray-300 mb-4 text-black">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-2xl font-bold">منظومة Siquerrl • تقرير التدقيق المالي والتشغيلي</h1>
+              <h1 className="text-2xl font-bold">سنجاب دليفري (Sinjab Delivery) • تقرير التدقيق المالي والتشغيلي</h1>
               <p className="text-xs text-gray-600 mt-1">
                 تاريخ التقرير: {currentDateStr} | المسؤول: {profile?.name || 'المدير العام'}
               </p>
@@ -344,11 +344,11 @@ export function ReportsModal({
             {/* ربح اليوم الصافي للمكتب */}
             <div className="bg-slate-50/70 border border-slate-200 rounded-xl p-4 shadow-2xs print:border-gray-300 print:bg-gray-50">
               <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700 print:text-black">
-                <TrendingUp className="w-4 h-4 text-blue-600" />
+                <TrendingUp className="w-4 h-4 text-orange-600" />
                 <span>صافي أرباح المكتب</span>
               </div>
               <div className="mt-2 flex items-baseline gap-1">
-                <span className="text-xl sm:text-2xl font-bold font-mono text-blue-700 print:text-black">
+                <span className="text-xl sm:text-2xl font-bold font-mono text-orange-700 print:text-black">
                   {formatCurrency(totals.totalOfficeProfit)}
                 </span>
                 <span className="text-xs text-slate-500 font-semibold print:text-gray-600">ل.س</span>
@@ -449,7 +449,7 @@ export function ReportsModal({
           <div className="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-2xs print:border-gray-400">
             <div className="bg-slate-50 px-4 py-3 border-b border-slate-200 flex items-center justify-between print:bg-gray-100 print:text-black">
               <h3 className="text-xs font-bold text-slate-900 flex items-center gap-2 print:text-black">
-                <Bike className="w-4 h-4 text-blue-600 print:text-black" />
+                <Bike className="w-4 h-4 text-orange-600 print:text-black" />
                 <span>جدول المحاسبة وحصص المناديب التفصيلي</span>
               </h3>
               <span className="text-[11px] text-slate-500 font-mono font-medium print:text-gray-600">

@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Profile } from '@/types/database';
 import {
   Bike,
@@ -38,17 +39,23 @@ export function DriverHeader({
   };
 
   return (
-    <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 px-4 py-3 shadow-xs">
+    <header className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-zinc-200/90 px-4 py-3 shadow-xs">
       <div className="max-w-md mx-auto space-y-3">
         {/* الصف العلوي: الشعار وحالة الاتصال وروابط التنقل */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-sky-600 to-blue-600 flex items-center justify-center text-white shadow-xs">
-              <Bike className="w-5 h-5" />
+            <div className="relative h-9 w-9 rounded-xl bg-orange-50 border border-orange-200 p-0.5 flex items-center justify-center shadow-xs overflow-hidden shrink-0">
+              <Image
+                src="/sinjab-logo.png"
+                alt="Sinjab Delivery"
+                width={34}
+                height={34}
+                className="object-contain"
+              />
             </div>
             <div>
-              <h1 className="text-sm font-bold text-slate-900 tracking-tight leading-tight">
-                واجهة المندوب
+              <h1 className="text-sm font-black text-zinc-900 tracking-tight leading-tight">
+                سنجاب دليفري
               </h1>
               <div className="flex items-center gap-1.5 text-[10px]">
                 <Radio
@@ -56,7 +63,7 @@ export function DriverHeader({
                     realtimeConnected ? 'text-emerald-600 animate-pulse' : 'text-amber-600'
                   }`}
                 />
-                <span className={realtimeConnected ? 'text-emerald-700 font-medium' : 'text-amber-700 font-medium'}>
+                <span className={realtimeConnected ? 'text-emerald-700 font-bold' : 'text-amber-700 font-bold'}>
                   {realtimeConnected ? 'مباشر Realtime' : 'مزامنة...'}
                 </span>
               </div>
@@ -93,7 +100,7 @@ export function DriverHeader({
 
         {/* عرض هوية المندوب المسجل أو التبديل إذا كان مديراً */}
         <div className="bg-slate-50 border border-slate-200 rounded-xl p-2.5 flex items-center gap-2 shadow-2xs">
-          <div className="p-1.5 rounded-lg bg-blue-50 text-blue-600 shrink-0">
+          <div className="p-1.5 rounded-lg bg-orange-50 text-orange-600 border border-orange-100 shrink-0">
             <User className="w-4 h-4" />
           </div>
           <div className="flex-1 min-w-0">
@@ -115,7 +122,7 @@ export function DriverHeader({
                     const found = drivers.find((d) => d.id === e.target.value) || null;
                     onSelectDriver(found);
                   }}
-                  className="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-xs text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-blue-100 cursor-pointer shadow-2xs"
+                  className="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-xs text-slate-900 font-semibold focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 cursor-pointer shadow-2xs"
                 >
                   <option value="">-- اختر المندوب للمعاينة --</option>
                   {drivers.map((d) => (

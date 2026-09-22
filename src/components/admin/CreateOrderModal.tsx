@@ -24,7 +24,7 @@ export function CreateOrderModal({
         {/* رأس النافذة */}
         <div className="flex items-center justify-between p-3.5 sm:p-4 px-5 sm:px-6 border-b border-slate-200 sticky top-0 bg-white/95 backdrop-blur-md z-20">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 shadow-2xs">
+            <div className="p-2 rounded-xl bg-orange-50 border border-orange-100 text-orange-600 shadow-2xs">
               <PlusCircle className="w-4 h-4" />
             </div>
             <div>
