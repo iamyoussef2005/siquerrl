@@ -66,17 +66,10 @@ export function TodayOrdersTable({
     switch (status) {
       case 'pending':
         return {
-          label: 'بانتظار مندوب',
+          label: 'بانتظار تحضير الطلب',
           className: 'bg-amber-50 text-amber-700 border-amber-200',
           dotColor: 'bg-amber-500',
           icon: Clock,
-        };
-      case 'assigned':
-        return {
-          label: 'مُسند للمندوب',
-          className: 'bg-orange-50 text-orange-700 border-orange-200 font-bold',
-          dotColor: 'bg-orange-500',
-          icon: Truck,
         };
       case 'delivering':
         return {
@@ -87,17 +80,10 @@ export function TodayOrdersTable({
         };
       case 'delivered':
         return {
-          label: 'تم التسليم',
+          label: 'مكتملة ومسلّمة',
           className: 'bg-emerald-50 text-emerald-700 border-emerald-200',
           dotColor: 'bg-emerald-500',
           icon: CheckCircle2,
-        };
-      case 'cancelled':
-        return {
-          label: 'ملغي',
-          className: 'bg-rose-50 text-rose-700 border-rose-200',
-          dotColor: 'bg-rose-500',
-          icon: XCircle,
         };
       default:
         return {
@@ -128,10 +114,7 @@ export function TodayOrdersTable({
       (order.order_details && order.order_details.toLowerCase().includes(q));
 
     const matchesStatus =
-      statusFilter === 'all' ||
-      (statusFilter === 'in_delivery'
-        ? order.status === 'delivering' || order.status === 'assigned'
-        : order.status === statusFilter);
+      statusFilter === 'all' || order.status === statusFilter;
 
     return matchesSearch && matchesStatus;
   });
@@ -190,10 +173,9 @@ export function TodayOrdersTable({
               className="w-full bg-white border border-orange-200/80 hover:border-orange-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 rounded-xl px-3 py-1.5 text-xs text-zinc-800 font-semibold focus:outline-hidden cursor-pointer appearance-none pl-7 shadow-2xs"
             >
               <option value="all">جميع الحالات</option>
-              <option value="pending">بانتظار مندوب</option>
-              <option value="in_delivery">قيد التوصيل</option>
-              <option value="delivered">تم التسليم</option>
-              <option value="cancelled">ملغي</option>
+              <option value="pending">بانتظار تحضير الطلب</option>
+              <option value="delivering">قيد التوصيل</option>
+              <option value="delivered">مكتملة ومسلّمة</option>
             </select>
             <Filter className="w-3.5 h-3.5 text-zinc-400 absolute left-2 top-2 pointer-events-none" />
           </div>

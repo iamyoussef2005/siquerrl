@@ -97,9 +97,9 @@ export function DriverOrderCard({ order, onStatusUpdated }: DriverOrderCardProps
   // Status Badge
   const getStatusBadge = () => {
     switch (order.status) {
-      case 'assigned':
+      case 'pending':
         return {
-          label: 'جديد: بانتظار استلامك',
+          label: 'بانتظار تحضير الطلب واستلامك',
           className: 'bg-orange-50 text-orange-700 border-orange-200 font-bold',
           icon: Clock,
         };
@@ -111,7 +111,7 @@ export function DriverOrderCard({ order, onStatusUpdated }: DriverOrderCardProps
         };
       case 'delivered':
         return {
-          label: 'تم التسليم بنجاح',
+          label: 'مكتملة ومسلّمة بنجاح',
           className: 'bg-emerald-50 text-emerald-700 border-emerald-200',
           icon: CheckCircle2,
         };
@@ -132,7 +132,7 @@ export function DriverOrderCard({ order, onStatusUpdated }: DriverOrderCardProps
       className={`rounded-2xl border transition-all duration-200 shadow-xs overflow-hidden ${
         order.status === 'delivering'
           ? 'bg-white border-orange-500 ring-2 ring-orange-500/20 shadow-md'
-          : order.status === 'assigned'
+          : order.status === 'pending'
           ? 'bg-white border-orange-200 shadow-xs'
           : 'bg-white border-slate-200'
       }`}
@@ -256,7 +256,7 @@ export function DriverOrderCard({ order, onStatusUpdated }: DriverOrderCardProps
 
         {/* أزرار تغيير الحالة الكبيرة (صلاحية حصرية للمندوب) */}
         <div className="pt-1">
-          {order.status === 'assigned' && (
+          {order.status === 'pending' && (
             <button
               type="button"
               disabled={isUpdating}

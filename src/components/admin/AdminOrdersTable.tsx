@@ -70,17 +70,10 @@ export function AdminOrdersTable({
     switch (status) {
       case 'pending':
         return {
-          label: 'بانتظار مندوب',
+          label: 'بانتظار تحضير الطلب',
           className: 'bg-amber-50 text-amber-700 border-amber-200',
           dotColor: 'bg-amber-500',
           icon: Clock,
-        };
-      case 'assigned':
-        return {
-          label: 'مُسند',
-          className: 'bg-orange-50 text-orange-700 border-orange-200 font-bold',
-          dotColor: 'bg-orange-500',
-          icon: Truck,
         };
       case 'delivering':
         return {
@@ -91,17 +84,10 @@ export function AdminOrdersTable({
         };
       case 'delivered':
         return {
-          label: 'تم التسليم',
+          label: 'مكتملة ومسلّمة',
           className: 'bg-emerald-50 text-emerald-700 border-emerald-200',
           dotColor: 'bg-emerald-500',
           icon: CheckCircle2,
-        };
-      case 'cancelled':
-        return {
-          label: 'ملغي',
-          className: 'bg-rose-50 text-rose-700 border-rose-200',
-          dotColor: 'bg-rose-500',
-          icon: XCircle,
         };
       default:
         return {
@@ -113,12 +99,10 @@ export function AdminOrdersTable({
     }
   };
 
-  // Handle Driver Assignment with Custom Commission Rate
+  // Handle Driver Assignment with Custom Commission Rate (Status stays unchanged)
   const handleAssignDriver = async (order: Order, driverId: string) => {
     setUpdatingOrderId(order.id!);
     const newDriverId = driverId === '' ? null : driverId;
-    const newStatus: OrderStatus =
-      newDriverId && order.status === 'pending' ? 'assigned' : order.status;
 
     // Calculate driver_fee and office_fee based on selected driver's custom percentage
     let newDriverFee = Number(order.driver_fee) || 0;
@@ -137,7 +121,6 @@ export function AdminOrdersTable({
         .from('orders')
         .update({
           driver_id: newDriverId,
-          status: newStatus,
           driver_fee: newDriverFee,
           office_fee: newOfficeFee,
         })
@@ -152,7 +135,6 @@ export function AdminOrdersTable({
         onOrderUpdated({
           ...order,
           driver_id: newDriverId,
-          status: newStatus,
           driver_fee: newDriverFee,
           office_fee: newOfficeFee,
         });
@@ -160,33 +142,6 @@ export function AdminOrdersTable({
     } catch (err: any) {
       console.error('Assign driver error:', err);
       alert(`حدث خطأ أثناء إسناد المندوب: ${err.message || 'يرجى المحاولة مجدداً'}`);
-    } finally {
-      setUpdatingOrderId(null);
-    }
-  };
-
-  // Handle Order Cancellation
-  const handleCancelOrder = async (order: Order) => {
-    if (!confirm(`هل أنت متأكد من رغبتك في إلغاء الطلب #${order.id}؟`)) return;
-
-    setUpdatingOrderId(order.id!);
-    try {
-      const { data, error } = await supabase
-        .from('orders')
-        .update({ status: 'cancelled' })
-        .eq('id', order.id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      if (data) {
-        onOrderUpdated(data as Order);
-      } else {
-        onOrderUpdated({ ...order, status: 'cancelled' });
-      }
-    } catch (err: any) {
-      console.error('Cancel order error:', err);
-      alert(`حدث خطأ أثناء إلغاء الطلب: ${err.message}`);
     } finally {
       setUpdatingOrderId(null);
     }
@@ -206,10 +161,7 @@ export function AdminOrdersTable({
 
     // Status filter
     const matchesStatus =
-      statusFilter === 'all' ||
-      (statusFilter === 'in_delivery'
-        ? order.status === 'delivering' || order.status === 'assigned'
-        : order.status === statusFilter);
+      statusFilter === 'all' || order.status === statusFilter;
 
     // Driver filter
     const matchesDriver =
@@ -288,10 +240,9 @@ export function AdminOrdersTable({
               className="w-full bg-white border border-orange-200/80 hover:border-orange-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 rounded-xl px-3 py-1.5 text-xs text-zinc-800 font-semibold focus:outline-hidden cursor-pointer appearance-none pl-7 shadow-2xs"
             >
               <option value="all">جميع الحالات</option>
-              <option value="pending">بانتظار مندوب</option>
-              <option value="in_delivery">قيد التوصيل</option>
-              <option value="delivered">تم التسليم</option>
-              <option value="cancelled">ملغي</option>
+              <option value="pending">بانتظار تحضير الطلب</option>
+              <option value="delivering">قيد التوصيل</option>
+              <option value="delivered">مكتملة ومسلّمة</option>
             </select>
             <Filter className="w-3.5 h-3.5 text-zinc-400 absolute left-2 top-2 pointer-events-none" />
           </div>
@@ -411,7 +362,7 @@ export function AdminOrdersTable({
                     <td className="py-3 px-4 whitespace-nowrap">
                       <div className="relative inline-block w-38">
                         <select
-                          disabled={isUpdating || order.status === 'cancelled' || order.status === 'delivered'}
+                          disabled={isUpdating || order.status === 'delivered'}
                           value={order.driver_id || ''}
                           onChange={(e) => handleAssignDriver(order, e.target.value)}
                           className="w-full bg-white border border-orange-200/80 hover:border-orange-300 rounded-lg px-2 py-1 text-xs text-zinc-800 focus:outline-hidden focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-2xs font-medium"
@@ -447,23 +398,10 @@ export function AdminOrdersTable({
                           type="button"
                           onClick={() => onOpenEditModal(order)}
                           className="p-1.5 rounded-lg bg-white/90 hover:bg-orange-50 text-zinc-700 hover:text-orange-700 border border-orange-200/80 transition-all cursor-pointer active:scale-95 shadow-2xs"
-                          title="تعديل الطلب"
+                          title="تعديل بيانات الطلب"
                         >
                           <Edit3 className="w-3.5 h-3.5" />
                         </button>
-
-                        {/* زر إلغاء الطلب */}
-                        {order.status !== 'cancelled' && order.status !== 'delivered' && (
-                          <button
-                            type="button"
-                            disabled={isUpdating}
-                            onClick={() => handleCancelOrder(order)}
-                            className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition-all disabled:opacity-50 cursor-pointer active:scale-95 shadow-2xs"
-                            title="إلغاء الطلب"
-                          >
-                            <XCircle className="w-3.5 h-3.5" />
-                          </button>
-                        )}
                       </div>
                     </td>
                   </tr>

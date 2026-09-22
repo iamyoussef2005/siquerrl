@@ -11,7 +11,6 @@ import {
   TrendingUp,
   Truck,
   CheckCircle2,
-  XCircle,
   FileSpreadsheet,
   Bike,
   ShieldCheck,
@@ -63,10 +62,8 @@ export function ReportsModal({
     return drivers.map((driver) => {
       const assigned = filteredOrders.filter((o) => o.driver_id === driver.id);
       const delivered = assigned.filter((o) => o.status === 'delivered');
-      const inProgress = assigned.filter(
-        (o) => o.status === 'delivering' || o.status === 'assigned'
-      );
-      const cancelled = assigned.filter((o) => o.status === 'cancelled');
+      const inProgress = assigned.filter((o) => o.status === 'delivering');
+      const pending = assigned.filter((o) => o.status === 'pending');
 
       // Active delivered revenue calculations
       const totalCollection = delivered.reduce(
@@ -96,7 +93,7 @@ export function ReportsModal({
         totalAssigned: assigned.length,
         deliveredCount: delivered.length,
         inProgressCount: inProgress.length,
-        cancelledCount: cancelled.length,
+        pendingCount: pending.length,
         completionRate,
         totalCollection,
         totalDeliveryFee,
@@ -110,11 +107,8 @@ export function ReportsModal({
   const totals = useMemo(() => {
     const totalOrdersCount = filteredOrders.length;
     const delivered = filteredOrders.filter((o) => o.status === 'delivered');
-    const inProgress = filteredOrders.filter(
-      (o) => o.status === 'delivering' || o.status === 'assigned'
-    );
+    const inProgress = filteredOrders.filter((o) => o.status === 'delivering');
     const pending = filteredOrders.filter((o) => o.status === 'pending');
-    const cancelled = filteredOrders.filter((o) => o.status === 'cancelled');
 
     const totalCollection = delivered.reduce(
       (sum, o) => sum + (Number(o.collection_amount) || 0),
@@ -133,12 +127,6 @@ export function ReportsModal({
       0
     );
 
-    // Cancelled orders metrics
-    const totalCancelledAmount = cancelled.reduce(
-      (sum, o) => sum + (Number(o.collection_amount) || 0),
-      0
-    );
-
     const unassignedOrders = filteredOrders.filter((o) => !o.driver_id);
 
     return {
@@ -146,13 +134,11 @@ export function ReportsModal({
       deliveredCount: delivered.length,
       inProgressCount: inProgress.length,
       pendingCount: pending.length,
-      cancelledCount: cancelled.length,
       unassignedCount: unassignedOrders.length,
       totalCollection,
       totalDeliveryFee,
       totalDriverShare,
       totalOfficeProfit,
-      totalCancelledAmount,
     };
   }, [filteredOrders]);
 
@@ -172,7 +158,7 @@ export function ReportsModal({
       'الطلبات المسندة',
       'الطلبات المسلمة',
       'طلبات قيد التوصيل',
-      'الطلبات الملغاة',
+      'بانتظار التحضير',
       'نسبة الإنجاز (%)',
       'مجموع التحصيل (ل.س)',
       'أجرة التوصيل (ل.س)',
@@ -187,7 +173,7 @@ export function ReportsModal({
       r.totalAssigned,
       r.deliveredCount,
       r.inProgressCount,
-      r.cancelledCount,
+      r.pendingCount,
       `"${r.completionRate}%"`,
       r.totalCollection,
       r.totalDeliveryFee,
@@ -203,7 +189,7 @@ export function ReportsModal({
       totals.totalOrdersCount,
       totals.deliveredCount,
       totals.inProgressCount,
-      totals.cancelledCount,
+      totals.pendingCount,
       '""',
       totals.totalCollection,
       totals.totalDeliveryFee,
@@ -411,7 +397,7 @@ export function ReportsModal({
           </div>
 
           {/* 2. شريط حالة الطلبات */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs font-semibold">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs font-semibold">
             <div className="p-3 rounded-xl bg-slate-50/70 border border-slate-200 text-slate-700 flex items-center justify-between shadow-2xs print:border-gray-300 print:bg-white print:text-black">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600 print:text-black" />
@@ -431,17 +417,9 @@ export function ReportsModal({
             <div className="p-3 rounded-xl bg-slate-50/70 border border-slate-200 text-slate-700 flex items-center justify-between shadow-2xs print:border-gray-300 print:bg-white print:text-black">
               <div className="flex items-center gap-2">
                 <Clock className="w-4 h-4 text-amber-600 print:text-black" />
-                <span>بانتظار إسناد مندوب:</span>
+                <span>بانتظار تحضير الطلب:</span>
               </div>
-              <span className="font-bold font-mono text-sm text-amber-700 print:text-black">{totals.unassignedCount}</span>
-            </div>
-
-            <div className="p-3 rounded-xl bg-slate-50/70 border border-slate-200 text-slate-700 flex items-center justify-between shadow-2xs print:border-gray-300 print:bg-white print:text-black">
-              <div className="flex items-center gap-2">
-                <XCircle className="w-4 h-4 text-rose-600 print:text-black" />
-                <span>طلبات ملغاة:</span>
-              </div>
-              <span className="font-bold font-mono text-sm text-rose-700 print:text-black">{totals.cancelledCount}</span>
+              <span className="font-bold font-mono text-sm text-amber-700 print:text-black">{totals.pendingCount}</span>
             </div>
           </div>
 
@@ -465,7 +443,7 @@ export function ReportsModal({
                     <th className="py-2.5 px-3 text-center">النسبة</th>
                     <th className="py-2.5 px-3 text-center">الطلبات</th>
                     <th className="py-2.5 px-3 text-center">المسلّمة</th>
-                    <th className="py-2.5 px-3 text-center">الملغاة</th>
+                    <th className="py-2.5 px-3 text-center">بانتظار التحضير</th>
                     <th className="py-2.5 px-3 text-center">نسبة الإنجاز</th>
                     <th className="py-2.5 px-3 text-center font-bold">مجموع التحصيل</th>
                     <th className="py-2.5 px-3 text-center">أجرة التوصيل</th>
@@ -513,8 +491,8 @@ export function ReportsModal({
                           {row.deliveredCount}
                         </td>
 
-                        <td className="py-2.5 px-3 text-center font-mono text-rose-700 print:text-black font-semibold">
-                          {row.cancelledCount}
+                        <td className="py-2.5 px-3 text-center font-mono text-amber-700 print:text-black font-semibold">
+                          {row.pendingCount}
                         </td>
 
                         {/* نسبة الإنجاز مع شريط تقدم صغير */}
@@ -559,8 +537,8 @@ export function ReportsModal({
                     <td className="py-3 px-3 text-center font-mono text-emerald-700 print:text-black">
                       {totals.deliveredCount}
                     </td>
-                    <td className="py-3 px-3 text-center font-mono text-rose-700 print:text-black">
-                      {totals.cancelledCount}
+                    <td className="py-3 px-3 text-center font-mono text-amber-700 print:text-black">
+                      {totals.pendingCount}
                     </td>
                     <td className="py-3 px-3 text-center text-slate-400 print:text-black">—</td>
                     <td className="py-3 px-3 text-center font-mono text-emerald-700 print:text-black whitespace-nowrap">
@@ -580,24 +558,6 @@ export function ReportsModal({
               </table>
             </div>
           </div>
-
-          {/* 4. تفاصيل الطلبات الملغاة اليوم */}
-          {totals.cancelledCount > 0 && (
-            <div className="bg-rose-50/60 border border-rose-200 rounded-xl p-3.5 space-y-1 text-xs shadow-2xs print:border-gray-300 print:bg-gray-50">
-              <div className="flex items-center justify-between text-rose-800 print:text-black font-bold">
-                <div className="flex items-center gap-2">
-                  <XCircle className="w-4 h-4 text-rose-600" />
-                  <span>الطلبات الملغاة ({totals.cancelledCount} طلبات)</span>
-                </div>
-                <span className="font-mono">
-                  إجمالي المبالغ المستبعدة: {formatCurrency(totals.totalCancelledAmount)} ل.س
-                </span>
-              </div>
-              <p className="text-[11px] text-rose-700 print:text-gray-600 font-medium">
-                ملاحظة تدقيقية: تم استبعاد كافة مبالغ التحصيل وأجور التوصيل للطلبات الملغاة من إجمالي حسابات التحصيل وأرباح المكتب أعلاه لضمان مطابقة الصندوق.
-              </p>
-            </div>
-          )}
 
           {/* تذييل الورقة الرسمية للطباعة والتوقيعات */}
           <div className="hidden print:grid grid-cols-3 gap-6 pt-12 text-center text-xs text-black border-t border-gray-300 mt-8">

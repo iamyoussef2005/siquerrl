@@ -12,7 +12,7 @@ export function StatsCards({ orders }: StatsCardsProps) {
   const totalOrders = orders.length;
   const pendingOrders = orders.filter((o) => o.status === 'pending').length;
   const deliveredOrders = orders.filter((o) => o.status === 'delivered').length;
-  const inDeliveryOrders = orders.filter((o) => o.status === 'delivering' || o.status === 'assigned').length;
+  const inDeliveryOrders = orders.filter((o) => o.status === 'delivering').length;
 
   const totalCollection = orders.reduce((sum, o) => sum + (Number(o.collection_amount) || 0), 0);
   const totalOfficeFee = orders.reduce((sum, o) => sum + (Number(o.office_fee) || 0), 0);
@@ -37,24 +37,24 @@ export function StatsCards({ orders }: StatsCardsProps) {
         </div>
       </div>
 
-      {/* قيد الانتظار */}
+      {/* بانتظار تحضير الطلب */}
       <div className="bg-white border border-zinc-200/80 rounded-2xl p-3.5 flex flex-col justify-between shadow-xs hover:border-amber-300 hover:shadow-xs transition-all">
         <div className="flex items-center justify-between text-zinc-500 mb-1">
-          <span className="text-xs font-bold text-zinc-700">قيد الانتظار</span>
+          <span className="text-xs font-bold text-zinc-700">بانتظار التحضير</span>
           <div className="p-1.5 rounded-lg bg-amber-50 text-amber-600 border border-amber-100">
             <Clock className="w-4 h-4" />
           </div>
         </div>
         <div className="flex items-baseline gap-1.5">
           <span className="text-2xl font-black text-amber-600 tracking-tight font-mono">{pendingOrders}</span>
-          <span className="text-xs font-bold text-amber-600/80">جديد</span>
+          <span className="text-xs font-bold text-amber-600/80">طلب</span>
         </div>
       </div>
 
-      {/* جاري التوصيل */}
+      {/* قيد التوصيل */}
       <div className="bg-white border border-zinc-200/80 rounded-2xl p-3.5 flex flex-col justify-between shadow-xs hover:border-sky-300 hover:shadow-xs transition-all">
         <div className="flex items-center justify-between text-zinc-500 mb-1">
-          <span className="text-xs font-bold text-zinc-700">جاري التوصيل</span>
+          <span className="text-xs font-bold text-zinc-700">قيد التوصيل</span>
           <div className="p-1.5 rounded-lg bg-sky-50 text-sky-600 border border-sky-100">
             <TrendingUp className="w-4 h-4" />
           </div>
@@ -65,10 +65,10 @@ export function StatsCards({ orders }: StatsCardsProps) {
         </div>
       </div>
 
-      {/* تم التسليم */}
+      {/* مكتملة ومسلّمة */}
       <div className="bg-white border border-zinc-200/80 rounded-2xl p-3.5 flex flex-col justify-between shadow-xs hover:border-emerald-300 hover:shadow-xs transition-all">
         <div className="flex items-center justify-between text-zinc-500 mb-1">
-          <span className="text-xs font-bold text-zinc-700">تم التسليم</span>
+          <span className="text-xs font-bold text-zinc-700">مكتملة ومسلّمة</span>
           <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100">
             <CheckCircle2 className="w-4 h-4" />
           </div>

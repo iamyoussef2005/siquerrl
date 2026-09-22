@@ -161,9 +161,7 @@ export default function CallCenterPage() {
   // Status stats calculations
   const totalCount = orders.length;
   const pendingCount = orders.filter((o) => o.status === 'pending').length;
-  const inDeliveryCount = orders.filter(
-    (o) => o.status === 'delivering' || o.status === 'assigned'
-  ).length;
+  const inDeliveryCount = orders.filter((o) => o.status === 'delivering').length;
   const deliveredCount = orders.filter((o) => o.status === 'delivered').length;
 
   return (
@@ -285,14 +283,14 @@ export default function CallCenterPage() {
                 </div>
               </div>
 
-              {/* بانتظار إسناد مندوب */}
-              <div className="bg-gradient-to-br from-amber-50/90 to-orange-50/50 border border-amber-200/80 rounded-2xl p-4 flex items-center justify-between shadow-xs">
+              {/* بانتظار تحضير الطلب */}
+              <div className="bg-gradient-to-br from-amber-50/90 to-orange-50/50 border border-orange-200/80 rounded-2xl p-4 flex items-center justify-between shadow-xs">
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-xl bg-amber-100/90 border border-amber-200/80 text-amber-700 shadow-2xs">
                     <Clock className="w-4 h-4" />
                   </div>
                   <div>
-                    <div className="text-xs text-amber-950 font-bold">بانتظار إسناد مندوب</div>
+                    <div className="text-xs text-amber-950 font-bold">بانتظار تحضير الطلب</div>
                     <div className="text-xl font-black text-amber-700 font-mono">{pendingCount}</div>
                   </div>
                 </div>
