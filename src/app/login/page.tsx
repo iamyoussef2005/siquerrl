@@ -90,10 +90,6 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-50 border border-orange-200 text-orange-700 text-[11px] font-bold mb-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-ping" />
-              <span>منظومة إدارة وتوزيع العمليات</span>
-            </div>
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-zinc-900">
               سنجاب دليفري
             </h1>
