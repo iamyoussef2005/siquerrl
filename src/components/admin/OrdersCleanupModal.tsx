@@ -68,7 +68,7 @@ export function OrdersCleanupModal({
     return orders.filter((o) => {
       // Status filter
       if (onlyCompleted) {
-        if (o.status !== 'delivered') {
+        if (o.status !== 'delivered' && o.status !== 'cancelled') {
           return false;
         }
       }

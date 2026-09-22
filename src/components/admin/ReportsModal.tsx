@@ -16,6 +16,7 @@ import {
   ShieldCheck,
   AlertCircle,
   Clock,
+  XCircle,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -109,6 +110,7 @@ export function ReportsModal({
     const delivered = filteredOrders.filter((o) => o.status === 'delivered');
     const inProgress = filteredOrders.filter((o) => o.status === 'delivering');
     const pending = filteredOrders.filter((o) => o.status === 'pending');
+    const cancelled = filteredOrders.filter((o) => o.status === 'cancelled');
 
     const totalCollection = delivered.reduce(
       (sum, o) => sum + (Number(o.collection_amount) || 0),
@@ -134,6 +136,7 @@ export function ReportsModal({
       deliveredCount: delivered.length,
       inProgressCount: inProgress.length,
       pendingCount: pending.length,
+      cancelledCount: cancelled.length,
       unassignedCount: unassignedOrders.length,
       totalCollection,
       totalDeliveryFee,
@@ -397,7 +400,7 @@ export function ReportsModal({
           </div>
 
           {/* 2. شريط حالة الطلبات */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs font-semibold">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs font-semibold">
             <div className="p-3 rounded-xl bg-slate-50/70 border border-slate-200 text-slate-700 flex items-center justify-between shadow-2xs print:border-gray-300 print:bg-white print:text-black">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600 print:text-black" />
@@ -417,9 +420,17 @@ export function ReportsModal({
             <div className="p-3 rounded-xl bg-slate-50/70 border border-slate-200 text-slate-700 flex items-center justify-between shadow-2xs print:border-gray-300 print:bg-white print:text-black">
               <div className="flex items-center gap-2">
                 <Clock className="w-4 h-4 text-amber-600 print:text-black" />
-                <span>بانتظار تحضير الطلب:</span>
+                <span>بانتظار التحضير:</span>
               </div>
               <span className="font-bold font-mono text-sm text-amber-700 print:text-black">{totals.pendingCount}</span>
+            </div>
+
+            <div className="p-3 rounded-xl bg-slate-50/70 border border-slate-200 text-slate-700 flex items-center justify-between shadow-2xs print:border-gray-300 print:bg-white print:text-black">
+              <div className="flex items-center gap-2">
+                <XCircle className="w-4 h-4 text-rose-600 print:text-black" />
+                <span>طلبات ملغاة:</span>
+              </div>
+              <span className="font-bold font-mono text-sm text-rose-700 print:text-black">{totals.cancelledCount}</span>
             </div>
           </div>
 

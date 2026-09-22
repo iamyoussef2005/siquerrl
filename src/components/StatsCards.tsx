@@ -14,8 +14,9 @@ export function StatsCards({ orders }: StatsCardsProps) {
   const deliveredOrders = orders.filter((o) => o.status === 'delivered').length;
   const inDeliveryOrders = orders.filter((o) => o.status === 'delivering').length;
 
-  const totalCollection = orders.reduce((sum, o) => sum + (Number(o.collection_amount) || 0), 0);
-  const totalOfficeFee = orders.reduce((sum, o) => sum + (Number(o.office_fee) || 0), 0);
+  const activeOrders = orders.filter((o) => o.status !== 'cancelled');
+  const totalCollection = activeOrders.reduce((sum, o) => sum + (Number(o.collection_amount) || 0), 0);
+  const totalOfficeFee = activeOrders.reduce((sum, o) => sum + (Number(o.office_fee) || 0), 0);
 
   const formatCurrency = (val: number) => {
     return new Intl.NumberFormat('en-US').format(val || 0);

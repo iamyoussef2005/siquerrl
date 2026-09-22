@@ -89,6 +89,13 @@ export function AdminOrdersTable({
           dotColor: 'bg-emerald-500',
           icon: CheckCircle2,
         };
+      case 'cancelled':
+        return {
+          label: 'ملغي',
+          className: 'bg-rose-50 text-rose-700 border-rose-200',
+          dotColor: 'bg-rose-500',
+          icon: XCircle,
+        };
       default:
         return {
           label: status,
@@ -142,6 +149,36 @@ export function AdminOrdersTable({
     } catch (err: any) {
       console.error('Assign driver error:', err);
       alert(`حدث خطأ أثناء إسناد المندوب: ${err.message || 'يرجى المحاولة مجدداً'}`);
+    } finally {
+      setUpdatingOrderId(null);
+    }
+  };
+
+  // Handle Order Cancellation by Admin
+  const handleCancelOrder = async (order: Order) => {
+    if (order.status === 'delivered') return;
+    if (!confirm(`هل أنت متأكد من رغبتك في إلغاء الطلب #${order.id} للزبون (${order.customer_name})؟`)) {
+      return;
+    }
+
+    setUpdatingOrderId(order.id!);
+    try {
+      const { data, error } = await supabase
+        .from('orders')
+        .update({ status: 'cancelled' })
+        .eq('id', order.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      if (data) {
+        onOrderUpdated(data as Order);
+      } else {
+        onOrderUpdated({ ...order, status: 'cancelled' });
+      }
+    } catch (err: any) {
+      console.error('Cancel order error:', err);
+      alert(`حدث خطأ أثناء إلغاء الطلب: ${err.message || 'يرجى المحاولة مجدداً'}`);
     } finally {
       setUpdatingOrderId(null);
     }
@@ -243,6 +280,7 @@ export function AdminOrdersTable({
               <option value="pending">بانتظار تحضير الطلب</option>
               <option value="delivering">قيد التوصيل</option>
               <option value="delivered">مكتملة ومسلّمة</option>
+              <option value="cancelled">ملغي</option>
             </select>
             <Filter className="w-3.5 h-3.5 text-zinc-400 absolute left-2 top-2 pointer-events-none" />
           </div>
@@ -362,7 +400,7 @@ export function AdminOrdersTable({
                     <td className="py-3 px-4 whitespace-nowrap">
                       <div className="relative inline-block w-38">
                         <select
-                          disabled={isUpdating || order.status === 'delivered'}
+                          disabled={isUpdating || order.status === 'delivered' || order.status === 'cancelled'}
                           value={order.driver_id || ''}
                           onChange={(e) => handleAssignDriver(order, e.target.value)}
                           className="w-full bg-white border border-orange-200/80 hover:border-orange-300 rounded-lg px-2 py-1 text-xs text-zinc-800 focus:outline-hidden focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-2xs font-medium"
@@ -402,6 +440,19 @@ export function AdminOrdersTable({
                         >
                           <Edit3 className="w-3.5 h-3.5" />
                         </button>
+
+                        {/* زر إلغاء الطلب للمدير فقط */}
+                        {order.status !== 'delivered' && order.status !== 'cancelled' && (
+                          <button
+                            type="button"
+                            onClick={() => handleCancelOrder(order)}
+                            disabled={isUpdating}
+                            className="p-1.5 rounded-lg bg-white/90 hover:bg-rose-50 text-zinc-600 hover:text-rose-600 border border-zinc-200 hover:border-rose-300 transition-all cursor-pointer active:scale-95 shadow-2xs"
+                            title="إلغاء الطلب نهائياً"
+                          >
+                            <XCircle className="w-3.5 h-3.5" />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

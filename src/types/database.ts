@@ -32,7 +32,7 @@ export interface Profile {
   created_at?: string;
 }
 
-export type OrderStatus = 'pending' | 'delivering' | 'delivered';
+export type OrderStatus = 'pending' | 'delivering' | 'delivered' | 'cancelled';
 
 export interface Order {
   id?: number | string;

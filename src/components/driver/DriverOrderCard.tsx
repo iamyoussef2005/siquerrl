@@ -17,6 +17,7 @@ import {
   ExternalLink,
   ChevronDown,
   ChevronUp,
+  XCircle,
 } from 'lucide-react';
 
 interface DriverOrderCardProps {
@@ -115,6 +116,12 @@ export function DriverOrderCard({ order, onStatusUpdated }: DriverOrderCardProps
           className: 'bg-emerald-50 text-emerald-700 border-emerald-200',
           icon: CheckCircle2,
         };
+      case 'cancelled':
+        return {
+          label: 'طلب ملغي',
+          className: 'bg-rose-50 text-rose-700 border-rose-200',
+          icon: XCircle,
+        };
       default:
         return {
           label: order.status,
@@ -134,6 +141,8 @@ export function DriverOrderCard({ order, onStatusUpdated }: DriverOrderCardProps
           ? 'bg-white border-orange-500 ring-2 ring-orange-500/20 shadow-md'
           : order.status === 'pending'
           ? 'bg-white border-orange-200 shadow-xs'
+          : order.status === 'cancelled'
+          ? 'bg-slate-50 border-rose-200 opacity-80'
           : 'bg-white border-slate-200'
       }`}
     >
@@ -302,6 +311,13 @@ export function DriverOrderCard({ order, onStatusUpdated }: DriverOrderCardProps
             <div className="py-2.5 px-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center justify-center gap-2 shadow-2xs">
               <CheckCircle2 className="w-4 h-4 text-emerald-600" />
               <span>مكتمل: تم تسليم هذا الطلب بنجاح</span>
+            </div>
+          )}
+
+          {order.status === 'cancelled' && (
+            <div className="py-2.5 px-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold flex items-center justify-center gap-2 shadow-2xs">
+              <XCircle className="w-4 h-4 text-rose-600" />
+              <span>تم إلغاء هذا الطلب من قبل الإدارة</span>
             </div>
           )}
         </div>

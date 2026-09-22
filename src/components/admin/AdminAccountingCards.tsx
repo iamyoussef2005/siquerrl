@@ -37,11 +37,13 @@ export function AdminAccountingCards({ orders, selectedDriver, dateFilter = 'all
   const completedOrders = relevantOrders.filter((o) => o.status === 'delivered').length;
   const inDeliveryOrders = relevantOrders.filter((o) => o.status === 'delivering').length;
   const pendingOrders = relevantOrders.filter((o) => o.status === 'pending').length;
+  const cancelledOrders = relevantOrders.filter((o) => o.status === 'cancelled').length;
 
-  // Financial calculations
-  const totalCollection = relevantOrders.reduce((sum, o) => sum + (Number(o.collection_amount) || 0), 0);
-  const totalOfficeProfit = relevantOrders.reduce((sum, o) => sum + (Number(o.office_fee) || 0), 0);
-  const totalDriverDues = relevantOrders.reduce((sum, o) => sum + (Number(o.driver_fee) || 0), 0);
+  // Financial calculations (excluding cancelled orders)
+  const activeFinancialOrders = relevantOrders.filter((o) => o.status !== 'cancelled');
+  const totalCollection = activeFinancialOrders.reduce((sum, o) => sum + (Number(o.collection_amount) || 0), 0);
+  const totalOfficeProfit = activeFinancialOrders.reduce((sum, o) => sum + (Number(o.office_fee) || 0), 0);
+  const totalDriverDues = activeFinancialOrders.reduce((sum, o) => sum + (Number(o.driver_fee) || 0), 0);
 
   const formatCurrency = (val: number) => {
     return new Intl.NumberFormat('en-US').format(val || 0);
@@ -129,8 +131,8 @@ export function AdminAccountingCards({ orders, selectedDriver, dateFilter = 'all
         </div>
       </div>
 
-      {/* عدادات الحالات التنفيذية الثلاث الأنيقة */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+      {/* عدادات الحالات التنفيذية الأنيقة */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
         {/* بانتظار تحضير الطلب */}
         <div className="bg-gradient-to-br from-amber-50/90 to-orange-50/50 border border-amber-200/80 rounded-xl p-3 flex items-center justify-between hover:border-amber-300 transition-colors shadow-2xs">
           <div className="flex items-center gap-2.5">
@@ -138,7 +140,7 @@ export function AdminAccountingCards({ orders, selectedDriver, dateFilter = 'all
               <Clock className="w-3.5 h-3.5" />
             </div>
             <div>
-              <div className="text-[11px] text-amber-900 font-semibold">بانتظار تحضير الطلب</div>
+              <div className="text-[11px] text-amber-900 font-semibold">بانتظار التحضير</div>
               <div className="text-base font-black text-amber-700 font-mono mt-0.5">{pendingOrders}</div>
             </div>
           </div>
@@ -166,6 +168,19 @@ export function AdminAccountingCards({ orders, selectedDriver, dateFilter = 'all
             <div>
               <div className="text-[11px] text-emerald-900 font-semibold">مكتملة ومسلّمة</div>
               <div className="text-base font-black text-emerald-700 font-mono mt-0.5">{completedOrders}</div>
+            </div>
+          </div>
+        </div>
+
+        {/* ملغي */}
+        <div className="bg-gradient-to-br from-rose-50/90 to-red-50/40 border border-rose-200/80 rounded-xl p-3 flex items-center justify-between hover:border-rose-300 transition-colors shadow-2xs">
+          <div className="flex items-center gap-2.5">
+            <div className="p-1.5 rounded-lg bg-rose-100/90 text-rose-700 border border-rose-200/80 shadow-2xs">
+              <XCircle className="w-3.5 h-3.5" />
+            </div>
+            <div>
+              <div className="text-[11px] text-rose-900 font-semibold">طلبات ملغاة</div>
+              <div className="text-base font-black text-rose-700 font-mono mt-0.5">{cancelledOrders}</div>
             </div>
           </div>
         </div>

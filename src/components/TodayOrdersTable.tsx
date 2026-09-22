@@ -85,6 +85,13 @@ export function TodayOrdersTable({
           dotColor: 'bg-emerald-500',
           icon: CheckCircle2,
         };
+      case 'cancelled':
+        return {
+          label: 'ملغي',
+          className: 'bg-rose-50 text-rose-700 border-rose-200',
+          dotColor: 'bg-rose-500',
+          icon: XCircle,
+        };
       default:
         return {
           label: status,
@@ -176,6 +183,7 @@ export function TodayOrdersTable({
               <option value="pending">بانتظار تحضير الطلب</option>
               <option value="delivering">قيد التوصيل</option>
               <option value="delivered">مكتملة ومسلّمة</option>
+              <option value="cancelled">ملغي</option>
             </select>
             <Filter className="w-3.5 h-3.5 text-zinc-400 absolute left-2 top-2 pointer-events-none" />
           </div>
