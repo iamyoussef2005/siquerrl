@@ -63,7 +63,7 @@ export function StaffManagementModal({
   const [staffList, setStaffList] = useState<StaffMember[]>([]);
   const [isLoadingStaff, setIsLoadingStaff] = useState(false);
 
-  // Fetch staff list from API
+  // Fetch staff list from API (with direct database fallback)
   const fetchStaff = async () => {
     if (!session?.access_token) return;
     setIsLoadingStaff(true);
@@ -74,11 +74,28 @@ export function StaffManagementModal({
         },
       });
       const data = await res.json();
-      if (res.ok && data.users) {
+      if (res.ok && data.users && data.users.length > 0) {
         setStaffList(data.users);
+        return;
+      }
+
+      // Fallback to direct profiles query if API didn't return users
+      const { data: directProfiles } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (directProfiles && directProfiles.length > 0) {
+        setStaffList(directProfiles);
       }
     } catch (err) {
-      console.error('Error fetching staff:', err);
+      console.error('Error fetching staff from API, falling back to direct query:', err);
+      const { data: directProfiles } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (directProfiles && directProfiles.length > 0) {
+        setStaffList(directProfiles);
+      }
     } finally {
       setIsLoadingStaff(false);
     }
