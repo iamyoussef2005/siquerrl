@@ -8,7 +8,6 @@ import { AdminHeader } from '@/components/admin/AdminHeader';
 import { AdminAccountingCards } from '@/components/admin/AdminAccountingCards';
 import { AdminOrdersTable } from '@/components/admin/AdminOrdersTable';
 import { EditOrderModal } from '@/components/admin/EditOrderModal';
-import { CreateOrderModal } from '@/components/admin/CreateOrderModal';
 import { DriversCommissionModal } from '@/components/admin/DriversCommissionModal';
 import { ReportsModal } from '@/components/admin/ReportsModal';
 import { StaffManagementModal } from '@/components/admin/StaffManagementModal';
@@ -28,7 +27,6 @@ export default function AdminHomePage() {
   const [selectedDriverId, setSelectedDriverId] = useState<string>('all');
   const [dateFilter, setDateFilter] = useState<DateFilter>('all');
   const [editingOrder, setEditingOrder] = useState<Order | null>(null);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isCommissionModalOpen, setIsCommissionModalOpen] = useState(false);
   const [isReportsModalOpen, setIsReportsModalOpen] = useState(false);
   const [isStaffModalOpen, setIsStaffModalOpen] = useState(false);
@@ -172,15 +170,6 @@ export default function AdminHomePage() {
     };
   }, []);
 
-  // Handle local order creation
-  const handleOrderCreated = (newOrder: Order) => {
-    setOrders((prev) => {
-      if (prev.some((o) => o.id === newOrder.id)) return prev;
-      return [newOrder, ...prev];
-    });
-    showNotification(`✨ تم تسجيل الطلب بنجاح #${newOrder.id}`);
-  };
-
   // Handle local updates
   const handleOrderUpdated = (updatedOrder: Order) => {
     setOrders((prev) =>
@@ -198,7 +187,7 @@ export default function AdminHomePage() {
   return (
     <ProtectedRoute allowedRoles={['admin']}>
       <div className="min-h-screen bg-transparent text-slate-900 flex flex-col selection:bg-orange-100 selection:text-orange-900 pb-16">
-        {/* رأس صفحة الإدارة */}
+        {/* رأس صفحة الإدارة (تم حجب إنشاء طلب جديد عن المدير، حيث يقتصر دوره على إسناد المندوب وتحديد الأجرة) */}
         <AdminHeader
           realtimeConnected={realtimeConnected}
           onRefresh={() => {
@@ -206,7 +195,6 @@ export default function AdminHomePage() {
             fetchOrders(dateFilter);
           }}
           isLoading={isLoading}
-          onOpenCreateModal={() => setIsCreateModalOpen(true)}
           onOpenStaffModal={() => setIsStaffModalOpen(true)}
           onOpenCommissionModal={() => setIsCommissionModalOpen(true)}
           onOpenReportsModal={() => setIsReportsModalOpen(true)}
@@ -300,13 +288,6 @@ export default function AdminHomePage() {
             isLoading={isLoading}
           />
         </main>
-
-        {/* نافذة تسجيل طلب جديد للمدير */}
-        <CreateOrderModal
-          isOpen={isCreateModalOpen}
-          onClose={() => setIsCreateModalOpen(false)}
-          onOrderCreated={handleOrderCreated}
-        />
 
         {/* نافذة إدارة فريق العمل والحسابات للمدير */}
         <StaffManagementModal

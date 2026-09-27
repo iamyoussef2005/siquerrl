@@ -44,9 +44,15 @@ export function AdminOrdersTable({
 }: AdminOrdersTableProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [onlyUnsetFee, setOnlyUnsetFee] = useState<boolean>(false);
   const [updatingOrderId, setUpdatingOrderId] = useState<string | number | null>(null);
   const [editingFeeOrderId, setEditingFeeOrderId] = useState<string | number | null>(null);
   const [tempDeliveryFee, setTempDeliveryFee] = useState<string>('');
+
+  // Unset fee orders count for quick indicator badge
+  const unsetFeeOrdersCount = orders.filter(
+    (o) => (!o.delivery_fee || Number(o.delivery_fee) === 0) && o.status !== 'cancelled'
+  ).length;
 
   // Format currency
   const formatCurrency = (val: number) => {
@@ -273,7 +279,12 @@ export function AdminOrdersTable({
         ? true
         : order.driver_id === selectedDriverId;
 
-    return matchesSearch && matchesStatus && matchesDriver;
+    // Unset fee filter
+    const matchesFeeFilter =
+      !onlyUnsetFee ||
+      ((!order.delivery_fee || Number(order.delivery_fee) === 0) && order.status !== 'cancelled');
+
+    return matchesSearch && matchesStatus && matchesDriver && matchesFeeFilter;
   });
 
   return (
@@ -299,6 +310,26 @@ export function AdminOrdersTable({
 
         {/* أدوات البحث والفلترة المتقدمة */}
         <div className="flex flex-wrap items-center gap-2">
+          {/* فلتر وتنبيه الطلبات التي لم تُحدد أجرتها بعد */}
+          {unsetFeeOrdersCount > 0 && (
+            <button
+              type="button"
+              onClick={() => setOnlyUnsetFee(!onlyUnsetFee)}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-2xs border ${
+                onlyUnsetFee
+                  ? 'bg-amber-500 text-white border-amber-600 ring-2 ring-amber-400/30'
+                  : 'bg-amber-50 hover:bg-amber-100 text-amber-900 border-amber-300'
+              }`}
+              title={onlyUnsetFee ? 'إلغاء التصفية وعرض كافة الطلبات' : 'تصفية الطلبات التي لم تُحدد أجرتها فقط'}
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+              </span>
+              <span>بحاجة لتحديد الأجرة ({unsetFeeOrdersCount})</span>
+            </button>
+          )}
+
           {/* بحث سريع */}
           <div className="relative flex-1 sm:w-60">
             <input
@@ -391,9 +422,19 @@ export function AdminOrdersTable({
                 const badge = getStatusBadge(order.status);
                 const isUpdating = updatingOrderId === order.id;
                 const isEditingFee = editingFeeOrderId === order.id;
+                const isFeeUnset =
+                  (!order.delivery_fee || Number(order.delivery_fee) === 0) &&
+                  order.status !== 'cancelled';
 
                 return (
-                  <tr key={order.id} className="hover:bg-orange-50/50 transition-colors group">
+                  <tr
+                    key={order.id}
+                    className={`transition-colors group ${
+                      isFeeUnset
+                        ? 'bg-amber-50/40 hover:bg-amber-100/60 border-r-4 border-r-amber-500'
+                        : 'hover:bg-orange-50/50'
+                    }`}
+                  >
                     {/* رقم الطلب */}
                     <td className="py-3 px-4 font-mono whitespace-nowrap">
                       <span className="px-2 py-0.5 rounded-md bg-orange-100/70 border border-orange-200/80 text-orange-900 font-bold text-xs shadow-2xs">
@@ -493,6 +534,22 @@ export function AdminOrdersTable({
                           >
                             <X className="w-3 h-3" />
                           </button>
+                        </div>
+                      ) : isFeeUnset ? (
+                        <div className="flex flex-col items-center justify-center gap-0.5">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingFeeOrderId(order.id!);
+                              setTempDeliveryFee('');
+                            }}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-100/90 hover:bg-amber-200 text-amber-900 border border-amber-300 text-[11px] font-bold shadow-2xs transition-all cursor-pointer hover:scale-105 active:scale-95 animate-pulse"
+                            title="اضغط لتحديد أجرة التوصيل الآن"
+                          >
+                            <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                            <span>لم تُحدد الأجرة بعد ⚠️</span>
+                          </button>
+                          <span className="text-[9.5px] text-amber-700/80 font-medium">اضغط لتحديدها</span>
                         </div>
                       ) : (
                         <div>

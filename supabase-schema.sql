@@ -56,10 +56,23 @@ ALTER TABLE public.customers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
 
 -- دالة مساعدة لجلب دور المستخدم الحالي المسجل عبر Supabase Auth
+CREATE OR REPLACE FUNCTION public.get_my_role()
+RETURNS text
+LANGUAGE sql
+STABLE SECURITY DEFINER
+SET search_path TO 'public', 'pg_temp'
+AS $$
+  SELECT role::text FROM public.profiles WHERE id = (SELECT auth.uid()) LIMIT 1;
+$$;
+
 CREATE OR REPLACE FUNCTION public.get_current_role()
-RETURNS TEXT AS $$
-  SELECT role FROM public.profiles WHERE id = auth.uid();
-$$ LANGUAGE sql STABLE SECURITY DEFINER;
+RETURNS text
+LANGUAGE sql
+STABLE SECURITY DEFINER
+SET search_path TO 'public', 'pg_temp'
+AS $$
+  SELECT public.get_my_role();
+$$;
 
 -- سياسات جدول المستخدمين profiles:
 -- السماح لجميع المستخدمين المسجلين بالقراءة (لمعرفة المناديب وهوية الحساب)
@@ -198,7 +211,7 @@ CREATE TRIGGER tr_validate_driver_update
   FOR EACH ROW
   EXECUTE FUNCTION public.validate_driver_order_update();
 
--- محفز تطبيق القيم الافتراضية واحتساب الإجمالي عند إنشاء طلب جديد
+-- محفز تطبيق القيم الافتراضية واحتساب الإجمالي عند إنشاء طلب جديد (حصر الإنشاء بالكول سنتر ومنع المدير)
 CREATE OR REPLACE FUNCTION public.enforce_order_insert_defaults()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -208,7 +221,11 @@ AS $$
 DECLARE
   v_role text;
 BEGIN
-  v_role := public.get_current_role();
+  v_role := public.get_my_role();
+
+  IF v_role = 'admin' THEN
+    RAISE EXCEPTION 'غير مصرح للمدير بتسجيل طلب جديد؛ تسجيل الطلبات محصور بموظفي الكول سنتر فقط. دور المدير هو إسناد المندوب وتحديد أجرة التوصيل.';
+  END IF;
 
   IF v_role = 'call_center' THEN
     NEW.status := 'pending';
@@ -219,10 +236,11 @@ BEGIN
     NEW.driver_fee := 0;
     NEW.office_fee := 0;
   ELSE
-    -- المدير يحدد أجرة التوصيل فقط، وسعر الأغراض يبدأ من 0 حتى يحدده المندوب لاحقاً
     NEW.items_price := 0;
-    NEW.delivery_fee := COALESCE(NEW.delivery_fee, 0);
-    NEW.collection_amount := NEW.delivery_fee;
+    NEW.delivery_fee := 0;
+    NEW.collection_amount := 0;
+    NEW.driver_fee := 0;
+    NEW.office_fee := 0;
   END IF;
 
   RETURN NEW;
@@ -246,7 +264,7 @@ DECLARE
   v_commission numeric;
   v_role text;
 BEGIN
-  v_role := public.get_current_role();
+  v_role := public.get_my_role();
 
   -- المدير يحدد أجرة التوصيل فقط، ولا يحدد سعر الأغراض؛ سعر الأغراض محصور بالمندوب
   IF v_role = 'admin' AND TG_OP = 'UPDATE' THEN

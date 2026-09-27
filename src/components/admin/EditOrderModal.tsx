@@ -441,7 +441,15 @@ export function EditOrderModal({
                 <div>
                   <label className="block text-[11px] font-bold text-orange-950 mb-1 flex items-center justify-between">
                     <span>أجرة التوصيل (المدير)</span>
-                    <span className="text-[9px] text-orange-700 bg-orange-100 px-1.5 py-0.5 rounded font-bold">قابل للتعديل</span>
+                    {!deliveryFee || parseFloat(deliveryFee) === 0 ? (
+                      <span className="text-[9px] text-amber-800 bg-amber-100 border border-amber-200 px-1.5 py-0.5 rounded font-bold animate-pulse">
+                        ⚠️ لم تُحدد بعد
+                      </span>
+                    ) : (
+                      <span className="text-[9px] text-orange-700 bg-orange-100 px-1.5 py-0.5 rounded font-bold">
+                        قابل للتعديل
+                      </span>
+                    )}
                   </label>
                   <div className="relative">
                     <input
