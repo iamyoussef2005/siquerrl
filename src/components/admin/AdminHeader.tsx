@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { ShieldCheck, Radio, RefreshCw, LogOut, PlusCircle, Sliders, FileSpreadsheet, User, Users, Trash2 } from 'lucide-react';
+import { ShieldCheck, Radio, RefreshCw, LogOut, Sliders, FileSpreadsheet, User, Users, Trash2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 import Image from 'next/image';
@@ -10,7 +10,6 @@ interface AdminHeaderProps {
   realtimeConnected: boolean;
   onRefresh: () => void;
   isLoading: boolean;
-  onOpenCreateModal?: () => void;
   onOpenCommissionModal?: () => void;
   onOpenReportsModal?: () => void;
   onOpenStaffModal?: () => void;
@@ -21,7 +20,6 @@ export function AdminHeader({
   realtimeConnected,
   onRefresh,
   isLoading,
-  onOpenCreateModal,
   onOpenCommissionModal,
   onOpenReportsModal,
   onOpenStaffModal,
@@ -58,18 +56,6 @@ export function AdminHeader({
 
         {/* أدوات الإدارة والأزرار الوظيفية */}
         <div className="flex items-center gap-2 flex-wrap justify-end">
-          {/* زر تسجيل طلب جديد */}
-          {onOpenCreateModal && (
-            <button
-              onClick={onOpenCreateModal}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl btn-sinjab-primary text-xs font-bold transition-all duration-150 cursor-pointer active:scale-95 shadow-xs hover:shadow-md hover:shadow-orange-500/20"
-              title="تسجيل طلب جديد"
-            >
-              <PlusCircle className="w-3.5 h-3.5" />
-              <span>طلب جديد</span>
-            </button>
-          )}
-
           {/* زر إدارة فريق العمل */}
           {onOpenStaffModal && (
             <button
