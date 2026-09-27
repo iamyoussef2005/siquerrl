@@ -44,6 +44,8 @@ export function AdminAccountingCards({ orders, selectedDriver, dateFilter = 'all
 
   // Financial calculations (excluding cancelled orders)
   const activeFinancialOrders = relevantOrders.filter((o) => o.status !== 'cancelled');
+  const totalItemsPrice = activeFinancialOrders.reduce((sum, o) => sum + (Number(o.items_price) || 0), 0);
+  const totalDeliveryFees = activeFinancialOrders.reduce((sum, o) => sum + (Number(o.delivery_fee) || 0), 0);
   const totalCollection = activeFinancialOrders.reduce((sum, o) => sum + (Number(o.collection_amount) || 0), 0);
   const totalOfficeProfit = activeFinancialOrders.reduce((sum, o) => sum + (Number(o.office_fee) || 0), 0);
   const totalDriverDues = activeFinancialOrders.reduce((sum, o) => sum + (Number(o.driver_fee) || 0), 0);
@@ -88,8 +90,10 @@ export function AdminAccountingCards({ orders, selectedDriver, dateFilter = 'all
             </span>
             <span className="text-xs font-black text-amber-600">ل.س</span>
           </div>
-          <p className="text-[11px] text-amber-800/70 mt-2 font-medium">
-            مجموع مبالغ التحصيل المحسوبة ({filterLabel})
+          <p className="text-[11px] text-amber-900/80 mt-2 font-medium flex items-center justify-between gap-1 flex-wrap">
+            <span>سعر الأغراض: {formatCurrency(totalItemsPrice)}</span>
+            <span>•</span>
+            <span>أجور التوصيل: {formatCurrency(totalDeliveryFees)}</span>
           </p>
         </div>
 

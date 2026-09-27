@@ -20,6 +20,7 @@ import {
   Loader2,
   X,
   Package,
+  Check,
 } from 'lucide-react';
 
 interface AdminOrdersTableProps {
@@ -44,6 +45,8 @@ export function AdminOrdersTable({
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [updatingOrderId, setUpdatingOrderId] = useState<string | number | null>(null);
+  const [editingFeeOrderId, setEditingFeeOrderId] = useState<string | number | null>(null);
+  const [tempDeliveryFee, setTempDeliveryFee] = useState<string>('');
 
   // Format currency
   const formatCurrency = (val: number) => {
@@ -170,6 +173,49 @@ export function AdminOrdersTable({
     } catch (err: any) {
       console.error('Assign driver error:', err);
       alert(`حدث خطأ أثناء إسناد المندوب: ${err.message || 'يرجى المحاولة مجدداً'}`);
+    } finally {
+      setUpdatingOrderId(null);
+    }
+  };
+
+  // Handle Admin setting/updating Delivery Fee directly
+  const handleUpdateDeliveryFee = async (order: Order, newDeliveryFee: number) => {
+    setUpdatingOrderId(order.id!);
+    const assignedDriver = drivers.find((d) => d.id === order.driver_id);
+    const commissionRate = assignedDriver?.commission_percentage ?? 70;
+    const driverFee = Math.round((newDeliveryFee * commissionRate) / 100);
+    const officeFee = Math.max(0, newDeliveryFee - driverFee);
+    const totalCollection = (Number(order.items_price) || 0) + newDeliveryFee;
+
+    try {
+      const { data, error } = await supabase
+        .from('orders')
+        .update({
+          delivery_fee: newDeliveryFee,
+          driver_fee: driverFee,
+          office_fee: officeFee,
+          collection_amount: totalCollection,
+        })
+        .eq('id', order.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      if (data) {
+        onOrderUpdated(data as Order);
+      } else {
+        onOrderUpdated({
+          ...order,
+          delivery_fee: newDeliveryFee,
+          driver_fee: driverFee,
+          office_fee: officeFee,
+          collection_amount: totalCollection,
+        });
+      }
+      setEditingFeeOrderId(null);
+    } catch (err: any) {
+      console.error('Update delivery fee error:', err);
+      alert(`حدث خطأ أثناء تعديل أجرة التوصيل: ${err.message || 'يرجى المحاولة مجدداً'}`);
     } finally {
       setUpdatingOrderId(null);
     }
@@ -319,8 +365,9 @@ export function AdminOrdersTable({
               <th className="py-3 px-3">الوقت</th>
               <th className="py-3 px-4">الزبون والهاتف</th>
               <th className="py-3 px-4">العنوان والمواد</th>
-              <th className="py-3 px-4 text-center">المبلغ المطلوب</th>
-              <th className="py-3 px-4 text-center">توزيع الأجرة</th>
+              <th className="py-3 px-3 text-center">سعر الأغراض</th>
+              <th className="py-3 px-3 text-center">أجرة التوصيل (المدير)</th>
+              <th className="py-3 px-3 text-center">إجمالي التحصيل</th>
               <th className="py-3 px-4">المندوب المسند</th>
               <th className="py-3 px-4 text-center">الحالة</th>
               <th className="py-3 px-4 text-center">إجراءات</th>
@@ -329,7 +376,7 @@ export function AdminOrdersTable({
           <tbody className="divide-y divide-orange-100/60 text-zinc-800">
             {filteredOrders.length === 0 ? (
               <tr>
-                <td colSpan={9} className="py-14 text-center text-zinc-500">
+                <td colSpan={10} className="py-14 text-center text-zinc-500">
                   <div className="flex flex-col items-center justify-center gap-2.5">
                     <div className="p-3 rounded-2xl bg-orange-50 text-orange-400 border border-orange-200">
                       <AlertCircle className="w-6 h-6" />
@@ -343,6 +390,7 @@ export function AdminOrdersTable({
               filteredOrders.map((order) => {
                 const badge = getStatusBadge(order.status);
                 const isUpdating = updatingOrderId === order.id;
+                const isEditingFee = editingFeeOrderId === order.id;
 
                 return (
                   <tr key={order.id} className="hover:bg-orange-50/50 transition-colors group">
@@ -397,26 +445,93 @@ export function AdminOrdersTable({
                       )}
                     </td>
 
-                    {/* المبلغ المطلوب تحصيله */}
-                    <td className="py-3 px-4 text-center whitespace-nowrap font-mono font-bold text-emerald-700 text-xs sm:text-sm">
-                      {formatCurrency(Number(order.collection_amount))}
-                      <span className="text-[10px] text-emerald-600 mr-1">ل.س</span>
+                    {/* سعر الأغراض (المندوب) */}
+                    <td className="py-3 px-3 text-center whitespace-nowrap font-mono text-xs">
+                      {order.items_price && Number(order.items_price) > 0 ? (
+                        <span className="font-bold text-amber-900 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md inline-block">
+                          {formatCurrency(Number(order.items_price))} <span className="text-[10px] text-amber-700">ل.س</span>
+                        </span>
+                      ) : (
+                        <span className="text-[10px] text-zinc-400 italic bg-zinc-50 px-2 py-0.5 rounded border border-zinc-200">
+                          بانتظار المندوب
+                        </span>
+                      )}
                     </td>
 
-                    {/* توزيع الأجرة (سائق ومكتب) */}
-                    <td className="py-3 px-4 text-center whitespace-nowrap font-mono">
-                      <div className="text-zinc-900 font-bold text-xs">
-                        {formatCurrency(Number(order.delivery_fee))} <span className="text-[10px] text-zinc-500">ل.س</span>
-                      </div>
-                      <div className="flex items-center justify-center gap-2 text-[10px] mt-0.5 bg-orange-50/80 py-0.5 px-2 rounded-md border border-orange-200/70">
-                        <span className="text-zinc-700 font-medium">
-                          سائق: {formatCurrency(Number(order.driver_fee))}
-                        </span>
-                        <span className="text-orange-200">|</span>
-                        <span className="text-orange-800 font-bold">
-                          مكتب: {formatCurrency(Number(order.office_fee))}
-                        </span>
-                      </div>
+                    {/* أجرة التوصيل (يحددها المدير) مع إمكانية التعديل المباشر */}
+                    <td className="py-3 px-3 text-center whitespace-nowrap font-mono">
+                      {isEditingFee ? (
+                        <div className="flex items-center justify-center gap-1">
+                          <input
+                            type="number"
+                            autoFocus
+                            value={tempDeliveryFee}
+                            onChange={(e) => setTempDeliveryFee(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                handleUpdateDeliveryFee(order, parseFloat(tempDeliveryFee) || 0);
+                              } else if (e.key === 'Escape') {
+                                setEditingFeeOrderId(null);
+                              }
+                            }}
+                            className="w-20 bg-white border-2 border-orange-500 rounded-md px-1.5 py-0.5 text-xs text-zinc-900 font-bold text-center focus:outline-hidden"
+                            placeholder="0"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleUpdateDeliveryFee(order, parseFloat(tempDeliveryFee) || 0)}
+                            className="p-1 rounded bg-emerald-600 text-white hover:bg-emerald-700 transition-colors cursor-pointer"
+                            title="حفظ الأجرة"
+                          >
+                            <Check className="w-3 h-3" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditingFeeOrderId(null)}
+                            className="p-1 rounded bg-zinc-200 text-zinc-700 hover:bg-zinc-300 transition-colors cursor-pointer"
+                            title="إلغاء"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div>
+                          <div className="flex items-center justify-center gap-1.5">
+                            <span className="text-zinc-900 font-bold text-xs">
+                              {formatCurrency(Number(order.delivery_fee))}
+                            </span>
+                            <span className="text-[10px] text-zinc-500">ل.س</span>
+                            {order.status !== 'delivered' && order.status !== 'cancelled' && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingFeeOrderId(order.id!);
+                                  setTempDeliveryFee(String(order.delivery_fee || ''));
+                                }}
+                                className="text-zinc-400 hover:text-orange-600 p-0.5 rounded transition-colors cursor-pointer opacity-70 hover:opacity-100"
+                                title="تحديد / تعديل أجرة التوصيل"
+                              >
+                                <Edit3 className="w-3 h-3" />
+                              </button>
+                            )}
+                          </div>
+                          <div className="flex items-center justify-center gap-2 text-[10px] mt-0.5 bg-orange-50/80 py-0.5 px-2 rounded-md border border-orange-200/70">
+                            <span className="text-zinc-700 font-medium">
+                              سائق: {formatCurrency(Number(order.driver_fee))}
+                            </span>
+                            <span className="text-orange-200">|</span>
+                            <span className="text-orange-800 font-bold">
+                              مكتب: {formatCurrency(Number(order.office_fee))}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </td>
+
+                    {/* المبلغ المطلوب تحصيله (الإجمالي) */}
+                    <td className="py-3 px-3 text-center whitespace-nowrap font-mono font-bold text-emerald-800 text-xs sm:text-sm">
+                      {formatCurrency(Number(order.collection_amount))}
+                      <span className="text-[10px] text-emerald-600 mr-1">ل.س</span>
                     </td>
 
                     {/* إسناد المندوب */}

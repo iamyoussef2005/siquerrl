@@ -3,6 +3,7 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Customer, CustomerAddress, Order } from '@/types/database';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   Phone,
   User,
@@ -30,6 +31,9 @@ interface NewOrderFormProps {
 }
 
 export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
+  const { role } = useAuth();
+  const isAdmin = role === 'admin';
+
   // Form State
   const [phone, setPhone] = useState('');
   const [customerName, setCustomerName] = useState('');
@@ -38,8 +42,7 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
   const [orderDetails, setOrderDetails] = useState('');
   const [mapsUrl, setMapsUrl] = useState('');
 
-  // Financial Fields
-  const [collectionAmount, setCollectionAmount] = useState<string>('');
+  // Financial Fields (Manager sets delivery fee only)
   const [deliveryFee, setDeliveryFee] = useState<string>('');
 
   // Customer Lookup & Multiple Addresses State
@@ -202,7 +205,6 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
     setBackupPhone('');
     setOrderDetails('');
     setMapsUrl('');
-    setCollectionAmount('');
     setDeliveryFee('');
     setCustomerId(null);
     setSavedAddresses([]);
@@ -319,15 +321,14 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
       orderDetailsRef.current?.focus();
       return;
     }
-    // Amounts handling: allow any amount without restrictions; default empty to 0
-    const parsedCollection = collectionAmount.trim() === '' ? 0 : Number(collectionAmount);
-    const parsedDelivery = deliveryFee.trim() === '' ? 0 : Number(deliveryFee);
 
-    if (isNaN(parsedCollection)) {
-      setStatusMessage({ type: 'error', text: 'يرجى إدخال قيمة رقمية صحيحة للمبلغ المطلوب تحصيله' });
-      return;
-    }
-    if (isNaN(parsedDelivery)) {
+    // Amounts handling:
+    // Call center has NO relation to amounts (0).
+    // Admin sets delivery fee ONLY.
+    // Driver sets items price ONLY upon purchase.
+    const parsedDelivery = isAdmin && deliveryFee.trim() !== '' ? Number(deliveryFee) : 0;
+
+    if (isAdmin && isNaN(parsedDelivery)) {
       setStatusMessage({ type: 'error', text: 'يرجى إدخال قيمة رقمية صحيحة لأجرة التوصيل' });
       return;
     }
@@ -338,7 +339,7 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
       const savedCustId = await saveOrUpdateCustomer();
 
       const calculatedDriverShare = Math.round(parsedDelivery * 0.7);
-      const calculatedOfficeShare = Math.round(parsedDelivery * 0.3);
+      const calculatedOfficeShare = Math.max(0, parsedDelivery - calculatedDriverShare);
 
       const newOrderPayload = {
         customer_name: customerName.trim(),
@@ -347,7 +348,8 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
         delivery_address: deliveryAddress.trim(),
         maps_url: mapsUrl.trim() || null,
         order_details: orderDetails.trim(),
-        collection_amount: parsedCollection,
+        items_price: 0, // يحدده المندوب الميداني لاحقاً عند الشراء فقط
+        collection_amount: parsedDelivery, // يبدأ مساوياً لأجرة التوصيل ويُعاد احتسابه تلقائياً عند تحديد سعر الأغراض
         delivery_fee: parsedDelivery,
         driver_fee: calculatedDriverShare,
         office_fee: calculatedOfficeShare,
@@ -711,73 +713,85 @@ export function NewOrderForm({ onOrderCreated }: NewOrderFormProps) {
 
             <div className="flex items-center gap-1.5 text-[11px] text-zinc-600 bg-orange-50/80 px-2.5 py-1 rounded-md border border-orange-200/70">
               <Lock className="w-3 h-3 text-orange-500" />
-              <span>توزيع افتراضي: 70% مندوب / 30% مكتب</span>
+              <span>المدير يحدد أجرة التوصيل • المندوب يسجل سعر الأغراض</span>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* المبلغ المطلوب تحصيله من الزبون */}
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                المبلغ المطلوب تحصيله من الزبون
-              </label>
-              <div className="relative">
-                <input
-                  type="number"
-                  step="any"
-                  tabIndex={7}
-                  placeholder="0"
-                  value={collectionAmount}
-                  onChange={(e) => setCollectionAmount(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-300 hover:border-slate-400 focus:bg-white focus:border-orange-500 rounded-xl px-3 py-2 pl-12 text-xs sm:text-sm text-slate-900 font-mono font-medium placeholder:text-slate-400 focus:outline-hidden focus:ring-4 focus:ring-orange-500/10 transition-all"
-                />
-                <span className="text-xs font-semibold text-slate-500 absolute left-3.5 top-2.5 pointer-events-none">
-                  ل.س
-                </span>
-              </div>
-            </div>
-
-            {/* أجرة التوصيل الكلية */}
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                أجرة التوصيل الكلية
-              </label>
-              <div className="relative">
-                <input
-                  type="number"
-                  step="any"
-                  tabIndex={8}
-                  placeholder="0"
-                  value={deliveryFee}
-                  onChange={(e) => setDeliveryFee(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-300 hover:border-slate-400 focus:bg-white focus:border-orange-500 rounded-xl px-3 py-2 pl-12 text-xs sm:text-sm text-slate-900 font-mono font-medium placeholder:text-slate-400 focus:outline-hidden focus:ring-4 focus:ring-orange-500/10 transition-all"
-                />
-                <span className="text-xs font-semibold text-slate-500 absolute left-3.5 top-2.5 pointer-events-none">
-                  ل.س
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* بطاقة المعاينة اللحظية لتوزيع الأجرة */}
-          {numericDeliveryFee > 0 && (
-            <div className="mt-2.5 p-3 rounded-xl bg-orange-50/50 border border-orange-100 flex flex-col sm:flex-row items-center justify-between gap-3 animate-fadeIn">
-              <div className="flex items-center gap-2">
-                <PieChart className="w-3.5 h-3.5 text-orange-600" />
-                <span className="text-xs text-slate-700 font-medium">معاينة توزيع الأجرة:</span>
-              </div>
-              <div className="flex items-center gap-4 text-xs font-mono">
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-slate-500"></span>
-                  <span className="text-slate-500">حصة السائق (70%):</span>
-                  <strong className="text-slate-800 font-semibold">{formatCurrency(driverShare)} ل.س</strong>
+          {isAdmin ? (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* أجرة التوصيل الكلية (يحددها المدير فقط) */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-800 mb-1.5 flex items-center gap-1.5">
+                    <span>أجرة التوصيل (تحددها الإدارة فقط)</span>
+                    <span className="text-[10px] text-orange-700 bg-orange-100 px-1.5 py-0.2 rounded font-bold">صلاحية المدير</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      step="any"
+                      tabIndex={7}
+                      placeholder="0"
+                      value={deliveryFee}
+                      onChange={(e) => setDeliveryFee(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-300 hover:border-slate-400 focus:bg-white focus:border-orange-500 rounded-xl px-3 py-2 pl-12 text-xs sm:text-sm text-slate-900 font-mono font-medium placeholder:text-slate-400 focus:outline-hidden focus:ring-4 focus:ring-orange-500/10 transition-all"
+                    />
+                    <span className="text-xs font-semibold text-slate-500 absolute left-3.5 top-2.5 pointer-events-none">
+                      ل.س
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-orange-500"></span>
-                  <span className="text-slate-500">حصة المكتب (30%):</span>
-                  <strong className="text-orange-700 font-semibold">{formatCurrency(officeShare)} ل.س</strong>
+
+                {/* بطاقة توضيحية لصلاحية المندوب في سعر الأغراض */}
+                <div className="flex flex-col justify-center p-3 rounded-xl bg-amber-50/70 border border-amber-200/80 text-xs text-amber-900">
+                  <div className="flex items-center gap-1.5 font-bold mb-1">
+                    <Lock className="w-3.5 h-3.5 text-amber-600" />
+                    <span>سعر الأغراض يحدده المندوب الميداني حصراً</span>
+                  </div>
+                  <p className="text-[11px] text-amber-800 leading-relaxed">
+                    يسجل المندوب ثمن الأغراض من تطبيقه عند الشراء، ثم يُحسب المبلغ المطلوب تحصيله تلقائياً (أجرة التوصيل + سعر الأغراض).
+                  </p>
                 </div>
               </div>
+
+              {/* بطاقة المعاينة اللحظية لتوزيع الأجرة */}
+              {numericDeliveryFee > 0 && (
+                <div className="p-3 rounded-xl bg-orange-50/50 border border-orange-100 flex flex-col sm:flex-row items-center justify-between gap-3 animate-fadeIn">
+                  <div className="flex items-center gap-2">
+                    <PieChart className="w-3.5 h-3.5 text-orange-600" />
+                    <span className="text-xs text-slate-700 font-medium">معاينة توزيع الأجرة:</span>
+                  </div>
+                  <div className="flex items-center gap-4 text-xs font-mono">
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-slate-500"></span>
+                      <span className="text-slate-500">حصة السائق (70%):</span>
+                      <strong className="text-slate-800 font-semibold">{formatCurrency(driverShare)} ل.س</strong>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-orange-500"></span>
+                      <span className="text-slate-500">حصة المكتب (30%):</span>
+                      <strong className="text-orange-700 font-semibold">{formatCurrency(officeShare)} ل.س</strong>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="p-3.5 rounded-xl bg-gradient-to-r from-orange-50/80 via-amber-50/60 to-orange-50/40 border border-orange-200/80 text-xs text-zinc-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-lg bg-orange-500 text-white shadow-2xs">
+                  <Coins className="w-4 h-4" />
+                </div>
+                <div>
+                  <p className="font-bold text-zinc-900 text-xs">الحسابات محددة الصلاحيات تلقائياً:</p>
+                  <p className="text-zinc-600 text-[11px] mt-0.5">
+                    المدير يحدد أجرة التوصيل عند إسناد الطلب، والمندوب يحدد ويسجل ثمن الأغراض والمواد فور شرائها من تطبيقه.
+                  </p>
+                </div>
+              </div>
+              <span className="text-[10px] bg-white border border-orange-200/90 px-3 py-1 rounded-lg text-orange-800 font-bold self-start sm:self-auto shadow-2xs">
+                تسجيل بدون مبالغ
+              </span>
             </div>
           )}
         </div>

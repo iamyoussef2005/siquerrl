@@ -216,8 +216,9 @@ export function TodayOrdersTable({
               <th className="py-3 px-3">الوقت</th>
               <th className="py-3 px-4">الزبون والهاتف</th>
               <th className="py-3 px-4">العنوان والمواد</th>
-              <th className="py-3 px-4 text-center">المبلغ المطلوب</th>
-              <th className="py-3 px-4 text-center">أجرة التوصيل</th>
+              <th className="py-3 px-3 text-center">سعر الأغراض</th>
+              <th className="py-3 px-3 text-center">أجرة التوصيل</th>
+              <th className="py-3 px-3 text-center">إجمالي التحصيل</th>
               <th className="py-3 px-4">المندوب المسند</th>
               <th className="py-3 px-4 text-center">الحالة</th>
               {onOpenEditModal && <th className="py-3 px-4 text-center">الإجراءات</th>}
@@ -226,7 +227,7 @@ export function TodayOrdersTable({
           <tbody className="divide-y divide-orange-100/60 text-zinc-800">
             {filteredOrders.length === 0 ? (
               <tr>
-                <td colSpan={onOpenEditModal ? 9 : 8} className="py-14 text-center text-zinc-500">
+                <td colSpan={onOpenEditModal ? 10 : 9} className="py-14 text-center text-zinc-500">
                   <div className="flex flex-col items-center justify-center gap-2.5">
                     <div className="p-3 rounded-2xl bg-orange-50 text-orange-400 border border-orange-200">
                       <AlertCircle className="w-6 h-6" />
@@ -300,18 +301,32 @@ export function TodayOrdersTable({
                       )}
                     </td>
 
-                    {/* المبلغ المطلوب تحصيله */}
-                    <td className="py-3 px-4 text-center whitespace-nowrap font-mono font-bold text-emerald-700 text-xs sm:text-sm">
-                      {formatCurrency(Number(order.collection_amount))}
-                      <span className="text-[10px] text-emerald-600 mr-1">ل.س</span>
+                    {/* سعر الأغراض (المندوب) */}
+                    <td className="py-3 px-3 text-center whitespace-nowrap font-mono text-xs">
+                      {order.items_price && Number(order.items_price) > 0 ? (
+                        <span className="font-bold text-amber-900 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md inline-block">
+                          {formatCurrency(Number(order.items_price))} <span className="text-[10px] text-amber-700">ل.س</span>
+                        </span>
+                      ) : (
+                        <span className="text-[10px] text-zinc-400 italic">بانتظار المندوب</span>
+                      )}
                     </td>
 
-                    {/* أجرة التوصيل */}
-                    <td className="py-3 px-4 text-center whitespace-nowrap font-mono">
-                      <span className="text-slate-900 font-bold text-xs">
-                        {formatCurrency(Number(order.delivery_fee))}
-                      </span>
-                      <span className="text-[10px] text-slate-500 mr-1">ل.س</span>
+                    {/* أجرة التوصيل (المدير) */}
+                    <td className="py-3 px-3 text-center whitespace-nowrap font-mono text-xs">
+                      {order.delivery_fee && Number(order.delivery_fee) > 0 ? (
+                        <span className="font-bold text-orange-950 bg-orange-50 border border-orange-200 px-2 py-0.5 rounded-md inline-block">
+                          {formatCurrency(Number(order.delivery_fee))} <span className="text-[10px] text-orange-700">ل.س</span>
+                        </span>
+                      ) : (
+                        <span className="text-[10px] text-zinc-400 italic">بانتظار المدير</span>
+                      )}
+                    </td>
+
+                    {/* إجمالي المبلغ المطلوب تحصيله */}
+                    <td className="py-3 px-3 text-center whitespace-nowrap font-mono font-bold text-emerald-800 text-xs sm:text-sm">
+                      {formatCurrency(Number(order.collection_amount))}
+                      <span className="text-[10px] text-emerald-600 mr-1">ل.س</span>
                     </td>
 
                     {/* المندوب المسند (عرض فقط بدون تحكم) */}

@@ -31,8 +31,9 @@ CREATE TABLE IF NOT EXISTS public.orders (
     backup_phone TEXT,
     order_details TEXT NOT NULL,
     maps_url TEXT,
-    collection_amount NUMERIC(12, 2) NOT NULL DEFAULT 0,
-    delivery_fee NUMERIC(12, 2) NOT NULL DEFAULT 0,
+    items_price NUMERIC(12, 2) NOT NULL DEFAULT 0, -- يحدده المندوب فقط (ثمن الأغراض المشتراة)
+    delivery_fee NUMERIC(12, 2) NOT NULL DEFAULT 0, -- يحدده المدير فقط (أجرة التوصيل)
+    collection_amount NUMERIC(12, 2) NOT NULL DEFAULT 0, -- إجمالي المبلغ المطلوب تحصيله من الزبون = items_price + delivery_fee
     driver_fee NUMERIC(12, 2) NOT NULL DEFAULT 0,
     office_fee NUMERIC(12, 2) NOT NULL DEFAULT 0,
     status TEXT NOT NULL DEFAULT 'pending', -- pending, assigned, delivering, delivered, cancelled
@@ -110,9 +111,13 @@ CREATE POLICY "الكول سنتر يعدل بيانات الطلب"
   USING (public.get_current_role() = 'call_center')
   WITH CHECK (public.get_current_role() = 'call_center');
 
--- دالة ومحفز لمنع الكول سنتر من تغيير حالة الطلب أو إسناد المندوب
+-- دالة ومحفز للتحقق من تعديلات الكول سنتر (يمنع تعديل الحالة، المندوب، أو أي من المبالغ المالية نهائياً)
 CREATE OR REPLACE FUNCTION public.validate_call_center_order_update()
-RETURNS trigger AS $$
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = 'public', 'pg_temp'
+AS $$
 BEGIN
   IF public.get_current_role() = 'call_center' THEN
     IF NEW.status IS DISTINCT FROM OLD.status THEN
@@ -121,10 +126,17 @@ BEGIN
     IF NEW.driver_id IS DISTINCT FROM OLD.driver_id THEN
       RAISE EXCEPTION 'غير مصرح لموظف الكول سنتر بإسناد أو تغيير المندوب؛ الصلاحية محصورة بإدارة العمليات.';
     END IF;
+    IF NEW.delivery_fee IS DISTINCT FROM OLD.delivery_fee OR
+       NEW.items_price IS DISTINCT FROM OLD.items_price OR
+       NEW.collection_amount IS DISTINCT FROM OLD.collection_amount OR
+       NEW.driver_fee IS DISTINCT FROM OLD.driver_fee OR
+       NEW.office_fee IS DISTINCT FROM OLD.office_fee THEN
+      RAISE EXCEPTION 'الكول سنتر ليس له علاقة بالمبالغ المالية نهائياً؛ الصلاحية محصورة بالمدير (أجرة التوصيل) والمندوب (سعر الأغراض).';
+    END IF;
   END IF;
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 DROP TRIGGER IF EXISTS tr_validate_call_center_update ON public.orders;
 DROP TRIGGER IF EXISTS tr_a_validate_call_center_update ON public.orders;
@@ -141,7 +153,7 @@ CREATE POLICY "Driver view assigned orders" ON public.orders
     public.get_current_role() = 'driver' AND driver_id = auth.uid()
   );
 
--- المندوب: يحدث حالة الطلب فقط للطلبات المسندة إليه
+-- المندوب: يحدث حالة الطلب وسعر الأغراض فقط للطلبات المسندة إليه
 DROP POLICY IF EXISTS "Driver update assigned order status" ON public.orders;
 CREATE POLICY "Driver update assigned order status" ON public.orders
   FOR UPDATE TO authenticated
@@ -151,6 +163,121 @@ CREATE POLICY "Driver update assigned order status" ON public.orders
   WITH CHECK (
     public.get_current_role() = 'driver' AND driver_id = auth.uid()
   );
+
+-- محفز للتحقق من تعديلات المندوب (يسمح فقط بتعديل status و items_price ويعيد احتساب collection_amount)
+CREATE OR REPLACE FUNCTION public.validate_driver_order_update()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = 'public', 'pg_temp'
+AS $$
+DECLARE
+  diff jsonb;
+BEGIN
+  IF public.get_current_role() = 'driver' THEN
+    diff := (to_jsonb(NEW) - array['status', 'items_price', 'collection_amount', 'updated_at'])
+            - (to_jsonb(OLD) - array['status', 'items_price', 'collection_amount', 'updated_at']);
+
+    IF diff <> '{}'::jsonb THEN
+      RAISE EXCEPTION 'غير مصرح للمندوب بتعديل هذه الحقول: %', diff;
+    END IF;
+
+    -- إعادة احتساب المبلغ المطلوب تحصيله تلقائياً بناءً على سعر الأغراض وأجرة التوصيل المحددة من الإدارة
+    NEW.items_price := COALESCE(NEW.items_price, OLD.items_price, 0);
+    NEW.delivery_fee := OLD.delivery_fee;
+    NEW.collection_amount := NEW.items_price + NEW.delivery_fee;
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS tr_validate_driver_update ON public.orders;
+CREATE TRIGGER tr_validate_driver_update
+  BEFORE UPDATE ON public.orders
+  FOR EACH ROW
+  EXECUTE FUNCTION public.validate_driver_order_update();
+
+-- محفز تطبيق القيم الافتراضية واحتساب الإجمالي عند إنشاء طلب جديد
+CREATE OR REPLACE FUNCTION public.enforce_order_insert_defaults()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = 'public', 'pg_temp'
+AS $$
+DECLARE
+  v_role text;
+BEGIN
+  v_role := public.get_current_role();
+
+  IF v_role = 'call_center' THEN
+    NEW.status := 'pending';
+    NEW.driver_id := NULL;
+    NEW.delivery_fee := 0;
+    NEW.items_price := 0;
+    NEW.collection_amount := 0;
+    NEW.driver_fee := 0;
+    NEW.office_fee := 0;
+  ELSE
+    -- المدير يحدد أجرة التوصيل فقط، وسعر الأغراض يبدأ من 0 حتى يحدده المندوب لاحقاً
+    NEW.items_price := 0;
+    NEW.delivery_fee := COALESCE(NEW.delivery_fee, 0);
+    NEW.collection_amount := NEW.delivery_fee;
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS tr_enforce_order_insert_defaults ON public.orders;
+CREATE TRIGGER tr_enforce_order_insert_defaults
+  BEFORE INSERT ON public.orders
+  FOR EACH ROW
+  EXECUTE FUNCTION public.enforce_order_insert_defaults();
+
+-- محفز احتساب أجور المندوب والمكتب والمجموع عند تغيير الأجرة أو إسناد المندوب
+CREATE OR REPLACE FUNCTION public.handle_order_status_transitions()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = 'public', 'pg_temp'
+AS $$
+DECLARE
+  v_commission numeric;
+  v_role text;
+BEGIN
+  v_role := public.get_current_role();
+
+  -- المدير يحدد أجرة التوصيل فقط، ولا يحدد سعر الأغراض؛ سعر الأغراض محصور بالمندوب
+  IF v_role = 'admin' AND TG_OP = 'UPDATE' THEN
+    NEW.items_price := OLD.items_price;
+  END IF;
+
+  -- احتساب إجمالي التحصيل دائماً وتلقائياً: سعر الأغراض + أجرة التوصيل
+  NEW.items_price := COALESCE(NEW.items_price, OLD.items_price, 0);
+  NEW.delivery_fee := COALESCE(NEW.delivery_fee, OLD.delivery_fee, 0);
+  NEW.collection_amount := NEW.items_price + NEW.delivery_fee;
+
+  -- عند الإسناد إلى مندوب: حساب حصة المندوب والمكتب من أجرة التوصيل
+  IF NEW.driver_id IS NOT NULL AND (OLD.driver_id IS NULL OR NEW.driver_id <> OLD.driver_id OR NEW.delivery_fee <> OLD.delivery_fee) THEN
+    SELECT commission_percentage INTO v_commission
+    FROM public.profiles
+    WHERE id = NEW.driver_id;
+
+    v_commission := COALESCE(v_commission, 70);
+    NEW.driver_fee := ROUND(NEW.delivery_fee * (v_commission / 100.0), 2);
+    NEW.office_fee := NEW.delivery_fee - NEW.driver_fee;
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS tr_b_handle_order_status_transitions ON public.orders;
+CREATE TRIGGER tr_b_handle_order_status_transitions
+  BEFORE UPDATE ON public.orders
+  FOR EACH ROW
+  EXECUTE FUNCTION public.handle_order_status_transitions();
 -- 4. جدول عناوين الزبائن المتعددة (Customer Addresses)
 CREATE TABLE IF NOT EXISTS public.customer_addresses (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

@@ -45,6 +45,7 @@ export interface Order {
   backup_phone?: string | null;
   order_details: string;
   maps_url?: string | null;
+  items_price?: number;
   collection_amount: number;
   delivery_fee: number;
   driver_fee: number;
@@ -60,8 +61,9 @@ export interface OrderFormData {
   backup_phone: string;
   order_details: string;
   maps_url: string;
-  collection_amount: string | number;
-  delivery_fee: string | number;
-  driver_fee: string | number;
-  office_fee: string | number;
+  items_price?: string | number;
+  collection_amount?: string | number;
+  delivery_fee?: string | number;
+  driver_fee?: string | number;
+  office_fee?: string | number;
 }
