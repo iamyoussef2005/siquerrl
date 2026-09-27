@@ -1,3 +1,7 @@
 node_modules
 .git
-.next/cache
+.next
+driver_app
+*.apk
+*.zip
+*.log
