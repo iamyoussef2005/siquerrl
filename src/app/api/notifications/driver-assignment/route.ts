@@ -44,8 +44,9 @@ export async function POST(req: Request) {
       .maybeSingle();
 
     if (driverError || !driver) {
+      console.error('Driver profile not found:', { driverId, driver, driverError });
       return NextResponse.json(
-        { error: 'Driver profile not found' },
+        { error: 'Driver profile not found', driverId, details: driverError?.message },
         { status: 404 }
       );
     }
