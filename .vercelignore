@@ -1,0 +1,6 @@
+driver_app
+sinjab-driver.apk
+*.apk
+*.zip
+*.log
+supabase-schema.sql
