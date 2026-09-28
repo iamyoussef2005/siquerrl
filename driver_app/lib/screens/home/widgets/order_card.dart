@@ -65,13 +65,13 @@ class _OrderCardState extends State<OrderCard> {
         if (openWhatsApp && mounted) {
           await LauncherService.openWhatsApp(
             context: context,
-            phone: widget.order.customerPhone,
-            orderId: widget.order.id,
-            customerName: widget.order.customerName,
-            details: widget.order.orderDetails,
-            collectionAmount: widget.order.collectionAmount,
-            itemsPrice: widget.order.itemsPrice,
-            deliveryFee: widget.order.deliveryFee,
+            phone: updated.customerPhone,
+            orderId: updated.id,
+            customerName: updated.customerName,
+            details: updated.orderDetails,
+            collectionAmount: updated.collectionAmount,
+            itemsPrice: updated.itemsPrice,
+            deliveryFee: updated.deliveryFee,
           );
         }
       }

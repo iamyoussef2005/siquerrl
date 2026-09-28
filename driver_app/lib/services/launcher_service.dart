@@ -30,26 +30,16 @@ class LauncherService {
   }) async {
     final waPhone = formatWhatsAppPhone(phone);
     final currencyFormatter = NumberFormat('#,###');
-    final formattedAmount = currencyFormatter.format(collectionAmount);
-    final formattedItems = currencyFormatter.format(itemsPrice);
-    final formattedDelivery = currencyFormatter.format(deliveryFee);
+    final formattedAmount = currencyFormatter.format(collectionAmount.round());
 
-    final String priceDetails = itemsPrice > 0
-        ? '''🏷️ ثمن الأغراض: $formattedItems ل.س
-🚚 أجرة التوصيل: $formattedDelivery ل.س
-💵 إجمالي المبلغ المطلوب تحصيله: $formattedAmount ل.س'''
-        : (deliveryFee > 0
-            ? '''🚚 أجرة التوصيل: $formattedDelivery ل.س
-💵 المبلغ المطلوب تحصيله: $formattedAmount ل.س'''
-            : '''💵 المبلغ المطلوب تحصيله: $formattedAmount ل.س''');
-
-    final message = '''مرحباً $customerName 🌸
-طلبك رقم #$orderId أصبح قيد التوصيل الآن مع مندوب سنجاب دليفري وسيصلك قريباً.
+    final message = '''Sinjab Delivery 🐿️
+مرحباً $customerName 🍁
+طلبك رقم #$orderId أصبح قيد التوصيل الآن مع مندوب سنجاب دليفري وسيصلك قريباً🕞.
 
 📦 المطلوب:
-$details
+${details.trim()}
 
-$priceDetails''';
+💵 المبلغ المطلوب تحصيله: $formattedAmount ل.س''';
 
     final waUrl = Uri.parse('https://wa.me/$waPhone?text=${Uri.encodeComponent(message)}');
 

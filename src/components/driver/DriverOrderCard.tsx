@@ -52,7 +52,8 @@ export function DriverOrderCard({ order, onStatusUpdated }: DriverOrderCardProps
   // Generate WhatsApp Click-to-Chat URL
   const getWhatsAppUrl = () => {
     const waPhone = formatWhatsAppPhone(order.customer_phone);
-    const msg = `مرحباً ${order.customer_name}، طلبك رقم #${order.id} أصبح قيد التوصيل معي الآن وسيصلك قريباً.`;
+    const formattedAmount = formatCurrency(Math.round(Number(order.collection_amount) || 0));
+    const msg = `Sinjab Delivery 🐿️\nمرحباً ${order.customer_name} 🍁\nطلبك رقم #${order.id} أصبح قيد التوصيل الآن مع مندوب سنجاب دليفري وسيصلك قريباً🕞.\n\n📦 المطلوب:\n${(order.order_details || '').trim()}\n\n💵 المبلغ المطلوب تحصيله: ${formattedAmount} ل.س`;
     return `https://wa.me/${waPhone}?text=${encodeURIComponent(msg)}`;
   };
 
