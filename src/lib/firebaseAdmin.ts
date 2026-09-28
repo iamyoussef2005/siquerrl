@@ -15,7 +15,7 @@ function getFirebaseAdmin(): App | null {
 
   try {
     let serviceAccount: any;
-    const trimmed = serviceAccountKeyRaw.trim();
+    const trimmed = serviceAccountKeyRaw.replace(/^\uFEFF/, '').trim();
     if (trimmed.startsWith('{')) {
       serviceAccount = JSON.parse(trimmed);
     } else {
