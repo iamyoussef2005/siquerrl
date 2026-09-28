@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
+import { notifyDriverAssignment } from '@/lib/notificationClient';
 import { Customer, CustomerAddress, Order, Profile } from '@/types/database';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -387,6 +388,9 @@ export function NewOrderForm({ onOrderCreated, drivers = [] }: NewOrderFormProps
       }
 
       if (data) {
+        if (assignedDriver && data.id) {
+          notifyDriverAssignment(data.id, assignedDriver.id);
+        }
         onOrderCreated(data as Order);
         resetForm();
         setStatusMessage({

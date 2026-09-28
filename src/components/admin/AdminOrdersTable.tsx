@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { notifyDriverAssignment } from '@/lib/notificationClient';
 import { Order, OrderStatus, Profile } from '@/types/database';
 import {
   Search,
@@ -165,6 +166,9 @@ export function AdminOrdersTable({
         .single();
 
       if (error) throw error;
+      if (newDriverId && order.id) {
+        notifyDriverAssignment(order.id, newDriverId);
+      }
       if (data) {
         onOrderUpdated(data as Order);
       } else {

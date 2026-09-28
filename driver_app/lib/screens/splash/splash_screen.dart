@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/constants.dart';
 import '../../services/auth_service.dart';
+import '../../services/notification_service.dart';
 import '../auth/login_screen.dart';
 import '../home/driver_home_screen.dart';
 
@@ -66,6 +67,9 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     if (AuthService.isAuthenticated) {
       final profile = await AuthService.getProfile();
       if (profile != null && profile.role == 'driver') {
+        // Sync push notification FCM token to database
+        NotificationService.syncTokenToDatabase();
+
         if (!mounted) return;
         Navigator.of(context).pushReplacement(
           PageRouteBuilder(

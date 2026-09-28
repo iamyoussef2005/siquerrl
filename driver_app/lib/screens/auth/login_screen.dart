@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/constants.dart';
 import '../../services/auth_service.dart';
+import '../../services/notification_service.dart';
 import '../home/driver_home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -45,6 +46,9 @@ class _LoginScreenState extends State<LoginScreen> {
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
+
+      // Sync FCM push token to Supabase profiles
+      await NotificationService.syncTokenToDatabase();
 
       if (!mounted) return;
 

@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/profile_model.dart';
+import 'notification_service.dart';
 
 class AuthService {
   static final SupabaseClient _supabase = Supabase.instance.client;
@@ -69,6 +70,9 @@ class AuthService {
 
   // Sign out
   static Future<void> signOut() async {
+    try {
+      await NotificationService.clearToken();
+    } catch (_) {}
     await _supabase.auth.signOut();
   }
 }

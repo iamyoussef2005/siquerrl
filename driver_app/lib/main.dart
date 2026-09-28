@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/constants.dart';
 import 'core/theme.dart';
 import 'screens/splash/splash_screen.dart';
+import 'services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,6 +30,9 @@ void main() async {
     // ignore: deprecated_member_use
     anonKey: AppConstants.supabaseAnonKey,
   );
+
+  // Initialize Firebase & Push Notifications
+  await NotificationService.initialize();
 
   runApp(const SinjabDriverApp());
 }

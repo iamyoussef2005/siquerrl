@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { notifyDriverAssignment } from '@/lib/notificationClient';
 import { useAuth } from '@/contexts/AuthContext';
 import { CustomerAddress, Order, Profile, OrderStatus } from '@/types/database';
 import {
@@ -188,6 +189,11 @@ export function EditOrderModal({
               last_used_at: new Date().toISOString(),
             });
         }
+      }
+
+      // Notify driver if assigned/changed by admin
+      if (isAdmin && assignedDriverId && order.id && assignedDriverId !== order.driver_id) {
+        notifyDriverAssignment(order.id, assignedDriverId);
       }
 
       if (data) {
