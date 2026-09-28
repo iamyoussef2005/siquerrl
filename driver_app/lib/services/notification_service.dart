@@ -128,10 +128,25 @@ class NotificationService {
       final user = Supabase.instance.client.auth.currentUser;
       if (user != null) {
         debugPrint('Saving FCM token for user ${user.id} -> $fcmToken');
-        await Supabase.instance.client
-            .from('profiles')
-            .update({'fcm_token': fcmToken})
-            .eq('id', user.id);
+        try {
+          await Supabase.instance.client.rpc(
+            'save_fcm_token',
+            params: {'p_fcm_token': fcmToken},
+          );
+          debugPrint('FCM token saved successfully via RPC');
+        } catch (rpcErr) {
+          debugPrint('save_fcm_token RPC error: $rpcErr');
+        }
+
+        try {
+          await Supabase.instance.client
+              .from('profiles')
+              .update({'fcm_token': fcmToken})
+              .eq('id', user.id);
+          debugPrint('FCM token saved successfully via direct update');
+        } catch (updateErr) {
+          debugPrint('profiles update error: $updateErr');
+        }
       }
       return fcmToken;
     } catch (e) {
