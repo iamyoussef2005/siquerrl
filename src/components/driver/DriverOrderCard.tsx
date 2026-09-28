@@ -19,6 +19,9 @@ import {
   ChevronUp,
   XCircle,
   Package,
+  Edit3,
+  Coins,
+  X,
 } from 'lucide-react';
 
 interface DriverOrderCardProps {
@@ -29,10 +32,49 @@ interface DriverOrderCardProps {
 export function DriverOrderCard({ order, onStatusUpdated }: DriverOrderCardProps) {
   const [isUpdating, setIsUpdating] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isSettingItemsPrice, setIsSettingItemsPrice] = useState(false);
+  const [tempItemsPrice, setTempItemsPrice] = useState(
+    order.items_price ? String(order.items_price) : ''
+  );
+  const [isSavingItemsPrice, setIsSavingItemsPrice] = useState(false);
 
   // Format currency
   const formatCurrency = (val: number) => {
     return new Intl.NumberFormat('en-US').format(val || 0);
+  };
+
+  // Driver saves items price
+  const handleSaveItemsPrice = async () => {
+    const val = parseFloat(tempItemsPrice) || 0;
+    setIsSavingItemsPrice(true);
+    try {
+      const { data, error } = await supabase
+        .from('orders')
+        .update({
+          items_price: val,
+          collection_amount: Number(order.delivery_fee) + val,
+        })
+        .eq('id', order.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      if (data) {
+        onStatusUpdated(data as Order);
+      } else {
+        onStatusUpdated({
+          ...order,
+          items_price: val,
+          collection_amount: Number(order.delivery_fee) + val,
+        });
+      }
+      setIsSettingItemsPrice(false);
+    } catch (err: any) {
+      console.error('Error updating items price:', err);
+      alert('تعذر حفظ سعر الأغراض: ' + (err.message || 'خطأ في الاتصال'));
+    } finally {
+      setIsSavingItemsPrice(false);
+    }
   };
 
   // Format phone for international WhatsApp link (Syria default: 09xxxxxxxx -> 9639xxxxxxxx)
@@ -257,27 +299,125 @@ export function DriverOrderCard({ order, onStatusUpdated }: DriverOrderCardProps
           </p>
         </div>
 
-        {/* البطاقة المالية المميزة للتحصيل */}
-        <div className="bg-gradient-to-r from-emerald-50/80 via-teal-50/60 to-emerald-50/80 border border-emerald-200 rounded-xl p-3 flex items-center justify-between shadow-2xs">
-          <div>
-            <span className="text-[10px] text-emerald-800 font-bold block">
-              المبلغ المطلوب تحصيله من الزبون
-            </span>
-            <div className="flex items-baseline gap-1 mt-0.5">
-              <span className="text-xl font-black text-emerald-900 font-mono tracking-tight">
-                {formatCurrency(Number(order.collection_amount))}
+        {/* البطاقة المالية المميزة للتحصيل وتحديد سعر الأغراض للمندوب */}
+        <div className="bg-gradient-to-r from-emerald-50/80 via-teal-50/60 to-emerald-50/80 border border-emerald-200 rounded-xl p-3.5 space-y-2.5 shadow-2xs">
+          <div className="flex items-center justify-between">
+            <div>
+              <span className="text-[10px] text-emerald-800 font-bold block">
+                المبلغ المطلوب تحصيله من الزبون
               </span>
-              <span className="text-xs text-emerald-700 font-bold">ل.س</span>
+              <div className="flex items-baseline gap-1 mt-0.5">
+                <span className="text-xl font-black text-emerald-900 font-mono tracking-tight">
+                  {formatCurrency(Number(order.collection_amount))}
+                </span>
+                <span className="text-xs text-emerald-700 font-bold">ل.س</span>
+              </div>
+            </div>
+
+            <div className="text-left text-xs font-mono">
+              <span className="text-[10px] text-slate-500 font-medium block">أجرة التوصيل الكلية</span>
+              <span className="text-slate-800 font-bold">
+                {formatCurrency(Number(order.delivery_fee))} ل.س
+              </span>
             </div>
           </div>
 
-          <div className="text-left text-xs font-mono">
-            <span className="text-[10px] text-slate-500 font-medium block">أجرة التوصيل الكلية</span>
-            <span className="text-slate-800 font-bold">
-              {formatCurrency(Number(order.delivery_fee))} ل.س
-            </span>
+          {/* سطر سعر الأغراض وزر الإدخال والتعديل للمندوب */}
+          <div className="pt-2 border-t border-emerald-200/60 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5 text-xs">
+              <span className="text-slate-600 font-medium">سعر الأغراض:</span>
+              <strong className="font-mono text-emerald-800 font-bold">
+                {formatCurrency(Number(order.items_price || 0))} ل.س
+              </strong>
+            </div>
+
+            {order.status !== 'delivered' && order.status !== 'cancelled' && (
+              <button
+                type="button"
+                onClick={() => {
+                  setTempItemsPrice(order.items_price ? String(order.items_price) : '');
+                  setIsSettingItemsPrice(true);
+                }}
+                className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white text-[11px] font-bold shadow-2xs transition-all flex items-center gap-1 cursor-pointer"
+              >
+                <Edit3 className="w-3 h-3" />
+                <span>{Number(order.items_price) > 0 ? 'تعديل سعر الأغراض' : 'تسجيل سعر الأغراض'}</span>
+              </button>
+            )}
           </div>
         </div>
+
+        {/* نافذة تسجيل سعر الأغراض للمندوب */}
+        {isSettingItemsPrice && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-slate-900/40 backdrop-blur-xs animate-fadeIn">
+            <div className="bg-white border border-slate-200 rounded-2xl p-5 w-full max-w-sm shadow-xl space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                <h4 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                  <Coins className="w-4 h-4 text-emerald-600" />
+                  <span>تسجيل سعر الأغراض (المشتريات)</span>
+                </h4>
+                <button
+                  type="button"
+                  onClick={() => setIsSettingItemsPrice(false)}
+                  className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  سعر الأغراض الفعلية المشتراة (ل.س)
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    step="any"
+                    value={tempItemsPrice}
+                    onChange={(e) => setTempItemsPrice(e.target.value)}
+                    placeholder="0"
+                    autoFocus
+                    className="w-full bg-slate-50 border-2 border-emerald-400 focus:bg-white rounded-xl p-2.5 pl-10 text-sm font-mono font-bold text-slate-900 focus:outline-hidden"
+                  />
+                  <span className="text-xs font-bold text-slate-500 absolute left-3 top-3 pointer-events-none">
+                    ل.س
+                  </span>
+                </div>
+              </div>
+
+              {/* معاينة إجمالي التحصيل */}
+              <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs space-y-1">
+                <span className="text-emerald-800 font-medium block">
+                  المبلغ المطلوب تحصيله من الزبون تلقائياً:
+                </span>
+                <span className="text-base font-black font-mono text-emerald-900 block">
+                  {formatCurrency((parseFloat(tempItemsPrice) || 0) + Number(order.delivery_fee))} ل.س
+                </span>
+                <span className="text-[10px] text-emerald-700 block">
+                  (أجرة التوصيل: {formatCurrency(Number(order.delivery_fee))} + الأغراض: {formatCurrency(parseFloat(tempItemsPrice) || 0)})
+                </span>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setIsSettingItemsPrice(false)}
+                  className="px-3.5 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50"
+                >
+                  إلغاء
+                </button>
+                <button
+                  type="button"
+                  disabled={isSavingItemsPrice}
+                  onClick={handleSaveItemsPrice}
+                  className="btn-sinjab-primary px-4 py-1.5 rounded-lg text-xs font-bold text-white shadow-xs"
+                >
+                  {isSavingItemsPrice ? 'جاري الحفظ...' : 'حفظ واحتساب التحصيل'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* أزرار تغيير الحالة الكبيرة (صلاحية حصرية للمندوب) */}
         <div className="pt-1 space-y-2">

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
-import { CustomerAddress, Order, Profile } from '@/types/database';
+import { CustomerAddress, Order, Profile, OrderStatus } from '@/types/database';
 import {
   X,
   Save,
@@ -55,6 +55,8 @@ export function EditOrderModal({
   const [deliveryFee, setDeliveryFee] = useState<string>('');
   const [driverFee, setDriverFee] = useState<string>('');
   const [officeFee, setOfficeFee] = useState<string>('');
+  const [selectedDriverId, setSelectedDriverId] = useState<string>('');
+  const [selectedStatus, setSelectedStatus] = useState<OrderStatus>('pending');
   const [savedAddresses, setSavedAddresses] = useState<CustomerAddress[]>([]);
 
   const [isSaving, setIsSaving] = useState(false);
@@ -74,6 +76,8 @@ export function EditOrderModal({
       setDeliveryFee(String(order.delivery_fee ?? ''));
       setDriverFee(String(order.driver_fee ?? ''));
       setOfficeFee(String(order.office_fee ?? ''));
+      setSelectedDriverId(order.driver_id || '');
+      setSelectedStatus(order.status || 'pending');
       setErrorMsg(null);
 
       // جلب عناوين الزبون المسجلة إن وجد معرف للزبون
@@ -121,15 +125,16 @@ export function EditOrderModal({
     const cleanBackupPhone = backupPhone.trim() || null;
 
     const parsedDelivery = parseFloat(deliveryFee) || 0;
-    const assignedDriver = drivers?.find((d) => d.id === order.driver_id);
+    const parsedItems = isAdmin ? (parseFloat(itemsPrice) || 0) : (Number(order.items_price) || 0);
+    const assignedDriverId = isAdmin ? (selectedDriverId || null) : order.driver_id;
+    const assignedDriver = drivers?.find((d) => d.id === assignedDriverId);
     const rate = assignedDriver?.commission_percentage ?? 70;
     const calculatedDriverShare = Math.round((parsedDelivery * rate) / 100);
     const calculatedOfficeShare = Math.max(0, parsedDelivery - calculatedDriverShare);
-    const currentItemsPrice = Number(order.items_price) || 0;
-    const totalCollection = currentItemsPrice + parsedDelivery;
+    const totalCollection = parsedItems + parsedDelivery;
 
-    // Call Center has NO relation to amounts.
-    // Admin sets delivery fee ONLY (items price is preserved and collection amount is auto-calculated).
+    // Call Center can edit delivery_fee (and customer details/address/order_details).
+    // Admin can edit everything: delivery_fee, items_price, driver_id, status.
     const updatedPayload: Partial<Order> = {
       customer_name: cleanCustomerName,
       customer_phone: cleanCustomerPhone,
@@ -137,12 +142,15 @@ export function EditOrderModal({
       delivery_address: cleanAddress,
       order_details: orderDetails.trim(),
       maps_url: cleanMaps,
+      delivery_fee: parsedDelivery,
+      collection_amount: totalCollection,
+      driver_fee: assignedDriver ? calculatedDriverShare : 0,
+      office_fee: assignedDriver ? calculatedOfficeShare : 0,
       ...(isAdmin
         ? {
-            delivery_fee: parsedDelivery,
-            collection_amount: totalCollection,
-            driver_fee: calculatedDriverShare,
-            office_fee: calculatedOfficeShare,
+            items_price: parsedItems,
+            driver_id: assignedDriverId,
+            status: selectedStatus,
           }
         : {}),
     };
@@ -401,55 +409,90 @@ export function EditOrderModal({
             />
           </div>
 
-          {/* الحقول المالية: الكول سنتر ليس له علاقة بالمبالغ، والمدير يحدد أجرة التوصيل فقط */}
+          {/* الحقول المالية: الكول سنتر يحدد ويعدل أجرة التوصيل فقط، والمدير يحدد ويعدل كل شيء */}
           {!isAdmin ? (
-            <div className="bg-orange-50/70 border border-orange-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-              <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-lg bg-orange-100 text-orange-700 border border-orange-200">
-                  <Lock className="w-4 h-4" />
-                </div>
-                <div>
-                  <p className="font-bold text-zinc-900">المبالغ المالية محددة الصلاحيات تلقائياً:</p>
-                  <p className="text-zinc-600 text-[11px] mt-0.5">
-                    المدير يحدد أجرة التوصيل، والمندوب يسجل ثمن الأغراض. ليس لموظف الكول سنتر صلاحية تعديل المبالغ.
-                  </p>
-                </div>
-              </div>
-              <div className="text-right text-[11px] font-mono bg-white px-3 py-1.5 rounded-lg border border-orange-200">
-                <span className="text-zinc-500">إجمالي التحصيل الحالي: </span>
-                <strong className="text-emerald-700 font-bold">{formatCurrency(order.collection_amount)} ل.س</strong>
-              </div>
-            </div>
-          ) : (
             <div className="bg-slate-50/70 border border-slate-200 rounded-xl p-4 sm:p-5 space-y-3">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-3">
                 <span className="text-xs font-semibold text-slate-800 flex items-center gap-2">
                   <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100">
                     <DollarSign className="w-3.5 h-3.5" />
                   </div>
-                  تحديد أجرة التوصيل (المدير يحدد الأجرة فقط)
+                  أجرة التوصيل (صلاحية الكول سنتر)
+                </span>
+                <span className="text-[11px] text-zinc-500">
+                  الكول سنتر يحدد أجرة التوصيل فقط • المندوب يسجل سعر الأغراض
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {/* أجرة التوصيل (قابلة للتعديل للكول سنتر) */}
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-900 mb-1 flex items-center justify-between">
+                    <span>أجرة التوصيل (ل.س)</span>
+                    <span className="text-[9px] text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded font-bold">قابل للتعديل</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      step="any"
+                      value={deliveryFee}
+                      onChange={(e) => setDeliveryFee(e.target.value)}
+                      className="w-full bg-white border-2 border-emerald-400 focus:border-emerald-500 rounded-xl p-2 pl-9 text-xs text-slate-900 font-mono font-bold focus:outline-hidden shadow-2xs"
+                    />
+                    <span className="text-[10px] text-slate-500 absolute left-2.5 top-2.5 pointer-events-none">ل.س</span>
+                  </div>
+                </div>
+
+                {/* سعر الأغراض (عرض فقط للكول سنتر) */}
+                <div>
+                  <label className="block text-[11px] font-bold text-amber-900 mb-1 flex items-center justify-between">
+                    <span>سعر الأغراض (المندوب)</span>
+                    <span className="text-[9px] text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded font-bold">صلاحية المندوب</span>
+                  </label>
+                  <div className="p-2 rounded-xl bg-amber-50/80 border border-amber-200/90 text-xs text-amber-950 font-mono font-bold flex items-center justify-between min-h-[38px]">
+                    <span>{formatCurrency(Number(order.items_price || 0))} ل.س</span>
+                    <span className="text-[10px] text-amber-700 font-normal">
+                      {Number(order.items_price) > 0 ? 'مسجل من المندوب' : 'لم يسجل بعد'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* إجمالي التحصيل */}
+                <div>
+                  <label className="block text-[11px] font-bold text-emerald-900 mb-1 flex items-center justify-between">
+                    <span>إجمالي التحصيل المحسوب</span>
+                    <span className="text-[9px] text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded font-bold">تلقائي</span>
+                  </label>
+                  <div className="p-2 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-950 font-mono font-black flex items-center justify-between min-h-[38px]">
+                    <span>{formatCurrency((Number(order.items_price) || 0) + (parseFloat(deliveryFee) || 0))} ل.س</span>
+                    <span className="text-[10px] text-emerald-700 font-normal">توصيل + أغراض</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            /* واجهة المدير: تعديل كامل للمبالغ والطلب والمندوب والحالة */
+            <div className="bg-slate-50/70 border border-slate-200 rounded-xl p-4 sm:p-5 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-3">
+                <span className="text-xs font-semibold text-slate-800 flex items-center gap-2">
+                  <div className="p-1.5 rounded-lg bg-orange-50 text-orange-600 border border-orange-100">
+                    <DollarSign className="w-3.5 h-3.5" />
+                  </div>
+                  الحسابات والمبالغ وإسناد المندوب (صلاحية الإدارة الكاملة)
                 </span>
 
-                <div className="flex items-center gap-1.5 text-[11px] text-zinc-500 bg-white px-2 py-0.5 rounded border border-slate-200">
-                  <Lock className="w-3 h-3 text-amber-600" />
-                  <span>المندوب يحدد سعر الأغراض • التحصيل يُحسب تلقائياً</span>
+                <div className="flex items-center gap-1.5 text-[11px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                  <Lock className="w-3 h-3 text-emerald-600" />
+                  <span>المدير يحدد كل شيء (تعديل الطلب، الأجرة، والمبالغ)</span>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                {/* أجرة التوصيل (المدخل الوحيد القابل للتعديل من قبل المدير) */}
+                {/* 1. أجرة التوصيل */}
                 <div>
                   <label className="block text-[11px] font-bold text-orange-950 mb-1 flex items-center justify-between">
-                    <span>أجرة التوصيل (المدير)</span>
-                    {!deliveryFee || parseFloat(deliveryFee) === 0 ? (
-                      <span className="text-[9px] text-amber-800 bg-amber-100 border border-amber-200 px-1.5 py-0.5 rounded font-bold animate-pulse">
-                        ⚠️ لم تُحدد بعد
-                      </span>
-                    ) : (
-                      <span className="text-[9px] text-orange-700 bg-orange-100 px-1.5 py-0.5 rounded font-bold">
-                        قابل للتعديل
-                      </span>
-                    )}
+                    <span>أجرة التوصيل (ل.س)</span>
+                    <span className="text-[9px] text-orange-700 bg-orange-100 px-1.5 py-0.2 rounded font-bold">قابل للتعديل</span>
                   </label>
                   <div className="relative">
                     <input
@@ -460,7 +503,7 @@ export function EditOrderModal({
                         const val = e.target.value;
                         setDeliveryFee(val);
                         const parsed = parseFloat(val) || 0;
-                        const assignedDriver = drivers?.find((d) => d.id === order.driver_id);
+                        const assignedDriver = drivers?.find((d) => d.id === selectedDriverId);
                         const rate = assignedDriver?.commission_percentage ?? 70;
                         const dr = Math.round((parsed * rate) / 100);
                         setDriverFee(dr.toString());
@@ -472,42 +515,97 @@ export function EditOrderModal({
                   </div>
                 </div>
 
-                {/* سعر الأغراض (عرض فقط - يحدده المندوب حصراً) */}
+                {/* 2. سعر الأغراض (المشتريات) - متاح للتعديل الكامل من قبل المدير */}
                 <div>
-                  <label className="block text-[11px] font-bold text-amber-900 mb-1 flex items-center justify-between">
-                    <span>سعر الأغراض (المشتريات)</span>
-                    <span className="text-[9px] text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded font-bold">صلاحية المندوب</span>
+                  <label className="block text-[11px] font-bold text-amber-950 mb-1 flex items-center justify-between">
+                    <span>سعر الأغراض (ل.س)</span>
+                    <span className="text-[9px] text-amber-700 bg-amber-100 px-1.5 py-0.2 rounded font-bold">صلاحية المدير</span>
                   </label>
-                  <div className="p-2 rounded-xl bg-amber-50/80 border border-amber-200/90 text-xs text-amber-950 font-mono font-bold flex items-center justify-between min-h-[38px]">
-                    <span>{formatCurrency(Number(order.items_price || 0))} ل.س</span>
-                    <span className="text-[10px] text-amber-700 font-normal">
-                      {Number(order.items_price) > 0 ? 'مسجل من المندوب' : 'لم يسجل بعد'}
+                  <div className="relative">
+                    <input
+                      type="number"
+                      step="any"
+                      placeholder="0"
+                      value={itemsPrice}
+                      onChange={(e) => setItemsPrice(e.target.value)}
+                      className="w-full bg-white border-2 border-amber-300 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 rounded-xl p-2 pl-9 text-xs text-slate-900 font-mono font-bold focus:outline-hidden shadow-2xs"
+                    />
+                    <span className="text-[10px] text-slate-500 absolute left-2.5 top-2.5 pointer-events-none">ل.س</span>
+                  </div>
+                </div>
+
+                {/* 3. إسناد المندوب */}
+                <div>
+                  <label className="block text-[11px] font-bold text-blue-950 mb-1 flex items-center justify-between">
+                    <span>المندوب المسند</span>
+                    <span className="text-[9px] text-blue-700 bg-blue-100 px-1.5 py-0.2 rounded font-bold">اختياري</span>
+                  </label>
+                  <select
+                    value={selectedDriverId}
+                    onChange={(e) => {
+                      const newDriverId = e.target.value;
+                      setSelectedDriverId(newDriverId);
+                      const parsed = parseFloat(deliveryFee) || 0;
+                      const assignedDriver = drivers?.find((d) => d.id === newDriverId);
+                      const rate = assignedDriver?.commission_percentage ?? 70;
+                      const dr = Math.round((parsed * rate) / 100);
+                      setDriverFee(dr.toString());
+                      setOfficeFee(Math.max(0, parsed - dr).toString());
+                    }}
+                    className="w-full bg-white border border-slate-300 hover:border-slate-400 focus:border-orange-500 rounded-xl p-2 text-xs text-slate-900 font-semibold focus:outline-hidden cursor-pointer"
+                  >
+                    <option value="">-- بدون إسناد (بانتظار الإسناد) --</option>
+                    {drivers?.map((d) => (
+                      <option key={d.id} value={d.id}>
+                        {d.name} {d.phone ? `(${d.phone})` : ''} - عمولة {d.commission_percentage ?? 70}%
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* 4. حالة الطلب */}
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-900 mb-1 flex items-center justify-between">
+                    <span>حالة الطلب</span>
+                    <span className="text-[9px] text-slate-600 bg-slate-100 px-1.5 py-0.2 rounded font-bold">الإدارة</span>
+                  </label>
+                  <select
+                    value={selectedStatus}
+                    onChange={(e) => setSelectedStatus(e.target.value as OrderStatus)}
+                    className="w-full bg-white border border-slate-300 hover:border-slate-400 focus:border-orange-500 rounded-xl p-2 text-xs text-slate-900 font-semibold focus:outline-hidden cursor-pointer"
+                  >
+                    <option value="pending">بانتظار الإسناد</option>
+                    <option value="assigned">تم الإسناد</option>
+                    <option value="preparing">بانتظار تحضير الطلب</option>
+                    <option value="delivering">قيد التوصيل</option>
+                    <option value="delivered">مكتملة ومسلّمة</option>
+                    <option value="cancelled">ملغي</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* بطاقة ملخص المبالغ المحسوبة وتوزيع الأجرة */}
+              <div className="p-3.5 rounded-xl bg-orange-50/70 border border-orange-200/90 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-2xs">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-zinc-800">إجمالي التحصيل المحسوب:</span>
+                  <strong className="text-base font-black font-mono text-emerald-700">
+                    {formatCurrency((parseFloat(deliveryFee) || 0) + (parseFloat(itemsPrice) || 0))} ل.س
+                  </strong>
+                  <span className="text-[11px] text-slate-500">
+                    (أجرة: {formatCurrency(parseFloat(deliveryFee) || 0)} + مشتريات: {formatCurrency(parseFloat(itemsPrice) || 0)})
+                  </span>
+                </div>
+
+                {parseFloat(deliveryFee) > 0 && (
+                  <div className="flex items-center gap-3 text-xs font-mono">
+                    <span className="text-slate-600">
+                      سائق: <strong className="text-slate-900 font-bold">{formatCurrency(parseFloat(driverFee) || 0)} ل.س</strong>
+                    </span>
+                    <span className="text-orange-700">
+                      مكتب: <strong className="text-orange-800 font-bold">{formatCurrency(parseFloat(officeFee) || 0)} ل.س</strong>
                     </span>
                   </div>
-                </div>
-
-                {/* إجمالي التحصيل (محسوب تلقائياً = أجرة التوصيل + سعر الأغراض) */}
-                <div>
-                  <label className="block text-[11px] font-bold text-emerald-900 mb-1 flex items-center justify-between">
-                    <span>إجمالي التحصيل</span>
-                    <span className="text-[9px] text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded font-bold">تلقائي</span>
-                  </label>
-                  <div className="p-2 rounded-xl bg-emerald-50 border border-emerald-300 text-xs text-emerald-900 font-mono font-black flex items-center justify-between min-h-[38px]">
-                    <span>{formatCurrency((Number(order.items_price) || 0) + (parseFloat(deliveryFee) || 0))} ل.س</span>
-                    <span className="text-[9.5px] text-emerald-700 font-normal">توصيل + أغراض</span>
-                  </div>
-                </div>
-
-                {/* توزيع الحصص (تلقائي بناءً على الأجرة) */}
-                <div>
-                  <label className="block text-[11px] font-semibold text-slate-700 mb-1">
-                    توزيع الأجرة (تلقائي)
-                  </label>
-                  <div className="p-2 rounded-xl bg-white border border-slate-200 text-xs font-mono flex items-center justify-between min-h-[38px]">
-                    <span className="text-slate-700 text-[11px]">سائق: <strong>{formatCurrency(parseFloat(driverFee) || 0)}</strong></span>
-                    <span className="text-orange-700 text-[11px]">مكتب: <strong>{formatCurrency(parseFloat(officeFee) || 0)}</strong></span>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
           )}

@@ -234,7 +234,7 @@ export default function CallCenterPage() {
             </div>
 
             {/* نموذج تسجيل الطلب السريع */}
-            <NewOrderForm onOrderCreated={handleOrderCreated} />
+            <NewOrderForm onOrderCreated={handleOrderCreated} drivers={drivers} />
           </div>
 
           {/* 2. واجهة جدول متابعة طلبات اليوم والتفاصيل */}
