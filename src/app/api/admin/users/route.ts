@@ -1,23 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://pnjqltmeygtlelrkmbdq.supabase.co';
-const serviceRoleKey =
-  process.env.SUPABASE_SERVICE_ROLE_KEY ||
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBuanFsdG1leWd0bGVscmttYmRxIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4OTY2MTcwMywiZXhwIjoyMTA1MjM3NzAzfQ.PNm-TOwlPfVdOzln8RDr0nj4au_gKdr-UoUopi9LapE';
-
-// Server-side admin client with service_role key
-function getAdminClient() {
-  if (!serviceRoleKey) {
-    throw new Error('SUPABASE_SERVICE_ROLE_KEY is not defined in server environment');
-  }
-  return createClient(supabaseUrl, serviceRoleKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  });
-}
+import { supabaseAdmin } from '@/lib/supabaseAdmin';
 
 // Helper: verify if the caller is an authenticated admin
 async function verifyAdminCaller(req: NextRequest) {
@@ -27,24 +9,25 @@ async function verifyAdminCaller(req: NextRequest) {
   }
 
   const token = authHeader.replace('Bearer ', '').trim();
-  const adminClient = getAdminClient();
 
-  const { data: { user }, error: userError } = await adminClient.auth.getUser(token);
+  const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
   if (userError || !user) {
+    console.error('verifyAdminCaller failed auth.getUser:', userError);
     return { error: 'جلسة المستخدم غير صالحة أو منتهية', status: 401 };
   }
 
-  const { data: profile, error: profileError } = await adminClient
+  const { data: profile, error: profileError } = await supabaseAdmin
     .from('profiles')
     .select('role')
     .eq('id', user.id)
     .maybeSingle();
 
   if (profileError || profile?.role !== 'admin') {
+    console.warn(`User ${user.id} tried to perform admin action with role: ${profile?.role}`);
     return { error: 'عذراً، هذه العملية محصورة فقط بحسابات المدير (Admin)', status: 403 };
   }
 
-  return { user, adminClient };
+  return { user, adminClient: supabaseAdmin };
 }
 
 // POST: Create a new driver or call_center account

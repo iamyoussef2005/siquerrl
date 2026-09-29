@@ -69,14 +69,32 @@ export function StaffManagementModal({
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [memberToDelete, setMemberToDelete] = useState<StaffMember | null>(null);
 
+  // Helper to get freshest valid session token (auto-refreshes expired tokens)
+  const getValidToken = async (): Promise<string | null> => {
+    try {
+      const { data } = await supabase.auth.getSession();
+      if (data?.session?.access_token) {
+        return data.session.access_token;
+      }
+      const { data: refreshed } = await supabase.auth.refreshSession();
+      if (refreshed?.session?.access_token) {
+        return refreshed.session.access_token;
+      }
+    } catch (e) {
+      console.warn('Error refreshing session:', e);
+    }
+    return session?.access_token || null;
+  };
+
   // Fetch staff list from API (with direct database fallback)
   const fetchStaff = async () => {
-    if (!session?.access_token) return;
+    const token = await getValidToken();
+    if (!token) return;
     setIsLoadingStaff(true);
     try {
       const res = await fetch('/api/admin/users', {
         headers: {
-          Authorization: `Bearer ${session.access_token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
       const data = await res.json();
@@ -109,7 +127,8 @@ export function StaffManagementModal({
 
   // Delete a staff member (driver or call_center)
   const handleDeleteMember = async (member: StaffMember) => {
-    if (!session?.access_token) {
+    const token = await getValidToken();
+    if (!token) {
       setFeedback({ type: 'error', text: 'جلسة المستخدم منتهية، يرجى إعادة تسجيل الدخول' });
       return;
     }
@@ -121,7 +140,7 @@ export function StaffManagementModal({
       const res = await fetch(`/api/admin/users?id=${member.id}`, {
         method: 'DELETE',
         headers: {
-          Authorization: `Bearer ${session.access_token}`,
+          Authorization: `Bearer ${token}`,
         },
       });
 
@@ -170,8 +189,9 @@ export function StaffManagementModal({
     e.preventDefault();
     setFeedback(null);
 
-    if (!session?.access_token) {
-      setFeedback({ type: 'error', text: 'جلسة المستخدم غير صالحة، يرجى إعادة تسجيل الدخول' });
+    const token = await getValidToken();
+    if (!token) {
+      setFeedback({ type: 'error', text: 'جلسة المستخدم غير صالحة أو منتهية، يرجى إعادة تسجيل الدخول للوحة التحكم' });
       return;
     }
 
@@ -182,7 +202,7 @@ export function StaffManagementModal({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.access_token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           email,
