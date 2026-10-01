@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { ShieldCheck, Radio, RefreshCw, LogOut, Sliders, FileSpreadsheet, User, Users, Trash2, PlusCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -58,17 +59,15 @@ export function AdminHeader({
 
         {/* أدوات الإدارة والأزرار الوظيفية */}
         <div className="flex items-center gap-2 flex-wrap justify-end">
-          {/* زر تسجيل طلب جديد بصلاحية الإدارة */}
-          {onOpenCreateOrderModal && (
-            <button
-              onClick={onOpenCreateOrderModal}
-              className="btn-sinjab-primary flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-white shadow-xs transition-all duration-150 cursor-pointer active:scale-95"
-              title="تسجيل طلب جديد بالكامل مع تحديد الأجرة وسعر الأغراض وإسناد المندوب"
-            >
-              <PlusCircle className="w-3.5 h-3.5" />
-              <span>إضافة طلب جديد</span>
-            </button>
-          )}
+          {/* زر تسجيل طلب جديد في صفحة مخصصة */}
+          <Link
+            href="/admin/new-order"
+            className="btn-sinjab-primary flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-white shadow-xs transition-all duration-150 cursor-pointer active:scale-95"
+            title="تسجيل طلب جديد في صفحة مخصصة مع تحديد الأجرة وسعر الأغراض وإسناد المندوب"
+          >
+            <PlusCircle className="w-3.5 h-3.5" />
+            <span>إضافة طلب جديد</span>
+          </Link>
 
           {/* زر إدارة فريق العمل */}
           {onOpenStaffModal && (

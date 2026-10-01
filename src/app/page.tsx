@@ -12,7 +12,6 @@ import { DriversCommissionModal } from '@/components/admin/DriversCommissionModa
 import { ReportsModal } from '@/components/admin/ReportsModal';
 import { StaffManagementModal } from '@/components/admin/StaffManagementModal';
 import { OrdersCleanupModal } from '@/components/admin/OrdersCleanupModal';
-import { CreateOrderModal } from '@/components/admin/CreateOrderModal';
 import { Bell, Calendar, Clock, Layers } from 'lucide-react';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
@@ -28,7 +27,6 @@ export default function AdminHomePage() {
   const [selectedDriverId, setSelectedDriverId] = useState<string>('all');
   const [dateFilter, setDateFilter] = useState<DateFilter>('all');
   const [editingOrder, setEditingOrder] = useState<Order | null>(null);
-  const [isCreateOrderModalOpen, setIsCreateOrderModalOpen] = useState(false);
   const [isCommissionModalOpen, setIsCommissionModalOpen] = useState(false);
   const [isReportsModalOpen, setIsReportsModalOpen] = useState(false);
   const [isStaffModalOpen, setIsStaffModalOpen] = useState(false);
@@ -197,7 +195,7 @@ export default function AdminHomePage() {
             fetchOrders(dateFilter);
           }}
           isLoading={isLoading}
-          onOpenCreateOrderModal={() => setIsCreateOrderModalOpen(true)}
+          onOpenCreateOrderModal={() => router.push('/admin/new-order')}
           onOpenStaffModal={() => setIsStaffModalOpen(true)}
           onOpenCommissionModal={() => setIsCommissionModalOpen(true)}
           onOpenReportsModal={() => setIsReportsModalOpen(true)}
@@ -333,17 +331,6 @@ export default function AdminHomePage() {
           onClose={() => setIsReportsModalOpen(false)}
           orders={orders}
           drivers={drivers}
-        />
-
-        {/* نافذة تسجيل طلب جديد للمدير بكامل الصلاحيات */}
-        <CreateOrderModal
-          isOpen={isCreateOrderModalOpen}
-          onClose={() => setIsCreateOrderModalOpen(false)}
-          drivers={drivers}
-          onOrderCreated={(newOrder) => {
-            fetchOrders(dateFilter);
-            showNotification(`✨ تم تسجيل الطلب #${newOrder.id} بنجاح وإدراجه في النظام!`);
-          }}
         />
 
         {/* نافذة تنظيف وأرشفة الطلبات القديمة لتفريغ المساحة */}
