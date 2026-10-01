@@ -30,6 +30,62 @@ class _OrderCardState extends State<OrderCard> {
     return NumberFormat('#,###').format(val);
   }
 
+  // Format assignment time in Arabic 12-hour format
+  String _formatAssignmentTime(DateTime? dt) {
+    if (dt == null) return '';
+    try {
+      final local = dt.toLocal();
+      final now = DateTime.now();
+      final hour = local.hour;
+      final minute = local.minute.toString().padLeft(2, '0');
+      final isPm = hour >= 12;
+      final hour12 = hour % 12 == 0 ? 12 : hour % 12;
+      final period = isPm ? 'م' : 'ص';
+      final timeStr = '$hour12:$minute $period';
+
+      final isToday = local.year == now.year && local.month == now.month && local.day == now.day;
+      if (isToday) {
+        return timeStr;
+      }
+      final yesterday = now.subtract(const Duration(days: 1));
+      final isYesterday = local.year == yesterday.year && local.month == yesterday.month && local.day == yesterday.day;
+      if (isYesterday) {
+        return 'أمس $timeStr';
+      }
+      return '${local.day}/${local.month} $timeStr';
+    } catch (_) {
+      return '';
+    }
+  }
+
+  // Format time elapsed since assignment in Arabic
+  String _formatTimeAgo(DateTime? dt) {
+    if (dt == null) return '';
+    try {
+      final now = DateTime.now();
+      final diff = now.difference(dt.toLocal());
+      if (diff.isNegative || diff.inMinutes < 1) {
+        return 'الآن';
+      }
+      if (diff.inMinutes < 60) {
+        return 'منذ ${diff.inMinutes} د';
+      }
+      final hours = diff.inHours;
+      if (hours < 24) {
+        if (hours == 1) return 'منذ ساعة';
+        if (hours == 2) return 'منذ ساعتين';
+        if (hours <= 10) return 'منذ $hours ساعات';
+        return 'منذ $hours ساعة';
+      }
+      final days = diff.inDays;
+      if (days == 1) return 'منذ يوم';
+      if (days == 2) return 'منذ يومين';
+      return 'منذ $days أيام';
+    } catch (_) {
+      return '';
+    }
+  }
+
   // Handle status update
   Future<void> _updateStatus(String newStatus, {bool openWhatsApp = false}) async {
     setState(() {
@@ -557,50 +613,118 @@ class _OrderCardState extends State<OrderCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // 1. Header: Order ID & Status & Driver share
+          // 1. Header: Order ID & Status & Driver share + Assignment Time
           Container(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
             decoration: BoxDecoration(
               color: isDelivering ? const Color(0xFFFFF7ED).withValues(alpha: 0.6) : const Color(0xFFF8FAFC),
               borderRadius: const BorderRadius.vertical(top: Radius.circular(19)),
               border: const Border(bottom: BorderSide(color: Color(0xFFF1F5F9))),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Expanded(
-                  child: Row(
-                    children: [
-                      Text(
-                        '#${order.id}',
-                        style: GoogleFonts.alexandria(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w900,
-                          color: const Color(0xFF0F172A),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Text(
+                            '#${order.id}',
+                            style: GoogleFonts.alexandria(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w900,
+                              color: const Color(0xFF0F172A),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Flexible(child: _buildStatusBadge()),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    // Driver fee
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          'أجرتك',
+                          style: GoogleFonts.alexandria(fontSize: 10, color: const Color(0xFF64748B)),
+                        ),
+                        Text(
+                          '${_formatCurrency(order.driverFee)} ل.س',
+                          style: GoogleFonts.alexandria(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                            color: AppConstants.primaryDark,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                // Assignment time row
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.access_time_rounded, size: 13, color: AppConstants.primaryOrange),
+                          const SizedBox(width: 5),
+                          Text(
+                            'وقت الإسناد:',
+                            style: GoogleFonts.alexandria(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF64748B),
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            _formatAssignmentTime(order.assignedAt ?? order.createdAt),
+                            style: GoogleFonts.alexandria(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                              color: const Color(0xFF0F172A),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (_formatTimeAgo(order.assignedAt ?? order.createdAt).isNotEmpty)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2.5),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFF7ED),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: const Color(0xFFFED7AA)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.timelapse_rounded, size: 11, color: AppConstants.primaryOrange),
+                            const SizedBox(width: 4),
+                            Text(
+                              _formatTimeAgo(order.assignedAt ?? order.createdAt),
+                              style: GoogleFonts.alexandria(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                color: const Color(0xFFC2410C),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(width: 6),
-                      Flexible(child: _buildStatusBadge()),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                // Driver fee
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      'أجرتك',
-                      style: GoogleFonts.alexandria(fontSize: 10, color: const Color(0xFF64748B)),
-                    ),
-                    Text(
-                      '${_formatCurrency(order.driverFee)} ل.س',
-                      style: GoogleFonts.alexandria(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w800,
-                        color: AppConstants.primaryDark,
-                      ),
-                    ),
                   ],
                 ),
               ],

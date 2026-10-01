@@ -160,6 +160,7 @@ export function AdminOrdersTable({
           driver_fee: newDriverFee,
           office_fee: newOfficeFee,
           status: newStatus,
+          assigned_at: newDriverId ? new Date().toISOString() : null,
         })
         .eq('id', order.id)
         .select()

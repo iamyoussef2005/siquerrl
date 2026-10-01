@@ -538,6 +538,7 @@ export function NewOrderForm({ onOrderCreated, drivers = [] }: NewOrderFormProps
         office_fee: assignedDriver ? calculatedOfficeShare : 0,
         status: assignedDriver ? 'assigned' : 'pending',
         driver_id: assignedDriver ? assignedDriver.id : null,
+        assigned_at: assignedDriver ? new Date().toISOString() : null,
       };
 
       const { data, error } = await supabase

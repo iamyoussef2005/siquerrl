@@ -255,6 +255,9 @@ export function EditOrderModal({
             items_price: parsedItems,
             driver_id: assignedDriverId,
             status: selectedStatus,
+            ...(assignedDriverId !== order.driver_id
+              ? { assigned_at: assignedDriverId ? new Date().toISOString() : null }
+              : {}),
           }
         : {}),
     };

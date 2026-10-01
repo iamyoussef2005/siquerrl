@@ -37,7 +37,8 @@ CREATE TABLE IF NOT EXISTS public.orders (
     driver_fee NUMERIC(12, 2) NOT NULL DEFAULT 0,
     office_fee NUMERIC(12, 2) NOT NULL DEFAULT 0,
     status TEXT NOT NULL DEFAULT 'pending', -- pending, assigned, delivering, delivered, cancelled
-    created_at TIMESTAMPTZ DEFAULT now()
+    created_at TIMESTAMPTZ DEFAULT now(),
+    assigned_at TIMESTAMPTZ
 );
 
 -- فهارس للطلبات

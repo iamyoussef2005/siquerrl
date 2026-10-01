@@ -16,6 +16,7 @@ class OrderModel {
   final String status;
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  final DateTime? assignedAt;
 
   OrderModel({
     required this.id,
@@ -35,6 +36,7 @@ class OrderModel {
     required this.status,
     this.createdAt,
     this.updatedAt,
+    this.assignedAt,
   });
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
@@ -66,6 +68,7 @@ class OrderModel {
       status: json['status']?.toString() ?? 'pending',
       createdAt: json['created_at'] != null ? DateTime.tryParse(json['created_at']) : null,
       updatedAt: json['updated_at'] != null ? DateTime.tryParse(json['updated_at']) : null,
+      assignedAt: json['assigned_at'] != null ? DateTime.tryParse(json['assigned_at']) : null,
     );
   }
 
@@ -86,6 +89,7 @@ class OrderModel {
       'driver_fee': driverFee,
       'office_fee': officeFee,
       'status': status,
+      'assigned_at': assignedAt?.toIso8601String(),
     };
   }
 
@@ -94,6 +98,7 @@ class OrderModel {
     double? collectionAmount,
     String? status,
     DateTime? updatedAt,
+    DateTime? assignedAt,
   }) {
     return OrderModel(
       id: id,
@@ -113,6 +118,7 @@ class OrderModel {
       status: status ?? this.status,
       createdAt: createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      assignedAt: assignedAt ?? this.assignedAt,
     );
   }
 }

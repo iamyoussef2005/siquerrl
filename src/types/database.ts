@@ -52,6 +52,8 @@ export interface Order {
   office_fee: number;
   status: OrderStatus;
   created_at?: string;
+  assigned_at?: string | null;
+  updated_at?: string | null;
 }
 
 export interface OrderFormData {
