@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 import { notifyDriverAssignment } from '@/lib/notificationClient';
 import { useAuth } from '@/contexts/AuthContext';
@@ -32,6 +32,9 @@ interface EditOrderModalProps {
   onClose: () => void;
   onOrderUpdated: (updatedOrder: Order) => void;
   drivers?: Profile[];
+  isDriverOnline?: (driverId?: string | null) => boolean;
+  formatLastSeen?: (lastSeenAt?: string | null, isOnline?: boolean) => string;
+  sortDriversByPresence?: (drivers: Profile[]) => Profile[];
 }
 
 export function EditOrderModal({
@@ -40,9 +43,17 @@ export function EditOrderModal({
   onClose,
   onOrderUpdated,
   drivers,
+  isDriverOnline,
+  formatLastSeen,
+  sortDriversByPresence,
 }: EditOrderModalProps) {
   const { role } = useAuth();
   const isAdmin = role === 'admin';
+
+  const sortedDriversList = useMemo(() => {
+    if (!drivers) return [];
+    return sortDriversByPresence ? sortDriversByPresence(drivers) : drivers;
+  }, [drivers, sortDriversByPresence]);
 
   const formatCurrency = (val: number) => {
     return new Intl.NumberFormat('en-US').format(val || 0);
@@ -724,10 +735,27 @@ export function EditOrderModal({
 
                 {/* 3. إسناد المندوب */}
                 <div>
-                  <label className="block text-[11px] font-bold text-blue-950 mb-1 flex items-center justify-between">
-                    <span>المندوب المسند</span>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-[11px] font-bold text-blue-950 flex items-center gap-1.5">
+                      <span>المندوب المسند</span>
+                      {selectedDriverId && (
+                        isDriverOnline?.(selectedDriverId) ? (
+                          <span className="text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded font-bold border border-emerald-200 flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            متصل الآن
+                          </span>
+                        ) : (
+                          <span className="text-[9px] text-slate-500 bg-slate-100 px-1.5 py-0.2 rounded font-mono">
+                            {formatLastSeen?.(
+                              drivers?.find((d) => d.id === selectedDriverId)?.last_seen_at,
+                              false
+                            ) || 'غير متصل'}
+                          </span>
+                        )
+                      )}
+                    </label>
                     <span className="text-[9px] text-blue-700 bg-blue-100 px-1.5 py-0.2 rounded font-bold">اختياري</span>
-                  </label>
+                  </div>
                   <select
                     value={selectedDriverId}
                     onChange={(e) => {
@@ -743,11 +771,15 @@ export function EditOrderModal({
                     className="w-full bg-white border border-slate-300 hover:border-slate-400 focus:border-orange-500 rounded-xl p-2 text-xs text-slate-900 font-semibold focus:outline-hidden cursor-pointer"
                   >
                     <option value="">-- بدون إسناد (بانتظار الإسناد) --</option>
-                    {drivers?.map((d) => (
-                      <option key={d.id} value={d.id}>
-                        {d.name} {d.phone ? `(${d.phone})` : ''} - عمولة {d.commission_percentage ?? 70}%
-                      </option>
-                    ))}
+                    {sortedDriversList.map((d) => {
+                      const isOnline = isDriverOnline ? isDriverOnline(d.id) : false;
+                      const lastSeen = formatLastSeen ? formatLastSeen(d.last_seen_at, isOnline) : '';
+                      return (
+                        <option key={d.id} value={d.id}>
+                          {isOnline ? '🟢' : '⚪'} {d.name} {isOnline ? '(متصل)' : `(${lastSeen})`} - عمولة {d.commission_percentage ?? 70}%
+                        </option>
+                      );
+                    })}
                   </select>
                 </div>
 

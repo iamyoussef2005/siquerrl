@@ -30,6 +30,8 @@ export interface Profile {
   role: UserRole;
   commission_percentage?: number;
   created_at?: string;
+  last_seen_at?: string | null;
+  is_online?: boolean;
 }
 
 export type OrderStatus = 'pending' | 'assigned' | 'preparing' | 'delivering' | 'delivered' | 'cancelled';

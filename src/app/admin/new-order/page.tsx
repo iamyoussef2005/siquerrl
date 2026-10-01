@@ -47,6 +47,8 @@ export default function AdminNewOrderPage() {
               ? Number(d.commission_percentage)
               : 70,
           created_at: d.created_at,
+          last_seen_at: d.last_seen_at,
+          is_online: d.is_online,
         }));
         setDrivers(mapped);
       }

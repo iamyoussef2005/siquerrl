@@ -24,6 +24,7 @@ interface CallCenterHeaderProps {
   ordersCountToday?: number;
   activeView?: 'create' | 'table';
   onChangeView?: (view: 'create' | 'table') => void;
+  onlineDriversCount?: number;
 }
 
 export function CallCenterHeader({
@@ -34,6 +35,7 @@ export function CallCenterHeader({
   ordersCountToday = 0,
   activeView = 'create',
   onChangeView,
+  onlineDriversCount,
 }: CallCenterHeaderProps) {
   const { profile, user, logout } = useAuth();
 
@@ -112,10 +114,16 @@ export function CallCenterHeader({
             <button
               onClick={onOpenDriversModal}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/95 hover:bg-orange-50/80 border border-orange-200/80 hover:border-orange-300 text-xs font-bold text-zinc-800 shadow-2xs transition-all duration-150 cursor-pointer active:scale-95"
-              title="الاطلاع على المناديب المتاحين"
+              title="الاطلاع على المناديب المتاحين ونشاطهم"
             >
               <Bike className="w-3.5 h-3.5 text-orange-600" />
               <span>المناديب المتاحين</span>
+              {onlineDriversCount !== undefined && (
+                <span className="flex items-center gap-1 px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 mr-0.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  {onlineDriversCount}
+                </span>
+              )}
             </button>
           )}
 

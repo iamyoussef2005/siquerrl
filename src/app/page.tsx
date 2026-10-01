@@ -15,6 +15,7 @@ import { OrdersCleanupModal } from '@/components/admin/OrdersCleanupModal';
 import { Bell, Calendar, Clock, Layers } from 'lucide-react';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
+import { useDriversPresence } from '@/hooks/useDriversPresence';
 
 export type DateFilter = 'today' | '24h' | 'all';
 
@@ -31,6 +32,14 @@ export default function AdminHomePage() {
   const [isReportsModalOpen, setIsReportsModalOpen] = useState(false);
   const [isStaffModalOpen, setIsStaffModalOpen] = useState(false);
   const [isCleanupModalOpen, setIsCleanupModalOpen] = useState(false);
+
+  // Live Realtime Presence tracking for Drivers
+  const {
+    isDriverOnline,
+    formatLastSeen,
+    sortDriversByPresence,
+    onlineCount,
+  } = useDriversPresence(drivers);
 
   // If user is call_center, redirect immediately to /call-center
   useEffect(() => {
@@ -72,6 +81,8 @@ export default function AdminHomePage() {
           role: d.role,
           commission_percentage: d.commission_percentage !== null && d.commission_percentage !== undefined ? Number(d.commission_percentage) : 70,
           created_at: d.created_at,
+          last_seen_at: d.last_seen_at,
+          is_online: d.is_online,
         }));
         setDrivers(mapped);
       }
@@ -155,6 +166,13 @@ export default function AdminHomePage() {
               setOrders((prev) => prev.filter((o) => o.id !== deleted.id));
             }
           }
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'profiles' },
+        () => {
+          fetchDrivers();
         }
       )
       .subscribe((status) => {
@@ -287,6 +305,10 @@ export default function AdminHomePage() {
             selectedDriverId={selectedDriverId}
             onSelectDriverId={setSelectedDriverId}
             isLoading={isLoading}
+            isDriverOnline={isDriverOnline}
+            formatLastSeen={formatLastSeen}
+            sortDriversByPresence={sortDriversByPresence}
+            onlineCount={onlineCount}
           />
         </main>
 
@@ -315,6 +337,9 @@ export default function AdminHomePage() {
           onClose={() => setEditingOrder(null)}
           onOrderUpdated={handleOrderUpdated}
           drivers={drivers}
+          isDriverOnline={isDriverOnline}
+          formatLastSeen={formatLastSeen}
+          sortDriversByPresence={sortDriversByPresence}
         />
 
         {/* نافذة إدارة وتحديد نسب عمولات المناديب للمدير */}

@@ -5,6 +5,7 @@ import '../../core/constants.dart';
 import '../../models/order_model.dart';
 import '../../models/profile_model.dart';
 import '../../services/order_service.dart';
+import '../../services/presence_service.dart';
 import 'widgets/driver_summary_header.dart';
 import 'widgets/empty_orders_view.dart';
 import 'widgets/order_card.dart';
@@ -18,7 +19,7 @@ class DriverHomeScreen extends StatefulWidget {
   State<DriverHomeScreen> createState() => _DriverHomeScreenState();
 }
 
-class _DriverHomeScreenState extends State<DriverHomeScreen> {
+class _DriverHomeScreenState extends State<DriverHomeScreen> with WidgetsBindingObserver {
   List<OrderModel> _orders = [];
   DriverStats _stats = DriverStats(
     activeOrdersCount: 0,
@@ -31,12 +32,32 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    PresenceService.startPresence(driverName: widget.driverProfile.fullName);
     _loadData();
     _setupRealtime();
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    switch (state) {
+      case AppLifecycleState.resumed:
+        PresenceService.resumePresence();
+        break;
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.paused:
+      case AppLifecycleState.detached:
+      case AppLifecycleState.hidden:
+        PresenceService.pausePresence();
+        break;
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    PresenceService.pausePresence();
     _realtimeChannel?.unsubscribe();
     super.dispose();
   }

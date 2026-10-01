@@ -9,6 +9,7 @@ import { TodayOrdersTable } from '@/components/TodayOrdersTable';
 import { AvailableDriversModal } from '@/components/callcenter/AvailableDriversModal';
 import { EditOrderModal } from '@/components/admin/EditOrderModal';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { useDriversPresence } from '@/hooks/useDriversPresence';
 import {
   Bell,
   Clock,
@@ -31,6 +32,9 @@ export default function CallCenterPage() {
   const [highlightedOrderId, setHighlightedOrderId] = useState<string | number | null>(null);
   const [isDriversModalOpen, setIsDriversModalOpen] = useState(false);
   const [editingOrder, setEditingOrder] = useState<Order | null>(null);
+
+  // Driver presence tracking
+  const { onlineCount } = useDriversPresence(drivers);
 
   // Notification Toast
   const showNotification = (msg: string) => {
@@ -61,6 +65,8 @@ export default function CallCenterPage() {
           role: d.role,
           commission_percentage: Number(d.commission_percentage) || 70,
           created_at: d.created_at,
+          last_seen_at: d.last_seen_at,
+          is_online: d.is_online,
         }));
         setDrivers(mapped);
       }
@@ -128,6 +134,13 @@ export default function CallCenterPage() {
           }
         }
       )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'profiles' },
+        () => {
+          fetchDrivers();
+        }
+      )
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
           setRealtimeConnected(true);
@@ -182,6 +195,7 @@ export default function CallCenterPage() {
           ordersCountToday={totalCount}
           activeView={activeView}
           onChangeView={setActiveView}
+          onlineDriversCount={onlineCount}
         />
 
         {/* إشعار عائم للتحديثات اللحظية */}

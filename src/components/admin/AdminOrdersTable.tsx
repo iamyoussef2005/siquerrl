@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 import { notifyDriverAssignment } from '@/lib/notificationClient';
 import { Order, OrderStatus, Profile } from '@/types/database';
@@ -22,6 +22,7 @@ import {
   X,
   Package,
   Check,
+  Wifi,
 } from 'lucide-react';
 
 interface AdminOrdersTableProps {
@@ -32,6 +33,10 @@ interface AdminOrdersTableProps {
   selectedDriverId: string;
   onSelectDriverId: (id: string) => void;
   isLoading: boolean;
+  isDriverOnline?: (id?: string | null) => boolean;
+  formatLastSeen?: (lastSeenAt?: string | null, isOnline?: boolean) => string;
+  sortDriversByPresence?: (drivers: Profile[]) => Profile[];
+  onlineCount?: number;
 }
 
 export function AdminOrdersTable({
@@ -42,6 +47,10 @@ export function AdminOrdersTable({
   selectedDriverId,
   onSelectDriverId,
   isLoading,
+  isDriverOnline,
+  formatLastSeen,
+  sortDriversByPresence,
+  onlineCount,
 }: AdminOrdersTableProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -49,6 +58,10 @@ export function AdminOrdersTable({
   const [updatingOrderId, setUpdatingOrderId] = useState<string | number | null>(null);
   const [editingFeeOrderId, setEditingFeeOrderId] = useState<string | number | null>(null);
   const [tempDeliveryFee, setTempDeliveryFee] = useState<string>('');
+
+  const sortedDrivers = useMemo(() => {
+    return sortDriversByPresence ? sortDriversByPresence(drivers) : drivers;
+  }, [drivers, sortDriversByPresence]);
 
   // Unset fee orders count for quick indicator badge
   const unsetFeeOrdersCount = orders.filter(
@@ -308,6 +321,15 @@ export function AdminOrdersTable({
               <span className="px-2 py-0.5 text-[11px] font-bold bg-white text-orange-800 rounded-md border border-orange-200 font-mono shadow-2xs">
                 {filteredOrders.length} طلب
               </span>
+              {onlineCount !== undefined && (
+                <span
+                  className="px-2 py-0.5 text-[11px] font-bold bg-emerald-50 text-emerald-800 rounded-md border border-emerald-200 shadow-2xs flex items-center gap-1.5"
+                  title="المناديب النشطين الذين لديهم التطبيق مفتوح الآن"
+                >
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span>{onlineCount} متصل الآن</span>
+                </span>
+              )}
             </div>
             <p className="text-[11px] text-zinc-500">إسناد الطلبات للمناديب وتدقيق الحسابات</p>
           </div>
@@ -362,12 +384,17 @@ export function AdminOrdersTable({
               onChange={(e) => onSelectDriverId(e.target.value)}
               className="w-full bg-white border border-orange-200/80 hover:border-orange-300 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 rounded-xl px-3 py-1.5 text-xs text-zinc-800 font-semibold focus:outline-hidden cursor-pointer appearance-none pl-7 shadow-2xs"
             >
-              <option value="all">جميع المناديب</option>
-              {drivers.map((drv) => (
-                <option key={drv.id} value={drv.id}>
-                  {drv.name}
-                </option>
-              ))}
+              <option value="all">
+                جميع المناديب {onlineCount ? `(${onlineCount} متصل)` : ''}
+              </option>
+              {sortedDrivers.map((drv) => {
+                const isOnline = isDriverOnline ? isDriverOnline(drv.id) : false;
+                return (
+                  <option key={drv.id} value={drv.id}>
+                    {isOnline ? '🟢' : '⚪'} {drv.name} {isOnline ? '(متصل الآن)' : ''}
+                  </option>
+                );
+              })}
             </select>
             <UserCheck className="w-3.5 h-3.5 text-zinc-400 absolute left-2 top-2 pointer-events-none" />
           </div>
@@ -598,7 +625,7 @@ export function AdminOrdersTable({
 
                     {/* إسناد المندوب */}
                     <td className="py-3 px-4 whitespace-nowrap">
-                      <div className="relative inline-block w-38">
+                      <div className="relative inline-block w-44">
                         <select
                           disabled={isUpdating || order.status === 'delivered' || order.status === 'cancelled'}
                           value={order.driver_id || ''}
@@ -606,16 +633,37 @@ export function AdminOrdersTable({
                           className="w-full bg-white border border-orange-200/80 hover:border-orange-300 rounded-lg px-2 py-1 text-xs text-zinc-800 focus:outline-hidden focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-2xs font-medium"
                         >
                           <option value="">لم يُسند</option>
-                          {drivers.map((drv) => (
-                            <option key={drv.id} value={drv.id}>
-                              {drv.name} ({drv.commission_percentage ?? 70}%)
-                            </option>
-                          ))}
+                          {sortedDrivers.map((drv) => {
+                            const isOnline = isDriverOnline ? isDriverOnline(drv.id) : false;
+                            const lastSeen = formatLastSeen ? formatLastSeen(drv.last_seen_at, isOnline) : '';
+                            return (
+                              <option key={drv.id} value={drv.id}>
+                                {isOnline ? '🟢' : '⚪'} {drv.name} {isOnline ? '(متصل)' : `(${lastSeen})`} - ({drv.commission_percentage ?? 70}%)
+                              </option>
+                            );
+                          })}
                         </select>
                         {isUpdating && (
                           <Loader2 className="w-3.5 h-3.5 animate-spin text-orange-500 absolute left-2 top-2 pointer-events-none" />
                         )}
                       </div>
+                      {order.driver_id && (
+                        <div className="mt-1 flex items-center gap-1.5 text-[10px]">
+                          {isDriverOnline?.(order.driver_id) ? (
+                            <span className="inline-flex items-center gap-1 text-emerald-700 font-semibold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                              <span>متصل الآن</span>
+                            </span>
+                          ) : (
+                            <span className="text-zinc-500 text-[10px] font-mono">
+                              {formatLastSeen?.(
+                                drivers.find((d) => d.id === order.driver_id)?.last_seen_at,
+                                false
+                              ) || 'غير متصل'}
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </td>
 
                     {/* الحالة */}

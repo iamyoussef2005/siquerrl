@@ -5,6 +5,8 @@ class ProfileModel {
   final String? phone;
   final double commissionPercentage;
   final DateTime? createdAt;
+  final DateTime? lastSeenAt;
+  final bool isOnline;
 
   ProfileModel({
     required this.id,
@@ -13,6 +15,8 @@ class ProfileModel {
     this.phone,
     this.commissionPercentage = 70.0,
     this.createdAt,
+    this.lastSeenAt,
+    this.isOnline = false,
   });
 
   factory ProfileModel.fromJson(Map<String, dynamic> json) {
@@ -25,6 +29,8 @@ class ProfileModel {
           ? double.tryParse(json['commission_percentage'].toString()) ?? 70.0
           : 70.0,
       createdAt: json['created_at'] != null ? DateTime.tryParse(json['created_at']) : null,
+      lastSeenAt: json['last_seen_at'] != null ? DateTime.tryParse(json['last_seen_at']) : null,
+      isOnline: json['is_online'] == true,
     );
   }
 
@@ -35,6 +41,8 @@ class ProfileModel {
       'role': role,
       'phone': phone,
       'commission_percentage': commissionPercentage,
+      'last_seen_at': lastSeenAt?.toIso8601String(),
+      'is_online': isOnline,
     };
   }
 }

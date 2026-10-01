@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 import { notifyDriverAssignment } from '@/lib/notificationClient';
 import { Customer, CustomerAddress, Order, Profile } from '@/types/database';
 import { useAuth } from '@/contexts/AuthContext';
+import { useDriversPresence } from '@/hooks/useDriversPresence';
 import {
   Phone,
   User,
@@ -41,6 +42,10 @@ interface NewOrderFormProps {
 export function NewOrderForm({ onOrderCreated, drivers = [] }: NewOrderFormProps) {
   const { role } = useAuth();
   const isAdmin = role === 'admin';
+
+  // Live driver presence tracking
+  const { isDriverOnline, formatLastSeen, sortDriversByPresence } = useDriversPresence(drivers);
+  const sortedDrivers = useMemo(() => sortDriversByPresence(drivers), [drivers, sortDriversByPresence]);
 
   // Form State
   const [phone, setPhone] = useState('');
@@ -1091,21 +1096,42 @@ export function NewOrderForm({ onOrderCreated, drivers = [] }: NewOrderFormProps
 
                 {/* 3. إسناد المندوب مباشرة */}
                 <div>
-                  <label className="block text-xs font-bold text-slate-800 mb-1.5 flex items-center justify-between">
-                    <span>إسناد المندوب</span>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                      <span>إسناد المندوب</span>
+                      {selectedDriverId && (
+                        isDriverOnline(selectedDriverId) ? (
+                          <span className="text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded font-bold border border-emerald-200 flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            متصل الآن
+                          </span>
+                        ) : (
+                          <span className="text-[9px] text-slate-500 bg-slate-100 px-1.5 py-0.2 rounded font-mono">
+                            {formatLastSeen(
+                              drivers.find((d) => d.id === selectedDriverId)?.last_seen_at,
+                              false
+                            ) || 'غير متصل'}
+                          </span>
+                        )
+                      )}
+                    </label>
                     <span className="text-[10px] text-blue-700 bg-blue-100 px-1.5 py-0.2 rounded font-bold">اختياري</span>
-                  </label>
+                  </div>
                   <select
                     value={selectedDriverId}
                     onChange={(e) => setSelectedDriverId(e.target.value)}
                     className="w-full bg-white border border-slate-300 hover:border-slate-400 focus:border-orange-500 rounded-xl px-3 py-2 text-xs text-slate-900 font-semibold focus:outline-hidden cursor-pointer"
                   >
                     <option value="">-- بدون إسناد (بانتظار الإسناد) --</option>
-                    {drivers.map((d) => (
-                      <option key={d.id} value={d.id}>
-                        {d.name} {d.phone ? `(${d.phone})` : ''} - عمولة {d.commission_percentage ?? 70}%
-                      </option>
-                    ))}
+                    {sortedDrivers.map((d) => {
+                      const isOnline = isDriverOnline(d.id);
+                      const lastSeen = formatLastSeen(d.last_seen_at, isOnline);
+                      return (
+                        <option key={d.id} value={d.id}>
+                          {isOnline ? '🟢' : '⚪'} {d.name} {isOnline ? '(متصل)' : `(${lastSeen})`} - عمولة {d.commission_percentage ?? 70}%
+                        </option>
+                      );
+                    })}
                   </select>
                 </div>
               </div>
