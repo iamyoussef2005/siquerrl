@@ -21,6 +21,9 @@ import {
   User,
   Phone,
   Lock,
+  Pencil,
+  Trash2,
+  AlertTriangle,
 } from 'lucide-react';
 
 interface EditOrderModalProps {
@@ -59,6 +62,16 @@ export function EditOrderModal({
   const [selectedDriverId, setSelectedDriverId] = useState<string>('');
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus>('pending');
   const [savedAddresses, setSavedAddresses] = useState<CustomerAddress[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+
+  // Address edit/delete state
+  const [editingAddress, setEditingAddress] = useState<CustomerAddress | null>(null);
+  const [editAddressText, setEditAddressText] = useState('');
+  const [editAddressTitle, setEditAddressTitle] = useState('');
+  const [editAddressMaps, setEditAddressMaps] = useState('');
+  const [isUpdatingAddress, setIsUpdatingAddress] = useState(false);
+  const [deletingAddressId, setDeletingAddressId] = useState<string | null>(null);
+  const [isDeletingAddress, setIsDeletingAddress] = useState(false);
 
   const [isSaving, setIsSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -79,6 +92,9 @@ export function EditOrderModal({
       setOfficeFee(String(order.office_fee ?? ''));
       setSelectedDriverId(order.driver_id || '');
       setSelectedStatus(order.status || 'pending');
+      setSelectedAddressId(null);
+      setEditingAddress(null);
+      setDeletingAddressId(null);
       setErrorMsg(null);
 
       // جلب عناوين الزبون المسجلة إن وجد معرف للزبون
@@ -102,6 +118,93 @@ export function EditOrderModal({
   }, [order]);
 
   if (!isOpen || !order) return null;
+
+  // حذف عنوان من قاعدة البيانات
+  const handleDeleteAddress = async (addrId: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (!addrId) return;
+
+    setIsDeletingAddress(true);
+    try {
+      const { error } = await supabase
+        .from('customer_addresses')
+        .delete()
+        .eq('id', addrId);
+
+      if (error) {
+        console.error('Error deleting address:', error);
+        alert('تعذر حذف العنوان: ' + error.message);
+        return;
+      }
+
+      setSavedAddresses((prev) => prev.filter((a) => a.id !== addrId));
+      setDeletingAddressId(null);
+      if (selectedAddressId === addrId) {
+        setSelectedAddressId(null);
+      }
+    } catch (err: any) {
+      console.error('Delete address error:', err);
+    } finally {
+      setIsDeletingAddress(false);
+    }
+  };
+
+  // فتح نافذة تعديل العنوان
+  const handleOpenEditAddress = (addr: CustomerAddress, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setEditingAddress(addr);
+    setEditAddressText(addr.address);
+    setEditAddressTitle(addr.title || '');
+    setEditAddressMaps(addr.maps_url || '');
+  };
+
+  // حفظ التعديلات على العنوان مباشرة
+  const handleSaveEditedAddress = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingAddress || !editAddressText.trim()) return;
+
+    setIsUpdatingAddress(true);
+    const cleanText = editAddressText.trim();
+    const cleanTitle = editAddressTitle.trim() || null;
+    const cleanMaps = editAddressMaps.trim() || null;
+
+    try {
+      const { error } = await supabase
+        .from('customer_addresses')
+        .update({
+          address: cleanText,
+          title: cleanTitle,
+          maps_url: cleanMaps,
+        })
+        .eq('id', editingAddress.id);
+
+      if (error) throw error;
+
+      setSavedAddresses((prev) =>
+        prev.map((a) =>
+          a.id === editingAddress.id
+            ? { ...a, address: cleanText, title: cleanTitle, maps_url: cleanMaps }
+            : a
+        )
+      );
+
+      if (
+        selectedAddressId === editingAddress.id ||
+        address.trim().toLowerCase() === editingAddress.address.trim().toLowerCase()
+      ) {
+        setAddress(cleanText);
+        setMapsUrl(cleanMaps || '');
+        setSelectedAddressId(editingAddress.id);
+      }
+
+      setEditingAddress(null);
+    } catch (err: any) {
+      console.error('Error updating address:', err);
+      alert('حدث خطأ أثناء تعديل العنوان: ' + (err.message || ''));
+    } finally {
+      setIsUpdatingAddress(false);
+    }
+  };
 
   // Reset to driver commission split based on assigned driver percentage
   const resetToDefaultSplit = () => {
@@ -166,28 +269,30 @@ export function EditOrderModal({
 
       if (error) throw error;
 
-      // حفظ أو تحديث العنوان الجديد في سجل الزبون
+      // حفظ أو تحديث العنوان في سجل الزبون دون تكرار
       if (order.customer_id && cleanAddress) {
-        const existing = savedAddresses.find(
-          (a) => a.address.trim().toLowerCase() === cleanAddress.toLowerCase()
-        );
-        if (existing) {
+        if (selectedAddressId) {
           await supabase
             .from('customer_addresses')
             .update({
-              last_used_at: new Date().toISOString(),
-              maps_url: cleanMaps || existing.maps_url,
-            })
-            .eq('id', existing.id);
-        } else {
-          await supabase
-            .from('customer_addresses')
-            .insert({
-              customer_id: order.customer_id,
               address: cleanAddress,
               maps_url: cleanMaps,
               last_used_at: new Date().toISOString(),
-            });
+            })
+            .eq('id', selectedAddressId);
+        } else {
+          const existing = savedAddresses.find(
+            (a) => a.address.trim().toLowerCase() === cleanAddress.toLowerCase()
+          );
+          if (existing) {
+            await supabase
+              .from('customer_addresses')
+              .update({
+                last_used_at: new Date().toISOString(),
+                maps_url: cleanMaps || existing.maps_url,
+              })
+              .eq('id', existing.id);
+          }
         }
       }
 
@@ -315,42 +420,116 @@ export function EditOrderModal({
             {/* العناوين السابقة المحفوظة للزبون */}
             {savedAddresses.length > 0 && (
               <div className="bg-white border border-slate-200 rounded-xl p-3 space-y-2 shadow-2xs">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-slate-100 pb-1.5">
                   <span className="text-[11px] font-semibold text-slate-800 flex items-center gap-1.5">
                     <History className="w-3.5 h-3.5 text-orange-600" />
                     <span>عناوين أخرى محفوظة لنفس الزبون ({savedAddresses.length}):</span>
                   </span>
                   <span className="text-[10px] text-slate-500">
-                    انقر لتبديل عنوان هذا الطلب فورياً
+                    انقر لتبديل العنوان، أو عدّل أو احذف العناوين غير المرغوبة
                   </span>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {savedAddresses.map((addr, idx) => {
-                    const isCurrent = address.trim().toLowerCase() === addr.address.trim().toLowerCase();
+                    const isCurrent =
+                      selectedAddressId === addr.id ||
+                      address.trim().toLowerCase() === addr.address.trim().toLowerCase();
+                    const isDeletingThis = deletingAddressId === addr.id;
                     return (
-                      <button
+                      <div
                         key={addr.id || idx}
-                        type="button"
                         onClick={() => {
+                          setSelectedAddressId(addr.id);
                           setAddress(addr.address);
                           if (addr.maps_url) setMapsUrl(addr.maps_url);
                         }}
-                        className={`text-right p-2 rounded-lg border text-xs transition-all flex items-center justify-between gap-2 cursor-pointer ${
+                        className={`text-right p-2.5 rounded-xl border text-xs transition-all flex flex-col justify-between gap-1.5 cursor-pointer relative group ${
                           isCurrent
-                            ? 'bg-orange-50 border-orange-500 text-orange-950 font-semibold shadow-2xs'
+                            ? 'bg-orange-50/90 border-orange-500 text-orange-950 font-semibold shadow-2xs ring-1 ring-orange-500/20'
                             : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-white'
                         }`}
                       >
-                        <div className="flex items-center gap-1.5 min-w-0">
-                          {isCurrent && <Check className="w-3 h-3 text-orange-600 shrink-0" />}
-                          <span className="truncate">{addr.address}</span>
+                        <div className="flex items-center justify-between gap-2 w-full">
+                          <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                            {isCurrent && <Check className="w-3 h-3 text-orange-600 shrink-0" />}
+                            <span className="truncate font-semibold text-[11px] text-slate-900">
+                              {addr.title || (idx === 0 ? 'العنوان الرئيسي' : `عنوان ${idx + 1}`)}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                            {addr.maps_url && (
+                              <a
+                                href={addr.maps_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-[9px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 hover:bg-emerald-100 flex items-center gap-0.5"
+                              >
+                                <Compass className="w-2.5 h-2.5" />
+                                موقع
+                              </a>
+                            )}
+                            <button
+                              type="button"
+                              title="تعديل هذا العنوان"
+                              onClick={(e) => handleOpenEditAddress(addr, e)}
+                              className="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                            >
+                              <Pencil className="w-3 h-3" />
+                            </button>
+                            <button
+                              type="button"
+                              title="حذف هذا العنوان"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setDeletingAddressId(addr.id);
+                              }}
+                              className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
                         </div>
-                        {addr.maps_url && (
-                          <span className="text-[9px] text-emerald-700 bg-emerald-50 px-1 py-0.5 rounded border border-emerald-200 shrink-0">
-                            موقع
-                          </span>
+
+                        <p className="text-[11px] text-slate-600 line-clamp-2 leading-relaxed">
+                          {addr.address}
+                        </p>
+
+                        {/* تأكيد الحذف السريع داخل الكرت */}
+                        {isDeletingThis && (
+                          <div
+                            onClick={(e) => e.stopPropagation()}
+                            className="absolute inset-0 bg-white/95 backdrop-blur-2xs rounded-xl border border-rose-300 p-2 flex flex-col justify-between z-10 animate-in fade-in zoom-in-95 duration-150"
+                          >
+                            <div className="text-[11px] text-rose-700 font-medium flex items-center gap-1">
+                              <AlertTriangle className="w-3.5 h-3.5 shrink-0 text-rose-500" />
+                              <span>حذف هذا العنوان نهائياً؟</span>
+                            </div>
+                            <div className="flex items-center justify-end gap-1.5 pt-1">
+                              <button
+                                type="button"
+                                onClick={() => setDeletingAddressId(null)}
+                                className="px-2 py-0.5 text-[10px] rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium cursor-pointer"
+                              >
+                                إلغاء
+                              </button>
+                              <button
+                                type="button"
+                                disabled={isDeletingAddress}
+                                onClick={(e) => handleDeleteAddress(addr.id, e)}
+                                className="px-2.5 py-0.5 text-[10px] rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-medium flex items-center gap-1 shadow-2xs cursor-pointer"
+                              >
+                                {isDeletingAddress ? (
+                                  <Loader2 className="w-2.5 h-2.5 animate-spin" />
+                                ) : (
+                                  <Trash2 className="w-2.5 h-2.5" />
+                                )}
+                                نعم، احذف
+                              </button>
+                            </div>
+                          </div>
                         )}
-                      </button>
+                      </div>
                     );
                   })}
                 </div>
@@ -645,6 +824,98 @@ export function EditOrderModal({
           </div>
         </form>
       </div>
+
+      {/* نافذة تعديل عنوان الزبون */}
+      {editingAddress && (
+        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-150">
+            <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-orange-50 to-amber-50">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-xl bg-orange-100 text-orange-700">
+                  <Pencil className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900">تعديل عنوان الزبون</h3>
+                  <p className="text-[11px] text-slate-500">
+                    الزبون: {customerName || customerPhone}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingAddress(null)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEditedAddress} className="p-4 sm:p-5 space-y-3.5">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  تسمية العنوان (اختياري)
+                </label>
+                <input
+                  type="text"
+                  placeholder="مثال: المنزل، المكتب، المعمل، بيت الأهل..."
+                  value={editAddressTitle}
+                  onChange={(e) => setEditAddressTitle(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-300 focus:bg-white focus:border-orange-500 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:ring-4 focus:ring-orange-500/10 transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  نص العنوان بالتفصيل <span className="text-rose-500">*</span>
+                </label>
+                <textarea
+                  required
+                  rows={3}
+                  placeholder="المدينة، الحي، الشارع، البناء، الطابق..."
+                  value={editAddressText}
+                  onChange={(e) => setEditAddressText(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-300 focus:bg-white focus:border-orange-500 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:ring-4 focus:ring-orange-500/10 transition-all leading-relaxed"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  رابط موقع الخريطة (Google Maps - اختياري)
+                </label>
+                <input
+                  type="url"
+                  placeholder="https://maps.app.goo.gl/..."
+                  value={editAddressMaps}
+                  onChange={(e) => setEditAddressMaps(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-300 focus:bg-white focus:border-orange-500 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:ring-4 focus:ring-orange-500/10 transition-all dir-ltr text-left font-mono"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setEditingAddress(null)}
+                  className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium transition-all cursor-pointer"
+                >
+                  إلغاء
+                </button>
+                <button
+                  type="submit"
+                  disabled={isUpdatingAddress}
+                  className="flex items-center gap-1.5 px-5 py-2 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold shadow-xs disabled:opacity-50 transition-all cursor-pointer"
+                >
+                  {isUpdatingAddress ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Save className="w-3.5 h-3.5" />
+                  )}
+                  <span>حفظ التعديلات</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -26,6 +26,11 @@ import {
   Plus,
   Check,
   Bike,
+  Pencil,
+  Trash2,
+  AlertTriangle,
+  X,
+  Save,
 } from 'lucide-react';
 
 interface NewOrderFormProps {
@@ -59,6 +64,15 @@ export function NewOrderForm({ onOrderCreated, drivers = [] }: NewOrderFormProps
   const [isSearchingCustomer, setIsSearchingCustomer] = useState(false);
   const [customerFound, setCustomerFound] = useState<boolean | null>(null);
   const [lookupMessage, setLookupMessage] = useState<string>('');
+
+  // Address Editing & Deletion State
+  const [editingAddress, setEditingAddress] = useState<CustomerAddress | null>(null);
+  const [editAddressText, setEditAddressText] = useState('');
+  const [editAddressTitle, setEditAddressTitle] = useState('');
+  const [editAddressMaps, setEditAddressMaps] = useState('');
+  const [isUpdatingAddress, setIsUpdatingAddress] = useState(false);
+  const [deletingAddressId, setDeletingAddressId] = useState<string | null>(null);
+  const [isDeletingAddress, setIsDeletingAddress] = useState(false);
 
   // Submission & UI State
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -207,6 +221,130 @@ export function NewOrderForm({ onOrderCreated, drivers = [] }: NewOrderFormProps
     setMapsUrl('');
   };
 
+  // حذف عنوان من قاعدة البيانات والقائمة
+  const handleDeleteAddress = async (addrId: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (!addrId) return;
+
+    setIsDeletingAddress(true);
+    try {
+      if (addrId !== 'fallback-profile-addr') {
+        const { error } = await supabase
+          .from('customer_addresses')
+          .delete()
+          .eq('id', addrId);
+
+        if (error) {
+          console.error('Error deleting address:', error);
+          alert('تعذر حذف العنوان: ' + error.message);
+          return;
+        }
+      }
+
+      // تحديث القائمة المحلية
+      const updatedList = savedAddresses.filter((a) => a.id !== addrId);
+      setSavedAddresses(updatedList);
+      setDeletingAddressId(null);
+
+      // في حال كان العنوان المحذوف هو المحدد حالياً
+      if (selectedAddressId === addrId) {
+        if (updatedList.length > 0) {
+          const next = updatedList.find((a) => a.is_default) || updatedList[0];
+          setSelectedAddressId(next.id);
+          setDeliveryAddress(next.address);
+          setMapsUrl(next.maps_url || '');
+        } else {
+          setSelectedAddressId('new');
+          setDeliveryAddress('');
+          setMapsUrl('');
+        }
+      }
+    } catch (err: any) {
+      console.error('Delete address error:', err);
+    } finally {
+      setIsDeletingAddress(false);
+    }
+  };
+
+  // فتح نافذة تعديل العنوان
+  const handleOpenEditAddress = (addr: CustomerAddress, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setEditingAddress(addr);
+    setEditAddressText(addr.address);
+    setEditAddressTitle(addr.title || '');
+    setEditAddressMaps(addr.maps_url || '');
+  };
+
+  // حفظ التعديلات على العنوان مباشرة
+  const handleSaveEditedAddress = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingAddress || !editAddressText.trim()) return;
+
+    setIsUpdatingAddress(true);
+    const cleanText = editAddressText.trim();
+    const cleanTitle = editAddressTitle.trim() || null;
+    const cleanMaps = editAddressMaps.trim() || null;
+
+    try {
+      let finalId = editingAddress.id;
+
+      if (editingAddress.id !== 'fallback-profile-addr') {
+        const { error } = await supabase
+          .from('customer_addresses')
+          .update({
+            address: cleanText,
+            title: cleanTitle,
+            maps_url: cleanMaps,
+          })
+          .eq('id', editingAddress.id);
+
+        if (error) throw error;
+      } else if (customerId) {
+        // تحويل العنوان المؤقت إلى عنوان دائم في customer_addresses
+        const { data: newRow, error } = await supabase
+          .from('customer_addresses')
+          .insert({
+            customer_id: customerId,
+            address: cleanText,
+            title: cleanTitle,
+            maps_url: cleanMaps,
+            is_default: true,
+            last_used_at: new Date().toISOString(),
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+        if (newRow) {
+          finalId = newRow.id;
+        }
+      }
+
+      // تحديث الحالة في الواجهة فورياً
+      setSavedAddresses((prev) =>
+        prev.map((a) =>
+          a.id === editingAddress.id
+            ? { ...a, id: finalId, address: cleanText, title: cleanTitle, maps_url: cleanMaps }
+            : a
+        )
+      );
+
+      // في حال كان هذا العنوان هو المحدد في النموذج
+      if (selectedAddressId === editingAddress.id || selectedAddressId === finalId) {
+        setSelectedAddressId(finalId);
+        setDeliveryAddress(cleanText);
+        setMapsUrl(cleanMaps || '');
+      }
+
+      setEditingAddress(null);
+    } catch (err: any) {
+      console.error('Error updating address:', err);
+      alert('حدث خطأ أثناء تعديل العنوان: ' + (err.message || ''));
+    } finally {
+      setIsUpdatingAddress(false);
+    }
+  };
+
   // Reset Form
   const resetForm = () => {
     setPhone('');
@@ -275,30 +413,55 @@ export function NewOrderForm({ onOrderCreated, drivers = [] }: NewOrderFormProps
       const cleanMaps = mapsUrl.trim() || null;
 
       if (resolvedCustomerId && cleanAddress) {
-        const existingMatch = savedAddresses.find(
-          (a) => a.address.trim().toLowerCase() === cleanAddress.toLowerCase()
-        );
-
-        if (existingMatch && existingMatch.id !== 'fallback-profile-addr') {
-          // تحديث توقيت آخر استخدام ورابط الخريطة إن وجد جديد
-          await supabase
-            .from('customer_addresses')
-            .update({
-              last_used_at: new Date().toISOString(),
-              maps_url: cleanMaps || existingMatch.maps_url,
-            })
-            .eq('id', existingMatch.id);
+        if (selectedAddressId && selectedAddressId !== 'new') {
+          // الحالة 1: تم تعديل أو استخدام عنوان موجود مسبقاً -> تحديث العنوان نفسه (لا تكرار ولا مربعات جديدة)
+          if (selectedAddressId !== 'fallback-profile-addr') {
+            await supabase
+              .from('customer_addresses')
+              .update({
+                address: cleanAddress,
+                maps_url: cleanMaps,
+                last_used_at: new Date().toISOString(),
+              })
+              .eq('id', selectedAddressId);
+          } else {
+            // تحويل العنوان المؤقت إلى دائم
+            await supabase
+              .from('customer_addresses')
+              .insert({
+                customer_id: resolvedCustomerId,
+                address: cleanAddress,
+                maps_url: cleanMaps,
+                is_default: true,
+                last_used_at: new Date().toISOString(),
+              });
+          }
         } else {
-          // إضافة العنوان كعنوان جديد لهذا الزبون
-          await supabase
-            .from('customer_addresses')
-            .insert({
-              customer_id: resolvedCustomerId,
-              address: cleanAddress,
-              maps_url: cleanMaps,
-              is_default: savedAddresses.length === 0,
-              last_used_at: new Date().toISOString(),
-            });
+          // الحالة 2: اختار المستخدم عمداً إضافة عنوان جديد (+ إضافة عنوان جديد)
+          // نتحقق أولاً هل العنوان موجود بنفس النص تماماً لتجنب أي تكرار
+          const existingExact = savedAddresses.find(
+            (a) => a.address.trim().toLowerCase() === cleanAddress.toLowerCase()
+          );
+
+          if (existingExact && existingExact.id !== 'fallback-profile-addr') {
+            await supabase
+              .from('customer_addresses')
+              .update({
+                last_used_at: new Date().toISOString(),
+                maps_url: cleanMaps || existingExact.maps_url,
+              })
+              .eq('id', existingExact.id);
+          } else {
+            await supabase
+              .from('customer_addresses')
+              .insert({
+                customer_id: resolvedCustomerId,
+                address: cleanAddress,
+                maps_url: cleanMaps,
+                is_default: savedAddresses.length === 0,
+                last_used_at: new Date().toISOString(),
+              });
+          }
         }
       }
 
@@ -604,19 +767,19 @@ export function NewOrderForm({ onOrderCreated, drivers = [] }: NewOrderFormProps
                     <span>العناوين المحفوظة لهذا الزبون ({savedAddresses.length})</span>
                   </span>
                   <span className="text-[11px] text-slate-500">
-                    اختر عنواناً مسجلاً لتعبئته فورياً أو أضف عنواناً جديداً
+                    اختر عنواناً لتعديله أو استخدامه، أو انقر على القلم لتعديل تفاصيله أو سلة المهملات لحذفه
                   </span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                   {savedAddresses.map((addr, idx) => {
                     const isSelected = selectedAddressId === addr.id;
+                    const isDeletingThis = deletingAddressId === addr.id;
                     return (
-                      <button
+                      <div
                         key={addr.id || idx}
-                        type="button"
                         onClick={() => handleSelectAddress(addr)}
-                        className={`text-right p-2.5 rounded-xl border text-xs transition-all flex flex-col justify-between gap-2 relative cursor-pointer ${
+                        className={`text-right p-2.5 rounded-xl border text-xs transition-all flex flex-col justify-between gap-2 relative cursor-pointer group ${
                           isSelected
                             ? 'bg-orange-50/90 border-orange-500 text-orange-950 shadow-xs ring-1 ring-orange-500/30'
                             : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50'
@@ -634,26 +797,97 @@ export function NewOrderForm({ onOrderCreated, drivers = [] }: NewOrderFormProps
                               {isSelected && <Check className="w-2.5 h-2.5 stroke-[3]" />}
                             </div>
                             <span className="font-semibold text-xs text-slate-900 truncate">
-                              {addr.title || (idx === 0 ? 'العنوان الأخير' : `عنوان ${idx + 1}`)}
+                              {addr.title || (idx === 0 ? 'العنوان الرئيسي' : `عنوان ${idx + 1}`)}
                             </span>
                             {addr.is_default && (
-                              <span className="text-[9px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded border border-orange-200 font-medium">
+                              <span className="text-[9px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded border border-orange-200 font-medium shrink-0">
                                 افتراضي
                               </span>
                             )}
                           </div>
-                          {addr.maps_url && (
-                            <span className="text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200 flex items-center gap-0.5 shrink-0">
-                              <Compass className="w-2.5 h-2.5" />
-                              موقع
-                            </span>
-                          )}
+
+                          {/* إجراءات العنوان: موقع، تعديل، حذف */}
+                          <div
+                            className="flex items-center gap-1 shrink-0"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {addr.maps_url && (
+                              <a
+                                href={addr.maps_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                title="عرض الموقع على الخريطة"
+                                className="text-[10px] text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-1.5 py-0.5 rounded border border-emerald-200 flex items-center gap-0.5 transition-colors"
+                              >
+                                <Compass className="w-2.5 h-2.5" />
+                                موقع
+                              </a>
+                            )}
+
+                            {/* زر تعديل العنوان */}
+                            <button
+                              type="button"
+                              title="تعديل هذا العنوان"
+                              onClick={(e) => handleOpenEditAddress(addr, e)}
+                              className="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                            >
+                              <Pencil className="w-3 h-3" />
+                            </button>
+
+                            {/* زر حذف العنوان */}
+                            <button
+                              type="button"
+                              title="حذف هذا العنوان"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setDeletingAddressId(addr.id);
+                              }}
+                              className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
                         </div>
 
                         <p className="text-[11px] text-slate-600 line-clamp-2 leading-relaxed pr-5">
                           {addr.address}
                         </p>
-                      </button>
+
+                        {/* تأكيد الحذف السريع داخل الكرت */}
+                        {isDeletingThis && (
+                          <div
+                            onClick={(e) => e.stopPropagation()}
+                            className="absolute inset-0 bg-white/95 backdrop-blur-2xs rounded-xl border border-rose-300 p-2 flex flex-col justify-between z-10 animate-in fade-in zoom-in-95 duration-150"
+                          >
+                            <div className="text-[11px] text-rose-700 font-medium flex items-center gap-1">
+                              <AlertTriangle className="w-3.5 h-3.5 shrink-0 text-rose-500" />
+                              <span>حذف هذا العنوان من سجل الزبون؟</span>
+                            </div>
+                            <div className="flex items-center justify-end gap-1.5 pt-1">
+                              <button
+                                type="button"
+                                onClick={() => setDeletingAddressId(null)}
+                                className="px-2 py-0.5 text-[10px] rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium cursor-pointer"
+                              >
+                                إلغاء
+                              </button>
+                              <button
+                                type="button"
+                                disabled={isDeletingAddress}
+                                onClick={(e) => handleDeleteAddress(addr.id, e)}
+                                className="px-2.5 py-0.5 text-[10px] rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-medium flex items-center gap-1 shadow-2xs cursor-pointer"
+                              >
+                                {isDeletingAddress ? (
+                                  <Loader2 className="w-2.5 h-2.5 animate-spin" />
+                                ) : (
+                                  <Trash2 className="w-2.5 h-2.5" />
+                                )}
+                                نعم، احذف
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     );
                   })}
 
@@ -663,13 +897,13 @@ export function NewOrderForm({ onOrderCreated, drivers = [] }: NewOrderFormProps
                     onClick={handleAddNewAddressOption}
                     className={`text-right p-2.5 rounded-xl border text-xs transition-all flex items-center justify-center gap-2 cursor-pointer min-h-[58px] ${
                       selectedAddressId === 'new'
-                        ? 'bg-amber-50 border-amber-400 text-amber-800 shadow-xs ring-1 ring-amber-400/40'
+                        ? 'bg-amber-50 border-amber-400 text-amber-800 shadow-xs ring-1 ring-amber-400/40 font-semibold'
                         : 'bg-white border-dashed border-slate-300 text-slate-600 hover:text-slate-900 hover:border-slate-400 hover:bg-slate-50'
                     }`}
                   >
                     <Plus className="w-4 h-4 text-amber-600 shrink-0" />
-                    <span className="font-medium">
-                      {selectedAddressId === 'new' ? 'إدخال عنوان جديد (محدد)' : '+ إضافة عنوان جديد'}
+                    <span>
+                      {selectedAddressId === 'new' ? 'إدخال عنوان جديد إضافي (محدد)' : '+ إضافة عنوان جديد'}
                     </span>
                   </button>
                 </div>
@@ -678,14 +912,33 @@ export function NewOrderForm({ onOrderCreated, drivers = [] }: NewOrderFormProps
 
             {/* عنوان التوصيل بالتفصيل */}
             <div className="md:col-span-2 lg:col-span-4">
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="text-xs font-semibold text-slate-700">
-                  عنوان التوصيل بالتفصيل <span className="text-rose-500">*</span>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1.5">
+                <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                  <span>عنوان التوصيل بالتفصيل</span>
+                  <span className="text-rose-500">*</span>
                 </label>
-                {selectedAddressId === 'new' && savedAddresses.length > 0 && (
-                  <span className="text-[10px] text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded font-medium">
-                    سيتم حفظ هذا العنوان الجديد في سجل الزبون
-                  </span>
+
+                {savedAddresses.length > 0 && (
+                  selectedAddressId === 'new' ? (
+                    <span className="text-[10px] text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md font-medium flex items-center gap-1 self-start sm:self-auto">
+                      <Plus className="w-2.5 h-2.5" />
+                      سيتم حفظ هذا كعنوان جديد إضافي في سجل الزبون
+                    </span>
+                  ) : (
+                    <div className="flex items-center gap-2 self-start sm:self-auto">
+                      <span className="text-[10px] text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-md font-medium flex items-center gap-1">
+                        <Pencil className="w-2.5 h-2.5 text-blue-600" />
+                        تعديل العنوان المحدد (سيتم تحديثه نفسه في سجل الزبون)
+                      </span>
+                      <button
+                        type="button"
+                        onClick={handleAddNewAddressOption}
+                        className="text-[10px] text-amber-700 hover:text-amber-800 underline cursor-pointer font-medium"
+                      >
+                        حفظ كعنوان جديد بدلاً من تعديله
+                      </button>
+                    </div>
+                  )
                 )}
               </div>
               <div className="relative">
@@ -921,6 +1174,98 @@ export function NewOrderForm({ onOrderCreated, drivers = [] }: NewOrderFormProps
           </div>
         </div>
       </form>
+
+      {/* نافذة تعديل عنوان الزبون */}
+      {editingAddress && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-150">
+            <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-orange-50 to-amber-50">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-xl bg-orange-100 text-orange-700">
+                  <Pencil className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900">تعديل عنوان الزبون</h3>
+                  <p className="text-[11px] text-slate-500">
+                    الزبون: {customerName || phone}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingAddress(null)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEditedAddress} className="p-4 sm:p-5 space-y-3.5">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  تسمية العنوان (اختياري)
+                </label>
+                <input
+                  type="text"
+                  placeholder="مثال: المنزل، المكتب، المعمل، بيت الأهل..."
+                  value={editAddressTitle}
+                  onChange={(e) => setEditAddressTitle(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-300 focus:bg-white focus:border-orange-500 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:ring-4 focus:ring-orange-500/10 transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  نص العنوان بالتفصيل <span className="text-rose-500">*</span>
+                </label>
+                <textarea
+                  required
+                  rows={3}
+                  placeholder="المدينة، الحي، الشارع، البناء، الطابق..."
+                  value={editAddressText}
+                  onChange={(e) => setEditAddressText(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-300 focus:bg-white focus:border-orange-500 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:ring-4 focus:ring-orange-500/10 transition-all leading-relaxed"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  رابط موقع الخريطة (Google Maps - اختياري)
+                </label>
+                <input
+                  type="url"
+                  placeholder="https://maps.app.goo.gl/..."
+                  value={editAddressMaps}
+                  onChange={(e) => setEditAddressMaps(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-300 focus:bg-white focus:border-orange-500 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:ring-4 focus:ring-orange-500/10 transition-all dir-ltr text-left font-mono"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setEditingAddress(null)}
+                  className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-medium transition-all cursor-pointer"
+                >
+                  إلغاء
+                </button>
+                <button
+                  type="submit"
+                  disabled={isUpdatingAddress}
+                  className="flex items-center gap-1.5 px-5 py-2 rounded-xl bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold shadow-xs disabled:opacity-50 transition-all cursor-pointer"
+                >
+                  {isUpdatingAddress ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Save className="w-3.5 h-3.5" />
+                  )}
+                  <span>حفظ التعديلات</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
