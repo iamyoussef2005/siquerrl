@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Alexandria } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { WebSplashScreen } from "@/components/WebSplashScreen";
 
 const alexandria = Alexandria({
   subsets: ["arabic", "latin"],
@@ -27,7 +28,10 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl" className={`${alexandria.variable} h-full antialiased`}>
       <body className="min-h-full font-sans bg-[#fcfcfd] text-zinc-900 selection:bg-orange-500 selection:text-white antialiased">
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <WebSplashScreen />
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );
