@@ -49,14 +49,12 @@ export function WebSplashScreen() {
           />
         </picture>
 
-        {/* Subtle Bottom Loading Indicator & Status */}
-        <div className="absolute bottom-6 sm:bottom-10 left-0 right-0 flex flex-col items-center justify-center px-4 pointer-events-none">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-orange-500 animate-ping" />
-            <span className="w-2 h-2 rounded-full bg-orange-400" />
-            <span className="w-1.5 h-1.5 rounded-full bg-orange-300" />
+        {/* Subtle Bottom Loading Line & Status */}
+        <div className="absolute bottom-6 sm:bottom-8 left-0 right-0 flex flex-col items-center justify-center px-4 pointer-events-none">
+          <div className="w-36 h-1 bg-slate-100/90 rounded-full overflow-hidden shadow-xs border border-orange-100">
+            <div className="w-full h-full bg-gradient-to-r from-orange-400 via-orange-500 to-amber-500 rounded-full animate-pulse" />
           </div>
-          <p className="text-slate-700 font-bold text-xs sm:text-sm tracking-wide bg-white/90 backdrop-blur-md py-1.5 px-4 rounded-full border border-orange-200/80 shadow-md">
+          <p className="mt-2.5 text-slate-600 font-bold text-xs tracking-wide bg-white/80 backdrop-blur-xs py-1 px-3.5 rounded-full border border-orange-100/80 shadow-xs">
             سنجاب دليفري • جاري تهيئة المنظومة...
           </p>
         </div>
