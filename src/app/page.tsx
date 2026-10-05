@@ -233,7 +233,7 @@ export default function AdminHomePage() {
         {/* المحتوى الرئيسي للوحة الإدارة */}
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 lg:px-8">
           {/* شريط الفلترة الزمنية للمدير */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-gradient-to-r from-orange-100/70 via-amber-50/80 to-orange-50/60 border border-orange-200/90 rounded-2xl p-3.5 px-5 shadow-sm shadow-orange-950/5 mb-5">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-gradient-to-r from-[#faeada] via-[#f7f0e3] to-[#faf4eb] border-2 border-[#cdbba2] rounded-2xl p-3.5 px-5 shadow-sm shadow-orange-950/5 mb-5">
             <div className="flex items-center gap-3">
               <div className="p-2.5 rounded-2xl bg-orange-500 text-white shadow-sm shadow-orange-500/30">
                 <Calendar className="w-4 h-4" />
@@ -253,7 +253,7 @@ export default function AdminHomePage() {
               </div>
             </div>
 
-            <div className="inline-flex p-1 bg-white/90 backdrop-blur-xs border border-orange-200/80 rounded-xl text-xs gap-1 self-start sm:self-auto shadow-2xs">
+            <div className="inline-flex p-1 bg-white border-2 border-[#d5c3aa] rounded-xl text-xs gap-1 self-start sm:self-auto shadow-2xs">
               <button
                 type="button"
                 onClick={() => handleDateFilterChange('today')}

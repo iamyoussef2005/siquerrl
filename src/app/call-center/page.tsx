@@ -213,7 +213,7 @@ export default function CallCenterPage() {
           {/* 1. الواجهة الرئيسية: شاشة إضافة وتسجيل الطلب */}
           <div className={activeView === 'create' ? 'space-y-4 animate-fadeIn' : 'hidden'}>
             {/* شريط الإجراءات والزر للدخول لجدول الطلبات والتفاصيل */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-gradient-to-r from-orange-100/70 via-amber-50/50 to-orange-50/30 border border-orange-200/80 rounded-2xl p-3.5 px-4 sm:px-5 shadow-sm shadow-orange-950/5">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-gradient-to-r from-[#faeada] via-[#f7f0e3] to-[#faf4eb] border-2 border-[#cdbba2] rounded-2xl p-3.5 px-4 sm:px-5 shadow-sm shadow-orange-950/5">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 rounded-xl bg-orange-500 text-white shadow-xs">
                   <Headphones className="w-5 h-5" />
@@ -223,7 +223,7 @@ export default function CallCenterPage() {
                     <h1 className="text-sm sm:text-base font-bold text-zinc-900">
                       تسجيل واستقبال طلب جديد
                     </h1>
-                    <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-emerald-100/80 text-emerald-800 border border-emerald-300/80 font-bold shadow-2xs">
+                    <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold shadow-2xs">
                       الرئيسية
                     </span>
                   </div>
@@ -237,11 +237,11 @@ export default function CallCenterPage() {
               <button
                 type="button"
                 onClick={() => setActiveView('table')}
-                className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-white/95 hover:bg-orange-50/80 border border-orange-200/80 hover:border-orange-300 text-xs font-bold text-zinc-800 transition-all shadow-2xs cursor-pointer group active:scale-95"
+                className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-white hover:bg-orange-50/80 border-2 border-[#d5c3aa] hover:border-orange-400 text-xs font-bold text-zinc-800 transition-all shadow-2xs cursor-pointer group active:scale-95"
               >
                 <Layers className="w-4 h-4 text-orange-600 group-hover:scale-110 transition-transform" />
                 <span>سجل وبطاقات طلبات اليوم</span>
-                <span className="bg-orange-100/90 border border-orange-300 text-orange-900 text-[10px] font-mono font-bold px-2 py-0.5 rounded-full mr-1">
+                <span className="bg-orange-100 border border-orange-300 text-orange-900 text-[10px] font-mono font-bold px-2 py-0.5 rounded-full mr-1">
                   {totalCount} طلبات
                 </span>
               </button>
@@ -254,7 +254,7 @@ export default function CallCenterPage() {
           {/* 2. واجهة متابعة طلبات اليوم والتفاصيل */}
           <div className={activeView === 'table' ? 'space-y-6 animate-fadeIn' : 'hidden'}>
             {/* شريط رأس متابعة الطلبات وزر العودة لتسجيل طلب */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-gradient-to-r from-orange-100/70 via-amber-50/50 to-orange-50/30 border border-orange-200/80 rounded-2xl p-3.5 px-4 sm:px-5 shadow-sm shadow-orange-950/5">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-gradient-to-r from-[#faeada] via-[#f7f0e3] to-[#faf4eb] border-2 border-[#cdbba2] rounded-2xl p-3.5 px-4 sm:px-5 shadow-sm shadow-orange-950/5">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 rounded-xl bg-orange-500 text-white shadow-xs">
                   <Package className="w-5 h-5" />
@@ -264,7 +264,7 @@ export default function CallCenterPage() {
                     <h2 className="text-sm sm:text-base font-bold text-zinc-900">
                       متابعة وسجل طلبات اليوم
                     </h2>
-                    <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-orange-100/80 text-orange-900 border border-orange-300 font-mono font-bold shadow-2xs">
+                    <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-orange-100 text-orange-900 border border-orange-300 font-mono font-bold shadow-2xs">
                       {totalCount} إجمالي اليوم
                     </span>
                   </div>
@@ -288,9 +288,9 @@ export default function CallCenterPage() {
             {/* شريط إحصائيات سريعة للطلبات مصغرة وجنب بعض */}
             <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5 sm:gap-2">
               {/* إجمالي طلبات اليوم */}
-              <div className="bg-gradient-to-br from-orange-50/90 to-amber-50/50 border border-orange-200/90 rounded-xl p-2 sm:p-2.5 flex items-center justify-between hover:border-orange-300 transition-all shadow-2xs">
+              <div className="bg-gradient-to-br from-orange-50 to-amber-50/70 border-2 border-orange-300 rounded-xl p-2 sm:p-2.5 flex items-center justify-between hover:border-orange-400 transition-all shadow-2xs">
                 <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
-                  <div className="p-1 sm:p-1.5 rounded-lg bg-orange-100 text-orange-700 border border-orange-200/80 shadow-2xs shrink-0">
+                  <div className="p-1 sm:p-1.5 rounded-lg bg-orange-100 text-orange-800 border border-orange-300 shadow-2xs shrink-0">
                     <Package className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                   </div>
                   <div className="min-w-0">
@@ -301,66 +301,66 @@ export default function CallCenterPage() {
               </div>
 
               {/* بانتظار الإسناد */}
-              <div className="bg-gradient-to-br from-amber-50/90 to-yellow-50/50 border border-amber-200/90 rounded-xl p-2 sm:p-2.5 flex items-center justify-between hover:border-amber-300 transition-all shadow-2xs">
+              <div className="bg-gradient-to-br from-amber-50 to-yellow-50/70 border-2 border-amber-300 rounded-xl p-2 sm:p-2.5 flex items-center justify-between hover:border-amber-400 transition-all shadow-2xs">
                 <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
-                  <div className="p-1 sm:p-1.5 rounded-lg bg-amber-100 text-amber-700 border border-amber-200/80 shadow-2xs shrink-0">
+                  <div className="p-1 sm:p-1.5 rounded-lg bg-amber-100 text-amber-800 border border-amber-300 shadow-2xs shrink-0">
                     <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                   </div>
                   <div className="min-w-0">
                     <div className="text-[10px] sm:text-[11px] text-amber-950 font-bold truncate">بانتظار الإسناد</div>
-                    <div className="text-xs sm:text-sm font-black text-amber-700 font-mono leading-none mt-0.5">{pendingAssignmentCount}</div>
+                    <div className="text-xs sm:text-sm font-black text-amber-800 font-mono leading-none mt-0.5">{pendingAssignmentCount}</div>
                   </div>
                 </div>
               </div>
 
               {/* تم الإسناد */}
-              <div className="bg-gradient-to-br from-blue-50/90 to-sky-50/50 border border-blue-200/90 rounded-xl p-2 sm:p-2.5 flex items-center justify-between hover:border-blue-300 transition-all shadow-2xs">
+              <div className="bg-gradient-to-br from-blue-50 to-sky-50/70 border-2 border-blue-300 rounded-xl p-2 sm:p-2.5 flex items-center justify-between hover:border-blue-400 transition-all shadow-2xs">
                 <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
-                  <div className="p-1 sm:p-1.5 rounded-lg bg-blue-100 text-blue-700 border border-blue-200/80 shadow-2xs shrink-0">
+                  <div className="p-1 sm:p-1.5 rounded-lg bg-blue-100 text-blue-800 border border-blue-300 shadow-2xs shrink-0">
                     <UserCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                   </div>
                   <div className="min-w-0">
                     <div className="text-[10px] sm:text-[11px] text-blue-950 font-bold truncate">تم الإسناد</div>
-                    <div className="text-xs sm:text-sm font-black text-blue-700 font-mono leading-none mt-0.5">{assignedCount}</div>
+                    <div className="text-xs sm:text-sm font-black text-blue-800 font-mono leading-none mt-0.5">{assignedCount}</div>
                   </div>
                 </div>
               </div>
 
               {/* بانتظار تحضير الطلب */}
-              <div className="bg-gradient-to-br from-orange-50/90 to-amber-50/50 border border-orange-200/90 rounded-xl p-2 sm:p-2.5 flex items-center justify-between hover:border-orange-300 transition-all shadow-2xs">
+              <div className="bg-gradient-to-br from-orange-50 to-amber-50/70 border-2 border-orange-300 rounded-xl p-2 sm:p-2.5 flex items-center justify-between hover:border-orange-400 transition-all shadow-2xs">
                 <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
-                  <div className="p-1 sm:p-1.5 rounded-lg bg-orange-100 text-orange-700 border border-orange-200/80 shadow-2xs shrink-0">
+                  <div className="p-1 sm:p-1.5 rounded-lg bg-orange-100 text-orange-800 border border-orange-300 shadow-2xs shrink-0">
                     <Package className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                   </div>
                   <div className="min-w-0">
                     <div className="text-[10px] sm:text-[11px] text-orange-950 font-bold truncate">بانتظار التحضير</div>
-                    <div className="text-xs sm:text-sm font-black text-orange-700 font-mono leading-none mt-0.5">{preparingCount}</div>
+                    <div className="text-xs sm:text-sm font-black text-orange-800 font-mono leading-none mt-0.5">{preparingCount}</div>
                   </div>
                 </div>
               </div>
 
               {/* قيد التوصيل والتحرك */}
-              <div className="bg-gradient-to-br from-sky-50/90 to-indigo-50/40 border border-sky-200/90 rounded-xl p-2 sm:p-2.5 flex items-center justify-between hover:border-sky-300 transition-all shadow-2xs">
+              <div className="bg-gradient-to-br from-sky-50 to-indigo-50/60 border-2 border-sky-300 rounded-xl p-2 sm:p-2.5 flex items-center justify-between hover:border-sky-400 transition-all shadow-2xs">
                 <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
-                  <div className="p-1 sm:p-1.5 rounded-lg bg-sky-100 text-sky-700 border border-sky-200/80 shadow-2xs shrink-0">
+                  <div className="p-1 sm:p-1.5 rounded-lg bg-sky-100 text-sky-800 border border-sky-300 shadow-2xs shrink-0">
                     <Truck className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                   </div>
                   <div className="min-w-0">
                     <div className="text-[10px] sm:text-[11px] text-sky-950 font-bold truncate">قيد التوصيل</div>
-                    <div className="text-xs sm:text-sm font-black text-sky-700 font-mono leading-none mt-0.5">{inDeliveryCount}</div>
+                    <div className="text-xs sm:text-sm font-black text-sky-800 font-mono leading-none mt-0.5">{inDeliveryCount}</div>
                   </div>
                 </div>
               </div>
 
               {/* الطلبات المكتملة */}
-              <div className="bg-gradient-to-br from-emerald-50/90 to-teal-50/40 border border-emerald-200/90 rounded-xl p-2 sm:p-2.5 flex items-center justify-between hover:border-emerald-300 transition-all shadow-2xs">
+              <div className="bg-gradient-to-br from-emerald-50 to-teal-50/60 border-2 border-emerald-300 rounded-xl p-2 sm:p-2.5 flex items-center justify-between hover:border-emerald-400 transition-all shadow-2xs">
                 <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
-                  <div className="p-1 sm:p-1.5 rounded-lg bg-emerald-100 text-emerald-700 border border-emerald-200/80 shadow-2xs shrink-0">
+                  <div className="p-1 sm:p-1.5 rounded-lg bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-2xs shrink-0">
                     <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                   </div>
                   <div className="min-w-0">
                     <div className="text-[10px] sm:text-[11px] text-emerald-950 font-bold truncate">تم التسليم</div>
-                    <div className="text-xs sm:text-sm font-black text-emerald-700 font-mono leading-none mt-0.5">{deliveredCount}</div>
+                    <div className="text-xs sm:text-sm font-black text-emerald-800 font-mono leading-none mt-0.5">{deliveredCount}</div>
                   </div>
                 </div>
               </div>

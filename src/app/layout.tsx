@@ -27,7 +27,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ar" dir="rtl" className={`${alexandria.variable} h-full antialiased`}>
-      <body className="min-h-full font-sans bg-[#fcfcfd] text-zinc-900 selection:bg-orange-500 selection:text-white antialiased">
+      <body className="min-h-full font-sans bg-[#ebe0cc] text-zinc-900 selection:bg-orange-500 selection:text-white antialiased">
         <AuthProvider>
           <WebSplashScreen />
           {children}

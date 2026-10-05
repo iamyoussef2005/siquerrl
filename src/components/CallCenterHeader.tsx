@@ -40,11 +40,11 @@ export function CallCenterHeader({
   const { profile, user, logout } = useAuth();
 
   return (
-    <header className="border-b border-orange-200/80 bg-[#fffcf7]/95 backdrop-blur-md sticky top-0 z-30 px-4 lg:px-8 py-2.5 mb-6 shadow-sm shadow-orange-950/5">
+    <header className="border-b-2 border-[#cdbba2] bg-[#faf6ee]/95 backdrop-blur-md sticky top-0 z-30 px-4 lg:px-8 py-2.5 mb-6 shadow-sm shadow-orange-950/5">
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 max-w-7xl mx-auto">
         {/* عنوان اللوحة وشعار سنجاب دليفري الاحترافي */}
         <div className="flex items-center gap-3">
-          <div className="relative h-10 w-10 rounded-2xl bg-orange-50 border border-orange-200/90 p-1 flex items-center justify-center shadow-xs overflow-hidden shrink-0">
+          <div className="relative h-10 w-10 rounded-2xl bg-orange-50 border-2 border-[#d5c3aa] p-1 flex items-center justify-center shadow-xs overflow-hidden shrink-0">
             <Image
               src="/sinjab-logo.png"
               alt="Sinjab Delivery"

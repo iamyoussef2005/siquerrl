@@ -637,8 +637,8 @@ export function NewOrderForm({ onOrderCreated, drivers = [] }: NewOrderFormProps
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* قسم 1: بيانات الزبون والاتصال */}
-        <div className="bg-white/95 border border-orange-200/80 rounded-2xl p-4 sm:p-5 shadow-xs space-y-4">
-          <div className="flex items-center justify-between border-b border-orange-100 pb-3">
+        <div className="bg-white rounded-2xl border-2 border-[#cdbba2] p-4 sm:p-5 shadow-xs space-y-4">
+          <div className="flex items-center justify-between border-b-2 border-[#dfceba] pb-3">
             <span className="text-xs font-bold text-zinc-900 flex items-center gap-2">
               <div className="p-1.5 rounded-lg bg-orange-100/90 text-orange-700 border border-orange-200/80">
                 <User className="w-3.5 h-3.5" />
@@ -964,7 +964,7 @@ export function NewOrderForm({ onOrderCreated, drivers = [] }: NewOrderFormProps
         </div>
 
         {/* قسم 2: تفاصيل الطلب */}
-        <div className="bg-white/95 border border-orange-200/80 rounded-2xl p-4 sm:p-5 shadow-xs space-y-2">
+        <div className="bg-white rounded-2xl border-2 border-[#cdbba2] p-4 sm:p-5 shadow-xs space-y-2">
           <label className="block text-xs font-bold text-zinc-900 flex items-center gap-2">
             <div className="p-1.5 rounded-lg bg-orange-100/90 text-orange-700 border border-orange-200/80">
               <FileText className="w-3.5 h-3.5" />
@@ -979,13 +979,13 @@ export function NewOrderForm({ onOrderCreated, drivers = [] }: NewOrderFormProps
             placeholder="اكتب اسم المتجر أو المطعم، تفاصيل المواد والأصناف، وأي ملاحظات خاصة بالتوصيل..."
             value={orderDetails}
             onChange={(e) => setOrderDetails(e.target.value)}
-            className="w-full bg-[#fbf9f5] border border-orange-200/80 hover:border-orange-300 focus:bg-white focus:border-orange-500 rounded-xl p-3 text-xs sm:text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-hidden focus:ring-4 focus:ring-orange-500/10 transition-all leading-relaxed"
+            className="w-full bg-[#fbf9f5] border-2 border-[#d5c3aa] hover:border-orange-400 focus:bg-white focus:border-orange-500 rounded-xl p-3 text-xs sm:text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-hidden focus:ring-4 focus:ring-orange-500/10 transition-all leading-relaxed"
           />
         </div>
 
         {/* قسم 3: الحسابات وأجرة التوصيل (الكول سنتر يحدد أجرة التوصيل فقط، والمدير يحدد كل شيء) */}
-        <div className="bg-white/95 border border-orange-200/80 rounded-2xl p-4 sm:p-5 shadow-xs space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-orange-100 pb-3">
+        <div className="bg-white rounded-2xl border-2 border-[#cdbba2] p-4 sm:p-5 shadow-xs space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b-2 border-[#dfceba] pb-3">
             <span className="text-xs font-bold text-zinc-800 flex items-center gap-2">
               <div className="p-1.5 rounded-lg bg-emerald-100/90 text-emerald-700 border border-emerald-200/80">
                 <Coins className="w-3.5 h-3.5" />
