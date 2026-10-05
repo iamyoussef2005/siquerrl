@@ -127,26 +127,31 @@ export function useDriversPresence(initialDrivers: Profile[] = []) {
 
   // Sort drivers: online drivers first, then offline sorted by last_seen_at descending
   const sortDriversByPresence = useCallback(
-    (drivers: Profile[]): Profile[] => {
+    (drivers: Profile[] = []): Profile[] => {
+      if (!drivers || !Array.isArray(drivers)) return [];
       return [...drivers].sort((a, b) => {
+        if (!a || !b) return 0;
         const aOnline = onlineDriverIds.has(a.id);
         const bOnline = onlineDriverIds.has(b.id);
 
         if (aOnline && !bOnline) return -1;
         if (!aOnline && bOnline) return 1;
 
+        const aName = a.name || a.full_name || '';
+        const bName = b.name || b.full_name || '';
+
         if (aOnline && bOnline) {
-          return (a.name || '').localeCompare(b.name || '', 'ar');
+          return aName.localeCompare(bName, 'ar');
         }
 
         // Both offline: sort by last_seen_at
         const aTime = a.last_seen_at ? new Date(a.last_seen_at).getTime() : 0;
         const bTime = b.last_seen_at ? new Date(b.last_seen_at).getTime() : 0;
-        if (aTime !== bTime) {
+        if (aTime !== bTime && !isNaN(aTime) && !isNaN(bTime)) {
           return bTime - aTime; // Most recent first
         }
 
-        return (a.name || '').localeCompare(b.name || '', 'ar');
+        return aName.localeCompare(bName, 'ar');
       });
     },
     [onlineDriverIds]

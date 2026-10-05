@@ -18,44 +18,56 @@ import {
 interface AvailableDriversModalProps {
   isOpen: boolean;
   onClose: () => void;
-  drivers: Profile[];
-  orders: Order[];
+  drivers?: Profile[];
+  orders?: Order[];
+  isDriverOnline?: (driverId?: string | null) => boolean;
+  formatLastSeen?: (lastSeenAt?: string | null, isOnline?: boolean) => string;
+  sortDriversByPresence?: (drivers: Profile[]) => Profile[];
+  onlineCount?: number;
 }
 
 export function AvailableDriversModal({
   isOpen,
   onClose,
-  drivers,
-  orders,
+  drivers = [],
+  orders = [],
+  isDriverOnline: propIsDriverOnline,
+  formatLastSeen: propFormatLastSeen,
+  sortDriversByPresence: propSortDriversByPresence,
+  onlineCount: propOnlineCount,
 }: AvailableDriversModalProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterMode, setFilterMode] = useState<'all' | 'online' | 'offline'>('all');
 
-  // Realtime driver presence hook
-  const {
-    isDriverOnline,
-    formatLastSeen,
-    sortDriversByPresence,
-    onlineCount,
-  } = useDriversPresence(drivers);
+  // Fallback to hook only if props not provided
+  const internalPresence = useDriversPresence(propSortDriversByPresence ? [] : drivers);
+
+  const isDriverOnline = propIsDriverOnline || internalPresence.isDriverOnline;
+  const formatLastSeen = propFormatLastSeen || internalPresence.formatLastSeen;
+  const sortDriversByPresence = propSortDriversByPresence || internalPresence.sortDriversByPresence;
+  const onlineCount = propOnlineCount !== undefined ? propOnlineCount : internalPresence.onlineCount;
 
   // Sort drivers: online first, then by last seen
   const sortedDrivers = useMemo(() => {
-    return sortDriversByPresence(drivers);
+    if (!drivers || !Array.isArray(drivers)) return [];
+    return sortDriversByPresence ? sortDriversByPresence(drivers) : drivers;
   }, [drivers, sortDriversByPresence]);
 
   // Filter drivers based on search and online filter tab
   const filteredDrivers = useMemo(() => {
+    if (!sortedDrivers) return [];
     return sortedDrivers.filter((driver) => {
+      if (!driver) return false;
       const q = searchQuery.trim().toLowerCase();
+      const driverName = String(driver.name || driver.full_name || 'مندوب');
       const matchesSearch =
         !q ||
-        driver.name.toLowerCase().includes(q) ||
-        (driver.phone && driver.phone.includes(q));
+        driverName.toLowerCase().includes(q) ||
+        (driver.phone && String(driver.phone).includes(q));
 
       if (!matchesSearch) return false;
 
-      const online = isDriverOnline(driver.id);
+      const online = isDriverOnline ? isDriverOnline(driver.id) : false;
       if (filterMode === 'online') return online;
       if (filterMode === 'offline') return !online;
       return true;
@@ -168,16 +180,18 @@ export function AvailableDriversModal({
             </div>
           ) : (
             filteredDrivers.map((driver) => {
-              const isOnline = isDriverOnline(driver.id);
-              const driverOrders = orders.filter((o) => o.driver_id === driver.id);
+              const isOnline = isDriverOnline ? isDriverOnline(driver.id) : false;
+              const driverOrders = (orders || []).filter((o) => o && o.driver_id === driver.id);
               const activeCount = driverOrders.filter(
                 (o) =>
-                  o.status === 'delivering' ||
-                  o.status === 'preparing' ||
-                  o.status === 'assigned' ||
-                  o.status === 'pending'
+                  o &&
+                  (o.status === 'delivering' ||
+                    o.status === 'preparing' ||
+                    o.status === 'assigned' ||
+                    o.status === 'pending')
               ).length;
-              const deliveredCount = driverOrders.filter((o) => o.status === 'delivered').length;
+              const deliveredCount = driverOrders.filter((o) => o && o.status === 'delivered').length;
+              const driverName = driver.name || driver.full_name || 'مندوب';
 
               return (
                 <div

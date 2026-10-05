@@ -33,8 +33,13 @@ export default function CallCenterPage() {
   const [isDriversModalOpen, setIsDriversModalOpen] = useState(false);
   const [editingOrder, setEditingOrder] = useState<Order | null>(null);
 
-  // Driver presence tracking
-  const { onlineCount } = useDriversPresence(drivers);
+  // Driver presence tracking (single source of truth for all call center components)
+  const {
+    isDriverOnline,
+    formatLastSeen,
+    sortDriversByPresence,
+    onlineCount,
+  } = useDriversPresence(drivers);
 
   // Notification Toast
   const showNotification = (msg: string) => {
@@ -172,13 +177,13 @@ export default function CallCenterPage() {
     showNotification(`✨ تم حفظ وتعديل بيانات الطلب #${updatedOrder.id} بنجاح`);
   };
 
-  // Status stats calculations
-  const totalCount = orders.length;
-  const pendingAssignmentCount = orders.filter((o) => o.status === 'pending').length;
-  const assignedCount = orders.filter((o) => o.status === 'assigned').length;
-  const preparingCount = orders.filter((o) => o.status === 'preparing').length;
-  const inDeliveryCount = orders.filter((o) => o.status === 'delivering').length;
-  const deliveredCount = orders.filter((o) => o.status === 'delivered').length;
+  // Status stats calculations safely
+  const totalCount = orders ? orders.length : 0;
+  const pendingAssignmentCount = (orders || []).filter((o) => o && o.status === 'pending').length;
+  const assignedCount = (orders || []).filter((o) => o && o.status === 'assigned').length;
+  const preparingCount = (orders || []).filter((o) => o && o.status === 'preparing').length;
+  const inDeliveryCount = (orders || []).filter((o) => o && o.status === 'delivering').length;
+  const deliveredCount = (orders || []).filter((o) => o && o.status === 'delivered').length;
 
   return (
     <ProtectedRoute allowedRoles={['call_center', 'admin']}>
@@ -248,7 +253,13 @@ export default function CallCenterPage() {
             </div>
 
             {/* نموذج تسجيل الطلب السريع */}
-            <NewOrderForm onOrderCreated={handleOrderCreated} drivers={drivers} />
+            <NewOrderForm
+              onOrderCreated={handleOrderCreated}
+              drivers={drivers}
+              isDriverOnline={isDriverOnline}
+              formatLastSeen={formatLastSeen}
+              sortDriversByPresence={sortDriversByPresence}
+            />
           </div>
 
           {/* 2. واجهة متابعة طلبات اليوم والتفاصيل */}
@@ -385,6 +396,9 @@ export default function CallCenterPage() {
           onClose={() => setEditingOrder(null)}
           onOrderUpdated={handleOrderUpdated}
           drivers={drivers}
+          isDriverOnline={isDriverOnline}
+          formatLastSeen={formatLastSeen}
+          sortDriversByPresence={sortDriversByPresence}
         />
 
         {/* نافذة استعراض المناديب المتاحين والتواصل معهم */}
@@ -393,6 +407,10 @@ export default function CallCenterPage() {
           onClose={() => setIsDriversModalOpen(false)}
           drivers={drivers}
           orders={orders}
+          isDriverOnline={isDriverOnline}
+          formatLastSeen={formatLastSeen}
+          sortDriversByPresence={sortDriversByPresence}
+          onlineCount={onlineCount}
         />
       </div>
     </ProtectedRoute>

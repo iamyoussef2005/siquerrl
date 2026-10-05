@@ -37,15 +37,32 @@ import {
 interface NewOrderFormProps {
   onOrderCreated: (order: Order) => void;
   drivers?: Profile[];
+  isDriverOnline?: (driverId?: string | null) => boolean;
+  formatLastSeen?: (lastSeenAt?: string | null, isOnline?: boolean) => string;
+  sortDriversByPresence?: (drivers: Profile[]) => Profile[];
 }
 
-export function NewOrderForm({ onOrderCreated, drivers = [] }: NewOrderFormProps) {
+export function NewOrderForm({
+  onOrderCreated,
+  drivers = [],
+  isDriverOnline: propIsDriverOnline,
+  formatLastSeen: propFormatLastSeen,
+  sortDriversByPresence: propSortDriversByPresence,
+}: NewOrderFormProps) {
   const { role } = useAuth();
   const isAdmin = role === 'admin';
 
-  // Live driver presence tracking
-  const { isDriverOnline, formatLastSeen, sortDriversByPresence } = useDriversPresence(drivers);
-  const sortedDrivers = useMemo(() => sortDriversByPresence(drivers), [drivers, sortDriversByPresence]);
+  // Fallback to hook only if props not provided
+  const internalPresence = useDriversPresence(propSortDriversByPresence ? [] : drivers);
+
+  const isDriverOnline = propIsDriverOnline || internalPresence.isDriverOnline;
+  const formatLastSeen = propFormatLastSeen || internalPresence.formatLastSeen;
+  const sortDriversByPresence = propSortDriversByPresence || internalPresence.sortDriversByPresence;
+
+  const sortedDrivers = useMemo(() => {
+    if (!drivers || !Array.isArray(drivers)) return [];
+    return sortDriversByPresence ? sortDriversByPresence(drivers) : drivers;
+  }, [drivers, sortDriversByPresence]);
 
   // Form State
   const [phone, setPhone] = useState('');

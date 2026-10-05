@@ -47,38 +47,51 @@ export function TodayOrdersTable({
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [showFinishedSidebar, setShowFinishedSidebar] = useState<boolean>(true);
 
-  // Format currency
-  const formatCurrency = (val: number) => {
-    return new Intl.NumberFormat('en-US').format(val || 0);
+  // Format currency safely
+  const formatCurrency = (val?: number | string | null) => {
+    if (val === null || val === undefined || val === '') return '0';
+    const num = typeof val === 'number' ? val : parseFloat(String(val).replace(/,/g, ''));
+    if (isNaN(num)) return '0';
+    return new Intl.NumberFormat('en-US').format(num);
   };
 
-  // Format phone for WhatsApp
-  const formatWhatsAppPhone = (phoneStr?: string) => {
+  // Format phone for WhatsApp safely
+  const formatWhatsAppPhone = (phoneStr?: string | number | null) => {
     if (!phoneStr) return '';
-    let clean = phoneStr.replace(/\D/g, '');
+    let clean = String(phoneStr).replace(/\D/g, '');
     if (clean.startsWith('00')) clean = clean.substring(2);
     if (clean.startsWith('0')) clean = '963' + clean.substring(1);
     else if (!clean.startsWith('963') && clean.length === 9 && clean.startsWith('9')) clean = '963' + clean;
     return clean;
   };
 
-  // Format time with Latin numerals
-  const formatTime = (dateStr?: string) => {
+  // Format time with Latin numerals safely
+  const formatTime = (dateStr?: string | null) => {
     if (!dateStr) return 'الآن';
     try {
       const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return 'الآن';
       return d.toLocaleTimeString('ar-SY-u-nu-latn', {
         hour: '2-digit',
         minute: '2-digit',
         hour12: true,
       });
     } catch {
-      return dateStr;
+      try {
+        const d = new Date(dateStr);
+        return d.toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true,
+        });
+      } catch {
+        return String(dateStr);
+      }
     }
   };
 
   // Status styling and labels (Read-only view for Call Center)
-  const getStatusBadge = (status: OrderStatus) => {
+  const getStatusBadge = (status?: OrderStatus | string | null) => {
     switch (status) {
       case 'pending':
         return {
@@ -124,7 +137,7 @@ export function TodayOrdersTable({
         };
       default:
         return {
-          label: status,
+          label: status || 'غير محدد',
           className: 'bg-slate-100 text-slate-600 border-slate-200',
           dotColor: 'bg-slate-400',
           icon: AlertCircle,
@@ -134,22 +147,24 @@ export function TodayOrdersTable({
 
   // Driver name resolver
   const getDriverName = (driverId?: string | null) => {
-    if (!driverId) return null;
-    const found = drivers.find((d) => d.id === driverId);
-    return found ? found.name : null;
+    if (!driverId || !drivers || !Array.isArray(drivers)) return null;
+    const found = drivers.find((d) => d && d.id === driverId);
+    return found ? (found.name || found.full_name || 'مندوب') : null;
   };
 
-  // Filtering
+  // Filtering safely
   const filteredOrders = useMemo(() => {
+    if (!orders || !Array.isArray(orders)) return [];
     return orders.filter((order) => {
+      if (!order) return false;
       const q = searchQuery.trim().toLowerCase();
       const matchesSearch =
         !q ||
-        String(order.id).toLowerCase().includes(q) ||
-        (order.customer_name && order.customer_name.toLowerCase().includes(q)) ||
-        (order.customer_phone && order.customer_phone.includes(q)) ||
-        (order.delivery_address && order.delivery_address.toLowerCase().includes(q)) ||
-        (order.order_details && order.order_details.toLowerCase().includes(q));
+        String(order.id ?? '').toLowerCase().includes(q) ||
+        (order.customer_name && String(order.customer_name).toLowerCase().includes(q)) ||
+        (order.customer_phone && String(order.customer_phone).includes(q)) ||
+        (order.delivery_address && String(order.delivery_address).toLowerCase().includes(q)) ||
+        (order.order_details && String(order.order_details).toLowerCase().includes(q));
 
       const matchesStatus =
         statusFilter === 'all' || order.status === statusFilter;
@@ -161,13 +176,13 @@ export function TodayOrdersTable({
   // Split into active and finished
   const activeOrders = useMemo(() => {
     return filteredOrders.filter(
-      (o) => o.status !== 'delivered' && o.status !== 'cancelled'
+      (o) => o && o.status !== 'delivered' && o.status !== 'cancelled'
     );
   }, [filteredOrders]);
 
   const finishedOrders = useMemo(() => {
     return filteredOrders.filter(
-      (o) => o.status === 'delivered' || o.status === 'cancelled'
+      (o) => o && (o.status === 'delivered' || o.status === 'cancelled')
     );
   }, [filteredOrders]);
 
