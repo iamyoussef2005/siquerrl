@@ -95,7 +95,7 @@ export function CallCenterHeader({
                 }`}
               >
                 <FileText className="w-3.5 h-3.5 text-orange-600" />
-                <span>جدول الطلبات ({ordersCountToday})</span>
+                <span>سجل الطلبات ({ordersCountToday})</span>
               </button>
             </div>
           )}

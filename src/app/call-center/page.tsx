@@ -240,7 +240,7 @@ export default function CallCenterPage() {
                 className="flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-white/95 hover:bg-orange-50/80 border border-orange-200/80 hover:border-orange-300 text-xs font-bold text-zinc-800 transition-all shadow-2xs cursor-pointer group active:scale-95"
               >
                 <Layers className="w-4 h-4 text-orange-600 group-hover:scale-110 transition-transform" />
-                <span>جدول طلبات اليوم والتفاصيل</span>
+                <span>سجل وبطاقات طلبات اليوم</span>
                 <span className="bg-orange-100/90 border border-orange-300 text-orange-900 text-[10px] font-mono font-bold px-2 py-0.5 rounded-full mr-1">
                   {totalCount} طلبات
                 </span>
@@ -251,9 +251,9 @@ export default function CallCenterPage() {
             <NewOrderForm onOrderCreated={handleOrderCreated} drivers={drivers} />
           </div>
 
-          {/* 2. واجهة جدول متابعة طلبات اليوم والتفاصيل */}
+          {/* 2. واجهة متابعة طلبات اليوم والتفاصيل */}
           <div className={activeView === 'table' ? 'space-y-6 animate-fadeIn' : 'hidden'}>
-            {/* شريط رأس جدول الطلبات وزر العودة لتسجيل طلب */}
+            {/* شريط رأس متابعة الطلبات وزر العودة لتسجيل طلب */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-gradient-to-r from-orange-100/70 via-amber-50/50 to-orange-50/30 border border-orange-200/80 rounded-2xl p-3.5 px-4 sm:px-5 shadow-sm shadow-orange-950/5">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 rounded-xl bg-orange-500 text-white shadow-xs">
@@ -262,7 +262,7 @@ export default function CallCenterPage() {
                 <div>
                   <div className="flex items-center gap-2">
                     <h2 className="text-sm sm:text-base font-bold text-zinc-900">
-                      جدول ومتابعة طلبات اليوم
+                      متابعة وسجل طلبات اليوم
                     </h2>
                     <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-orange-100/80 text-orange-900 border border-orange-300 font-mono font-bold shadow-2xs">
                       {totalCount} إجمالي اليوم
