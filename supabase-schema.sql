@@ -125,29 +125,62 @@ CREATE POLICY "الكول سنتر يعدل بيانات الطلب"
   USING (public.get_current_role() = 'call_center')
   WITH CHECK (public.get_current_role() = 'call_center');
 
--- دالة ومحفز للتحقق من تعديلات الكول سنتر (يمنع تعديل الحالة، المندوب، أو أي من المبالغ المالية نهائياً)
+-- دالة ومحفز للتحقق من تعديلات الكول سنتر (يسمح بتعديل أجرة التوصيل وإسناد المندوب وتحديث الحالة إلى assigned/pending، ويمنع تعديل سعر الأغراض)
 CREATE OR REPLACE FUNCTION public.validate_call_center_order_update()
 RETURNS trigger
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = 'public', 'pg_temp'
 AS $$
+DECLARE
+  v_commission numeric;
 BEGIN
-  IF public.get_current_role() = 'call_center' THEN
-    IF NEW.status IS DISTINCT FROM OLD.status THEN
+  IF public.get_my_role() = 'call_center' THEN
+    -- منع تعديل سعر الأغراض من الكول سنتر (محصور بالمندوب والإدارة)
+    IF NEW.items_price IS DISTINCT FROM OLD.items_price THEN
+      RAISE EXCEPTION 'غير مصرح لموظف الكول سنتر بتحديد أو تعديل سعر الأغراض؛ الصلاحية محصورة بالمندوب الميداني والإدارة.';
+    END IF;
+
+    -- إذا تم إسناد مندوب أو تغييره
+    IF NEW.driver_id IS NOT NULL THEN
+      -- إذا كان الطلب بانتظار الإسناد وأُسند لمندوب، يتم تحديث الحالة إلى 'assigned'
+      IF OLD.status = 'pending' THEN
+        NEW.status := 'assigned';
+      END IF;
+    ELSE
+      -- إذا تم إلغاء إسناد المندوب وكان الطلب 'assigned'، يعود إلى 'pending'
+      IF OLD.status = 'assigned' THEN
+        NEW.status := 'pending';
+      END IF;
+    END IF;
+
+    -- منع الكول سنتر من تغيير الحالة يدوياً لحالات غير مسموحة (مثل delivering, delivered, cancelled)
+    IF NEW.status IS DISTINCT FROM OLD.status AND NEW.status NOT IN ('pending', 'assigned') THEN
       RAISE EXCEPTION 'غير مصرح لموظف الكول سنتر بتغيير حالة الطلب؛ الصلاحية محصورة بالمندوب وإدارة العمليات.';
     END IF;
-    IF NEW.driver_id IS DISTINCT FROM OLD.driver_id THEN
-      RAISE EXCEPTION 'غير مصرح لموظف الكول سنتر بإسناد أو تغيير المندوب؛ الصلاحية محصورة بإدارة العمليات.';
-    END IF;
-    IF NEW.delivery_fee IS DISTINCT FROM OLD.delivery_fee OR
-       NEW.items_price IS DISTINCT FROM OLD.items_price OR
-       NEW.collection_amount IS DISTINCT FROM OLD.collection_amount OR
-       NEW.driver_fee IS DISTINCT FROM OLD.driver_fee OR
-       NEW.office_fee IS DISTINCT FROM OLD.office_fee THEN
-      RAISE EXCEPTION 'الكول سنتر ليس له علاقة بالمبالغ المالية نهائياً؛ الصلاحية محصورة بالمدير (أجرة التوصيل) والمندوب (سعر الأغراض).';
+
+    -- الكول سنتر يمكنه تعديل أجرة التوصيل. الحفاظ على سعر الأغراض وإعادة احتساب الإجمالي
+    NEW.delivery_fee := COALESCE(NEW.delivery_fee, OLD.delivery_fee, 0);
+    NEW.items_price := OLD.items_price;
+    NEW.collection_amount := NEW.items_price + NEW.delivery_fee;
+
+    -- حساب حصة السائق والمكتب إذا تم إسناد مندوب
+    IF NEW.driver_id IS NOT NULL THEN
+      SELECT commission_percentage INTO v_commission
+      FROM public.profiles
+      WHERE id = NEW.driver_id;
+
+      v_commission := COALESCE(v_commission, 70);
+      NEW.driver_fee := ROUND(NEW.delivery_fee * (v_commission / 100.0), 2);
+      NEW.office_fee := NEW.delivery_fee - NEW.driver_fee;
+      NEW.assigned_at := COALESCE(NEW.assigned_at, now());
+    ELSE
+      NEW.driver_fee := 0;
+      NEW.office_fee := 0;
+      NEW.assigned_at := NULL;
     END IF;
   END IF;
+
   RETURN NEW;
 END;
 $$;
@@ -212,7 +245,7 @@ CREATE TRIGGER tr_validate_driver_update
   FOR EACH ROW
   EXECUTE FUNCTION public.validate_driver_order_update();
 
--- محفز تطبيق القيم الافتراضية واحتساب الإجمالي عند إنشاء طلب جديد (حصر الإنشاء بالكول سنتر ومنع المدير)
+-- محفز تطبيق القيم الافتراضية واحتساب الإجمالي عند إنشاء طلب جديد (يسمح بإسناد المندوب وحساب العمولات للكول سنتر والمدير)
 CREATE OR REPLACE FUNCTION public.enforce_order_insert_defaults()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -221,27 +254,65 @@ SET search_path = 'public', 'pg_temp'
 AS $$
 DECLARE
   v_role text;
+  v_commission numeric;
 BEGIN
   v_role := public.get_my_role();
 
   IF v_role = 'admin' THEN
-    RAISE EXCEPTION 'غير مصرح للمدير بتسجيل طلب جديد؛ تسجيل الطلبات محصور بموظفي الكول سنتر فقط. دور المدير هو إسناد المندوب وتحديد أجرة التوصيل.';
-  END IF;
+    NEW.items_price := COALESCE(NEW.items_price, 0);
+    NEW.delivery_fee := COALESCE(NEW.delivery_fee, 0);
+    NEW.collection_amount := NEW.items_price + NEW.delivery_fee;
+    NEW.status := COALESCE(NEW.status, 'pending');
 
-  IF v_role = 'call_center' THEN
+    IF NEW.driver_id IS NOT NULL THEN
+      SELECT commission_percentage INTO v_commission
+      FROM public.profiles
+      WHERE id = NEW.driver_id;
+
+      v_commission := COALESCE(v_commission, 70);
+      NEW.driver_fee := ROUND(NEW.delivery_fee * (v_commission / 100.0), 2);
+      NEW.office_fee := NEW.delivery_fee - NEW.driver_fee;
+      NEW.assigned_at := COALESCE(NEW.assigned_at, now());
+      NEW.status := 'assigned';
+    ELSE
+      NEW.driver_fee := 0;
+      NEW.office_fee := 0;
+      NEW.assigned_at := NULL;
+    END IF;
+
+  ELSIF v_role = 'call_center' THEN
+    NEW.delivery_fee := COALESCE(NEW.delivery_fee, 0);
+    NEW.items_price := 0;
+    NEW.collection_amount := NEW.delivery_fee;
+
+    -- الكول سنتر يمكنه إسناد مندوب عند إنشاء الطلب
+    IF NEW.driver_id IS NOT NULL THEN
+      NEW.status := 'assigned';
+      SELECT commission_percentage INTO v_commission
+      FROM public.profiles
+      WHERE id = NEW.driver_id;
+
+      v_commission := COALESCE(v_commission, 70);
+      NEW.driver_fee := ROUND(NEW.delivery_fee * (v_commission / 100.0), 2);
+      NEW.office_fee := NEW.delivery_fee - NEW.driver_fee;
+      NEW.assigned_at := COALESCE(NEW.assigned_at, now());
+    ELSE
+      NEW.status := 'pending';
+      NEW.driver_id := NULL;
+      NEW.driver_fee := 0;
+      NEW.office_fee := 0;
+      NEW.assigned_at := NULL;
+    END IF;
+
+  ELSE
     NEW.status := 'pending';
     NEW.driver_id := NULL;
-    NEW.delivery_fee := 0;
     NEW.items_price := 0;
-    NEW.collection_amount := 0;
+    NEW.delivery_fee := COALESCE(NEW.delivery_fee, 0);
+    NEW.collection_amount := NEW.delivery_fee;
     NEW.driver_fee := 0;
     NEW.office_fee := 0;
-  ELSE
-    NEW.items_price := 0;
-    NEW.delivery_fee := 0;
-    NEW.collection_amount := 0;
-    NEW.driver_fee := 0;
-    NEW.office_fee := 0;
+    NEW.assigned_at := NULL;
   END IF;
 
   RETURN NEW;
