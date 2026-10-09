@@ -220,7 +220,8 @@ export function EditOrderModal({
   // Reset to driver commission split based on assigned driver percentage
   const resetToDefaultSplit = () => {
     const dFee = parseFloat(deliveryFee) || 0;
-    const assignedDriver = drivers?.find((d) => d.id === order.driver_id);
+    const currentDriverId = selectedDriverId || order.driver_id;
+    const assignedDriver = drivers?.find((d) => d.id === currentDriverId);
     const rate = assignedDriver?.commission_percentage ?? 70;
     const drShare = Math.round((dFee * rate) / 100);
     const offShare = Math.max(0, dFee - drShare);
@@ -241,15 +242,23 @@ export function EditOrderModal({
 
     const parsedDelivery = parseFloat(deliveryFee) || 0;
     const parsedItems = isAdmin ? (parseFloat(itemsPrice) || 0) : (Number(order.items_price) || 0);
-    const assignedDriverId = isAdmin ? (selectedDriverId || null) : order.driver_id;
+    const assignedDriverId = selectedDriverId || null;
     const assignedDriver = drivers?.find((d) => d.id === assignedDriverId);
     const rate = assignedDriver?.commission_percentage ?? 70;
     const calculatedDriverShare = Math.round((parsedDelivery * rate) / 100);
     const calculatedOfficeShare = Math.max(0, parsedDelivery - calculatedDriverShare);
     const totalCollection = parsedItems + parsedDelivery;
 
-    // Call Center can edit delivery_fee (and customer details/address/order_details).
-    // Admin can edit everything: delivery_fee, items_price, driver_id, status.
+    // Call Center can edit delivery_fee, assign driver (status changes to 'assigned'), customer details & addresses
+    // Admin can edit everything including items_price, any status, etc.
+    const newStatus: OrderStatus = isAdmin
+      ? selectedStatus
+      : (assignedDriverId && order.status === 'pending'
+          ? 'assigned'
+          : (!assignedDriverId && order.status === 'assigned'
+              ? 'pending'
+              : order.status));
+
     const updatedPayload: Partial<Order> = {
       customer_name: cleanCustomerName,
       customer_phone: cleanCustomerPhone,
@@ -261,16 +270,12 @@ export function EditOrderModal({
       collection_amount: totalCollection,
       driver_fee: assignedDriver ? calculatedDriverShare : 0,
       office_fee: assignedDriver ? calculatedOfficeShare : 0,
-      ...(isAdmin
-        ? {
-            items_price: parsedItems,
-            driver_id: assignedDriverId,
-            status: selectedStatus,
-            ...(assignedDriverId !== order.driver_id
-              ? { assigned_at: assignedDriverId ? new Date().toISOString() : null }
-              : {}),
-          }
+      driver_id: assignedDriverId,
+      status: newStatus,
+      ...(assignedDriverId !== order.driver_id
+        ? { assigned_at: assignedDriverId ? new Date().toISOString() : null }
         : {}),
+      ...(isAdmin ? { items_price: parsedItems } : {}),
     };
 
     try {
@@ -310,8 +315,8 @@ export function EditOrderModal({
         }
       }
 
-      // Notify driver if assigned/changed by admin
-      if (isAdmin && assignedDriverId && order.id && assignedDriverId !== order.driver_id) {
+      // Notify driver if assigned/changed (Admin or Call Center)
+      if (assignedDriverId && order.id && assignedDriverId !== order.driver_id) {
         notifyDriverAssignment(order.id, assignedDriverId);
       }
 
@@ -616,15 +621,15 @@ export function EditOrderModal({
                   <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100">
                     <DollarSign className="w-3.5 h-3.5" />
                   </div>
-                  أجرة التوصيل (صلاحية الكول سنتر)
+                  أجرة التوصيل وإسناد المندوب (صلاحية الكول سنتر)
                 </span>
                 <span className="text-[11px] text-zinc-500">
-                  الكول سنتر يحدد أجرة التوصيل فقط • المندوب يسجل سعر الأغراض
+                  يمكن للكول سنتر تعديل أجرة التوصيل وإسناد المندوب • المندوب يسجل سعر الأغراض
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {/* أجرة التوصيل (قابلة للتعديل للكول سنتر) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                {/* 1. أجرة التوصيل (قابلة للتعديل للكول سنتر) */}
                 <div>
                   <label className="block text-[11px] font-bold text-slate-900 mb-1 flex items-center justify-between">
                     <span>أجرة التوصيل (ل.س)</span>
@@ -635,14 +640,73 @@ export function EditOrderModal({
                       type="number"
                       step="any"
                       value={deliveryFee}
-                      onChange={(e) => setDeliveryFee(e.target.value)}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setDeliveryFee(val);
+                        const parsed = parseFloat(val) || 0;
+                        const assignedDriver = drivers?.find((d) => d.id === selectedDriverId);
+                        const rate = assignedDriver?.commission_percentage ?? 70;
+                        const dr = Math.round((parsed * rate) / 100);
+                        setDriverFee(dr.toString());
+                        setOfficeFee(Math.max(0, parsed - dr).toString());
+                      }}
                       className="w-full bg-white border-2 border-emerald-400 focus:border-emerald-500 rounded-xl p-2 pl-9 text-xs text-slate-900 font-mono font-bold focus:outline-hidden shadow-2xs"
                     />
                     <span className="text-[10px] text-slate-500 absolute left-2.5 top-2.5 pointer-events-none">ل.س</span>
                   </div>
                 </div>
 
-                {/* سعر الأغراض (عرض فقط للكول سنتر) */}
+                {/* 2. إسناد المندوب للكول سنتر */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-[11px] font-bold text-blue-950 flex items-center gap-1.5">
+                      <span>إسناد المندوب</span>
+                      {selectedDriverId && (
+                        isDriverOnline?.(selectedDriverId) ? (
+                          <span className="text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded font-bold border border-emerald-200 flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            متصل الآن
+                          </span>
+                        ) : (
+                          <span className="text-[9px] text-slate-500 bg-slate-100 px-1.5 py-0.2 rounded font-mono">
+                            {formatLastSeen?.(
+                              drivers?.find((d) => d.id === selectedDriverId)?.last_seen_at,
+                              false
+                            ) || 'غير متصل'}
+                          </span>
+                        )
+                      )}
+                    </label>
+                    <span className="text-[9px] text-blue-700 bg-blue-100 px-1.5 py-0.2 rounded font-bold">اختياري</span>
+                  </div>
+                  <select
+                    value={selectedDriverId}
+                    onChange={(e) => {
+                      const newDriverId = e.target.value;
+                      setSelectedDriverId(newDriverId);
+                      const parsed = parseFloat(deliveryFee) || 0;
+                      const assignedDriver = drivers?.find((d) => d.id === newDriverId);
+                      const rate = assignedDriver?.commission_percentage ?? 70;
+                      const dr = Math.round((parsed * rate) / 100);
+                      setDriverFee(dr.toString());
+                      setOfficeFee(Math.max(0, parsed - dr).toString());
+                    }}
+                    className="w-full bg-white border-2 border-blue-300 hover:border-blue-400 focus:border-blue-500 rounded-xl p-2 text-xs text-slate-900 font-semibold focus:outline-hidden cursor-pointer"
+                  >
+                    <option value="">-- بدون إسناد (بانتظار الإسناد) --</option>
+                    {sortedDriversList.map((d) => {
+                      const isOnline = isDriverOnline ? isDriverOnline(d.id) : false;
+                      const lastSeen = formatLastSeen ? formatLastSeen(d.last_seen_at, isOnline) : '';
+                      return (
+                        <option key={d.id} value={d.id}>
+                          {isOnline ? '🟢' : '⚪'} {d.name} {isOnline ? '(متصل)' : `(${lastSeen})`} - عمولة {d.commission_percentage ?? 70}%
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+
+                {/* 3. سعر الأغراض (عرض فقط للكول سنتر) */}
                 <div>
                   <label className="block text-[11px] font-bold text-amber-900 mb-1 flex items-center justify-between">
                     <span>سعر الأغراض (المندوب)</span>
@@ -656,7 +720,7 @@ export function EditOrderModal({
                   </div>
                 </div>
 
-                {/* إجمالي التحصيل */}
+                {/* 4. إجمالي التحصيل */}
                 <div>
                   <label className="block text-[11px] font-bold text-emerald-900 mb-1 flex items-center justify-between">
                     <span>إجمالي التحصيل المحسوب</span>
@@ -668,6 +732,25 @@ export function EditOrderModal({
                   </div>
                 </div>
               </div>
+
+              {/* بطاقة ملخص المبالغ والعمولات للكول سنتر */}
+              {parseFloat(deliveryFee) > 0 && selectedDriverId && (
+                <div className="p-3 rounded-xl bg-emerald-50/70 border border-emerald-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-mono shadow-2xs">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-emerald-900">توزيع الأجرة عند الإسناد:</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-slate-600">
+                      سائق ({drivers?.find((d) => d.id === selectedDriverId)?.commission_percentage ?? 70}%):{' '}
+                      <strong className="text-slate-900 font-bold">{formatCurrency(parseFloat(driverFee) || 0)} ل.س</strong>
+                    </span>
+                    <span className="text-emerald-700">
+                      مكتب ({100 - (drivers?.find((d) => d.id === selectedDriverId)?.commission_percentage ?? 70)}%):{' '}
+                      <strong className="text-emerald-800 font-bold">{formatCurrency(parseFloat(officeFee) || 0)} ل.س</strong>
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             /* واجهة المدير: تعديل كامل للمبالغ والطلب والمندوب والحالة */

@@ -453,7 +453,7 @@ export function TodayOrdersTable({
                             </span>
                           ) : (
                             <span className="text-[11px] text-slate-500 italic font-medium">
-                              بانتظار إسناد الإدارة
+                              بانتظار الإسناد
                             </span>
                           )}
                         </div>
@@ -480,7 +480,7 @@ export function TodayOrdersTable({
                                 <span className="text-[9px] text-orange-800 mr-0.5 font-bold">ل.س</span>
                               </span>
                             ) : (
-                              <span className="text-[9.5px] text-zinc-400 italic mt-0.5">بانتظار المدير</span>
+                              <span className="text-[9.5px] text-zinc-400 italic mt-0.5">لم تحدد بعد</span>
                             )}
                           </div>
 
@@ -620,7 +620,7 @@ export function TodayOrdersTable({
                               {formatCurrency(Number(order.delivery_fee))} <span className="text-[10px] text-orange-700">ل.س</span>
                             </span>
                           ) : (
-                            <span className="text-[10px] text-zinc-400 italic">بانتظار المدير</span>
+                            <span className="text-[10px] text-zinc-400 italic">لم تحدد بعد</span>
                           )}
                         </td>
 
@@ -637,7 +637,7 @@ export function TodayOrdersTable({
                             </div>
                           ) : (
                             <span className="text-[11px] text-slate-400 italic">
-                              بانتظار إسناد الإدارة
+                              بانتظار الإسناد
                             </span>
                           )}
                         </td>
