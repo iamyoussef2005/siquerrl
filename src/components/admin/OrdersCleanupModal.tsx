@@ -25,7 +25,7 @@ interface OrdersCleanupModalProps {
   onOrdersCleaned: () => void;
 }
 
-export type CleanupRange = '30days' | '60days' | '90days' | 'custom' | 'all_completed';
+export type CleanupRange = '30days' | '60days' | '90days' | 'custom' | 'all_completed' | 'all_orders';
 
 export function OrdersCleanupModal({
   isOpen,
@@ -40,6 +40,7 @@ export function OrdersCleanupModal({
     return d.toISOString().split('T')[0];
   });
   const [onlyCompleted, setOnlyCompleted] = useState(true);
+  const [resetSequence, setResetSequence] = useState(true);
   const [confirmText, setConfirmText] = useState('');
   const [isConfirmedCheckbox, setIsConfirmedCheckbox] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -60,12 +61,20 @@ export function OrdersCleanupModal({
     } else if (range === 'custom') {
       return customDate ? new Date(customDate + 'T23:59:59') : now;
     }
-    return null; // all_completed
+    return null; // all_completed or all_orders
   }, [range, customDate]);
 
   // Target orders to be deleted
   const targetOrders = useMemo(() => {
     return orders.filter((o) => {
+      // تفريغ شامل لجميع الطلبات
+      if (range === 'all_orders') {
+        if (onlyCompleted) {
+          return o.status === 'delivered' || o.status === 'cancelled';
+        }
+        return true;
+      }
+
       // Status filter
       if (onlyCompleted) {
         if (o.status !== 'delivered' && o.status !== 'cancelled') {
@@ -83,7 +92,7 @@ export function OrdersCleanupModal({
 
       return true;
     });
-  }, [orders, cutoffDate, onlyCompleted]);
+  }, [orders, cutoffDate, onlyCompleted, range]);
 
   if (!isOpen) return null;
 
@@ -174,9 +183,24 @@ export function OrdersCleanupModal({
         if (error) throw error;
       }
 
+      // إعادة تصفير عدّاد الترقيم لـ 1 في حال تفريغ السجل
+      let sequenceResetTo1 = false;
+      if (resetSequence) {
+        try {
+          const { data: rpcRes, error: rpcErr } = await supabase.rpc('reset_orders_sequence');
+          if (!rpcErr && rpcRes && (rpcRes as any).is_empty) {
+            sequenceResetTo1 = true;
+          }
+        } catch (e) {
+          console.warn('Reset sequence RPC warning:', e);
+        }
+      }
+
       setFeedback({
         type: 'success',
-        text: `تم حذف وتفريغ ${idsToDelete.length} طلباً بنجاح وتخفيف حجم قاعدة البيانات ✨`,
+        text: sequenceResetTo1
+          ? `تم تفريغ وحذف ${idsToDelete.length} طلباً بنجاح، وتصفير عدّاد الترقيم لتبدأ الطلبات الجديدة من رقم 1 (#1) ✨`
+          : `تم حذف وتفريغ ${idsToDelete.length} طلباً بنجاح وتخفيف حجم قاعدة البيانات ✨`,
       });
 
       onOrdersCleaned();
@@ -189,6 +213,28 @@ export function OrdersCleanupModal({
       setFeedback({
         type: 'error',
         text: `حدث خطأ أثناء حذف الطلبات: ${err.message || 'يرجى المحاولة مجدداً'}`,
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  // تصفير الترقيم يدوياً للبدء من 1
+  const handleResetSequenceOnly = async () => {
+    setIsDeleting(true);
+    setFeedback(null);
+    try {
+      const { data: rpcRes, error: rpcErr } = await supabase.rpc('reset_orders_sequence');
+      if (rpcErr) throw rpcErr;
+      setFeedback({
+        type: 'success',
+        text: 'تمت إعادة ضبط عدّاد ترقيم الطلبات بنجاح، وسيبدأ الطلب القادم من رقم #1 ✨',
+      });
+      onOrdersCleaned();
+    } catch (err: any) {
+      setFeedback({
+        type: 'error',
+        text: `تعذر تصفير الترقيم: ${err.message || 'يرجى المحاولة مجدداً'}`,
       });
     } finally {
       setIsDeleting(false);
@@ -248,6 +294,24 @@ export function OrdersCleanupModal({
             </div>
           </div>
 
+          {/* في حال كان السجل فارغاً بالفعل */}
+          {orders.length === 0 && (
+            <div className="bg-emerald-50 border-2 border-emerald-300 rounded-xl p-3.5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-emerald-950 shadow-2xs">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>سجل الطلبات فارغ حالياً! يمكنك تصفير العداد الآن للبدء من رقم <strong>#1</strong>.</span>
+              </div>
+              <button
+                type="button"
+                onClick={handleResetSequenceOnly}
+                disabled={isDeleting}
+                className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition-all shadow-2xs cursor-pointer shrink-0 disabled:opacity-50"
+              >
+                تصفير الترقيم الآن لـ #1
+              </button>
+            </div>
+          )}
+
           {/* رسائل التغذية الراجعة */}
           {feedback && (
             <div
@@ -273,7 +337,7 @@ export function OrdersCleanupModal({
               <span>تحديد النطاق الزمني للطلبات المراد حذفها:</span>
             </label>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
               <button
                 type="button"
                 onClick={() => setRange('30days')}
@@ -283,7 +347,7 @@ export function OrdersCleanupModal({
                     : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50'
                 }`}
               >
-                الأقدم من 30 يوماً
+                الأقدم من شهر
               </button>
               <button
                 type="button"
@@ -318,6 +382,17 @@ export function OrdersCleanupModal({
               >
                 تاريخ مخصص
               </button>
+              <button
+                type="button"
+                onClick={() => setRange('all_orders')}
+                className={`p-2.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer text-center col-span-2 sm:col-span-1 ${
+                  range === 'all_orders'
+                    ? 'bg-rose-600 border-rose-600 text-white shadow-xs'
+                    : 'bg-rose-50/70 border-rose-200 text-rose-800 hover:border-rose-300 hover:bg-rose-100/70'
+                }`}
+              >
+                تفريغ شامل للكل
+              </button>
             </div>
 
             {range === 'custom' && (
@@ -349,6 +424,27 @@ export function OrdersCleanupModal({
             </label>
             <p className="text-[11px] text-slate-500 pr-6">
               يضمن هذا الخيار عدم حذف أي طلب قيد الانتظار أو قيد التوصيل لم ينتهِ بعد.
+            </p>
+          </div>
+
+          {/* خيار تصفير الترقيم والبدء من 1 */}
+          <div className="bg-gradient-to-r from-orange-50 via-amber-50 to-orange-50/70 border border-orange-300 rounded-xl p-3.5 space-y-1.5 shadow-2xs">
+            <label className="flex items-center gap-2.5 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={resetSequence}
+                onChange={(e) => setResetSequence(e.target.checked)}
+                className="w-4 h-4 rounded border-orange-300 text-orange-600 focus:ring-orange-500/20 bg-white"
+              />
+              <span className="text-xs font-bold text-orange-950 flex items-center gap-2">
+                <span>إعادة تصفير ترقيم الطلبات لتبدأ من رقم 1</span>
+                <span className="text-[10px] bg-orange-200/90 text-orange-900 border border-orange-300 px-2 py-0.5 rounded-full font-mono font-bold">
+                  يبدأ الطلب القادم بـ #1
+                </span>
+              </span>
+            </label>
+            <p className="text-[11px] text-orange-900/80 pr-6 leading-relaxed">
+              عند تفريغ السجل بالكامل، سيعود عداد الترقيم تلقائياً إلى البداية بحيث يبدأ أول طلب جديد يُسجل في النظام من الرقم <strong>#1</strong> (مع الحفاظ الكامل على كافة بيانات الزبائن وعناوينهم السابقة في النظام دون أي مساس بها).
             </p>
           </div>
 

@@ -405,3 +405,53 @@ DROP POLICY IF EXISTS "Allow admin to delete customer addresses" ON public.custo
 CREATE POLICY "Allow admin to delete customer addresses" ON public.customer_addresses
   FOR DELETE TO authenticated
   USING (public.get_my_role() = 'admin');
+
+-- 5. دوال ومحفزات إعادة تصفير تسلسل ترقيم الطلبات (Reset Order IDs Sequence)
+CREATE OR REPLACE FUNCTION public.reset_orders_sequence()
+RETURNS jsonb
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = 'public', 'pg_temp'
+AS $$
+DECLARE
+  v_role text;
+  v_count integer;
+  v_max_id bigint;
+BEGIN
+  v_role := public.get_my_role();
+  IF v_role <> 'admin' THEN
+    RAISE EXCEPTION 'غير مصرح؛ إعادة تعيين ترقيم الطلبات محصورة بالمدير فقط.';
+  END IF;
+
+  SELECT count(*), COALESCE(max(id), 0) INTO v_count, v_max_id FROM public.orders;
+
+  IF v_count = 0 THEN
+    PERFORM setval('public.orders_id_seq', 1, false);
+    RETURN jsonb_build_object('success', true, 'next_id', 1, 'is_empty', true);
+  ELSE
+    PERFORM setval('public.orders_id_seq', v_max_id, true);
+    RETURN jsonb_build_object('success', true, 'next_id', v_max_id + 1, 'is_empty', false);
+  END IF;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.check_and_reset_orders_sequence()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = 'public', 'pg_temp'
+AS $$
+BEGIN
+  IF (SELECT count(*) FROM public.orders) = 0 THEN
+    PERFORM setval('public.orders_id_seq', 1, false);
+  END IF;
+  RETURN NULL;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS tr_reset_orders_seq_on_empty ON public.orders;
+CREATE TRIGGER tr_reset_orders_seq_on_empty
+  AFTER DELETE ON public.orders
+  FOR EACH STATEMENT
+  EXECUTE FUNCTION public.check_and_reset_orders_sequence();
+
